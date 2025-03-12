@@ -16,7 +16,9 @@ const HeroSection = () => {
                 alt="Professional using AI assistant for onboarding" 
                 className="rounded-lg object-cover w-full h-full shadow-lg"
               />
-              
+          
+            </div>
+          </div>   
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6 animate-fade-in">
             <span className="block text-sagebright-green">Your AI Mentor</span>
             <span className="block text-sagebright-gold">for New Hires</span>
