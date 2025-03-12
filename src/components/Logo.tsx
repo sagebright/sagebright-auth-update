@@ -37,7 +37,7 @@ const Logo = ({ variant = 'full', className = '' }: LogoProps) => {
       <img 
         src="/lovable-uploads/sb_logo_type.png" 
         alt="sagebright.ai" 
-        className="h-8 w-auto"
+        className="h-16 w-auto"
       />
     </div>
   );
