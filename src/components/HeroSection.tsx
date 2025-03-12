@@ -16,14 +16,7 @@ const HeroSection = () => {
                 alt="Professional using AI assistant for onboarding" 
                 className="rounded-lg object-cover w-full h-full shadow-lg"
               />
-              <div className="absolute inset-0 bg-gradient-to-r from-sagebright-green/30 to-sagebright-gold/30 rounded-lg"></div>
-              <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-sagebright-green rounded-full flex items-center justify-center shadow-lg">
-                <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center">
-                  <Logo variant="icon" className="h-12 w-auto" />
-                </div>
-              </div>
-            </div>
-          </div>
+              
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6 animate-fade-in">
             <span className="block text-sagebright-green">Your AI Mentor</span>
             <span className="block text-sagebright-gold">for New Hires</span>
