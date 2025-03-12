@@ -53,7 +53,7 @@ const HowSection = () => {
                   {step.icon}
                 </div>
                 <h3 className="text-xl font-semibold mb-3 text-center">{step.title}</h3>
-                <p className="text-gray-600 text-center flex-grow">{step.description}</p>
+                <p className="text-gray-600 text-center flex-grow mb-6">{step.description}</p>
                 <div className="hidden lg:flex justify-center mt-auto">
                   <span className="w-8 h-8 rounded-full bg-sagebright-green text-white flex items-center justify-center font-semibold">
                     {index + 1}
@@ -67,5 +67,6 @@ const HowSection = () => {
     </section>
   );
 };
+
 
 export default HowSection;
