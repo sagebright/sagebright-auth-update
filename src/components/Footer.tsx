@@ -47,7 +47,7 @@ const Footer = () => {
               <a href="#how" className="text-gray-600 hover:text-sagebright-green">How {" "}<span className="text-sagebright-green">sage</span>
             <span className="text-sagebright-gold">bright</span> {" "} Works</a>
               <a href="#who" className="text-gray-600 hover:text-sagebright-green">Who We Help</a>
-              <a href="#waitlist" className="text-gray-600 hover:text-sagebright-green">Join Beta</a>
+              // <a href="#waitlist" className="text-gray-600 hover:text-sagebright-green">Join Beta</a>
             </nav>
           </div>
         </div>
