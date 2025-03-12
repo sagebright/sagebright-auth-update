@@ -15,8 +15,9 @@ const Footer = () => {
             <p className="text-gray-500 mt-2">Reimagine employee onboarding with AI</p>
           </div>
 
-          {/*
+          
          <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-8">
+          {/*
            <div className="flex space-x-4">
              <a 
                 href="https://linkedin.com" 
