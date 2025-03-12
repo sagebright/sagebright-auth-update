@@ -6,23 +6,23 @@ const WhySection = () => {
   const problems = [
     {
       icon: <Clock className="h-10 w-10 text-sagebright-gold" />,
-      title: "Time-Consuming",
-      description: "HR teams spend 50+ hours per month creating and updating onboarding materials that quickly become outdated."
+      title: "Time-Consuming Processes",
+      description: "HR teams struggle to provide personalized support at scale."
     },
     {
       icon: <AlertTriangle className="h-10 w-10 text-sagebright-gold" />,
       title: "Inconsistent Experiences",
-      description: "New hires receive widely varying onboarding experiences depending on their manager and team."
+      description: "Managers don’t have the bandwidth to guide every new hire effectively."
     },
     {
       icon: <DollarSign className="h-10 w-10 text-sagebright-gold" />,
       title: "Costly Mistakes",
-      description: "Poor onboarding leads to 20% higher turnover and significantly reduces new hire productivity."
+      description: "Poor onboarding leads to higher turnover and significantly reduces new hire productivity."
     },
     {
       icon: <Frown className="h-10 w-10 text-sagebright-gold" />,
       title: "Information Overload",
-      description: "New employees are overwhelmed with documentation and meetings while still missing critical information."
+      description: "Employees feel lost in a sea of information."
     }
   ];
 
@@ -32,7 +32,7 @@ const WhySection = () => {
         <div className="max-w-3xl mx-auto text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-6">Why Traditional Onboarding Is Broken</h2>
           <p className="text-xl text-gray-600">
-            Companies struggle with onboarding that's manual, disjointed, and fails to provide new hires with what they actually need.
+            Companies struggle with onboarding that's manual, disjointed, and fails to provide new hires with what they need when they need it.
           </p>
         </div>
 
