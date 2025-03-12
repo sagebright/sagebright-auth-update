@@ -23,7 +23,7 @@ const Logo = ({ variant = 'full', className = '' }: LogoProps) => {
     return (
       <div className={`flex items-center ${className}`}>
         <img 
-          src="/lovable-uploads/0de00a6e-8519-425e-8010-e81961d3a76a.png" 
+          src="/lovable-uploads/sb_logo_type.png" 
           alt="sagebright.ai" 
           className="h-6 w-auto"
         />
