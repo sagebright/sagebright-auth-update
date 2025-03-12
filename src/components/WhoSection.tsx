@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { TrendingUp, Network, GraduationCap } from 'lucide-react';
+import { TrendingUp, Network, GraduationCap, Users as UsersIcon } from 'lucide-react';
 
 const WhoSection = () => {
   const audiences = [
@@ -10,7 +10,7 @@ const WhoSection = () => {
       description: "Onboard new hires without slowing down"
     },
     {
-      icon: <Users className="h-16 w-16 text-sagebright-green" />,
+      icon: <UsersIcon className="h-16 w-16 text-sagebright-green" />,
       title: "People-First Companies",
       description: "Build stronger engagement from day one"
     },
