@@ -1,12 +1,44 @@
 
 import React from 'react';
 
-const Logo = () => {
+interface LogoProps {
+  variant?: 'full' | 'icon' | 'text';
+  className?: string;
+}
+
+const Logo = ({ variant = 'full', className = '' }: LogoProps) => {
+  if (variant === 'icon') {
+    return (
+      <div className={`flex items-center ${className}`}>
+        <img 
+          src="/lovable-uploads/c599e6c7-11bf-4638-9bec-8a501c933034.png" 
+          alt="sagebright.ai logo" 
+          className="h-8 w-auto"
+        />
+      </div>
+    );
+  }
+  
+  if (variant === 'text') {
+    return (
+      <div className={`flex items-center ${className}`}>
+        <img 
+          src="/lovable-uploads/0de00a6e-8519-425e-8010-e81961d3a76a.png" 
+          alt="sagebright.ai" 
+          className="h-6 w-auto"
+        />
+      </div>
+    );
+  }
+  
+  // Default is full logo (icon + text)
   return (
-    <div className="flex items-center gap-2">
-      <span className="text-2xl font-bold bg-gradient-to-r from-sagebright-gold to-sagebright-green text-transparent bg-clip-text">
-        sagebright.ai
-      </span>
+    <div className={`flex items-center ${className}`}>
+      <img 
+        src="/lovable-uploads/9c5a4498-dc40-4128-a24d-b4f4737493cf.png" 
+        alt="sagebright.ai" 
+        className="h-8 w-auto"
+      />
     </div>
   );
 };

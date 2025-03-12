@@ -2,14 +2,18 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
+import Logo from './Logo';
 
 const HeroSection = () => {
   return (
     <section className="pt-32 pb-20 overflow-hidden" id="hero">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto text-center">
+          <div className="flex justify-center mb-6 animate-fade-in">
+            <Logo variant="icon" className="h-24 w-auto" />
+          </div>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6 animate-fade-in">
-            Reimagine Employee <span className="bg-gradient-to-r from-sagebright-gold to-sagebright-green text-transparent bg-clip-text">Onboarding</span>
+            Reimagine Employee <span className="text-sagebright-green">Onboarding</span>
           </h1>
           <p className="text-xl text-gray-600 mb-8 animate-fade-in [animation-delay:200ms] opacity-0">
             AI-powered onboarding that saves time and improves new hire experiences. Elevate your company's first impression.
