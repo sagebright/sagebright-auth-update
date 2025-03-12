@@ -10,7 +10,7 @@ const HeroSection = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto text-center">
           <div className="flex justify-center mb-6 animate-fade-in">
-            <Logo variant="icon" className="h-24 w-auto" />
+            <Logo variant="icon" className="h-96 w-auto" />
           </div>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6 animate-fade-in">
             Reimagine Employee <span className="text-sagebright-green">Onboarding</span>
