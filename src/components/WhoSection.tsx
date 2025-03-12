@@ -6,7 +6,7 @@ const WhoSection = () => {
   const audiences = [
     {
       icon: <Building className="h-16 w-16 text-sagebright-gold" />,
-      title: "Startups & Growing Companies",
+      title: "Fast-Growing Companies",
       description: "Onboard new hires without slowing down"
     },
     {
