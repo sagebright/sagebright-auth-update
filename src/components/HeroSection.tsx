@@ -17,10 +17,9 @@ const HeroSection = () => {
             <span className="block text-sagebright-green">Onboard, Engage, and Grow</span>
           </h1>
           <p className="text-xl text-gray-600 mb-8 animate-fade-in [animation-delay:200ms] opacity-0">
-            Employees don’t thrive with checklists. They thrive with guidance. 
+            Employees don’t thrive with checklists. They thrive with guidance. {" "}
             <span className="text-sagebright-green">sage</span>
-            <span className="text-sagebright-gold">bright</span> 
-            is an AI-powered mentor that transforms onboarding into a personalized journey.
+            <span className="text-sagebright-gold">bright</span> is an AI-powered mentor that transforms onboarding into a personalized journey.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4 animate-fade-in [animation-delay:400ms] opacity-0">
             <Button asChild className="bg-sagebright-green hover:bg-sagebright-green/90 text-white px-8 py-6 text-lg">
