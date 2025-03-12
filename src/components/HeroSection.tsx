@@ -10,14 +10,26 @@ const HeroSection = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto text-center">
           <div className="flex justify-center mb-6 animate-fade-in">
-            <Logo variant="icon" className="h-48 w-auto" />
+            <div className="relative w-full max-w-md h-64 mb-8">
+              <img 
+                src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=800&q=80" 
+                alt="Professional using AI assistant for onboarding" 
+                className="rounded-lg object-cover w-full h-full shadow-lg"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-sagebright-green/30 to-sagebright-gold/30 rounded-lg"></div>
+              <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-sagebright-green rounded-full flex items-center justify-center shadow-lg">
+                <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center">
+                  <Logo variant="icon" className="h-12 w-auto" />
+                </div>
+              </div>
+            </div>
           </div>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6 animate-fade-in">
             <span className="block text-sagebright-green">Your AI Mentor</span>
             <span className="block text-sagebright-gold">for New Hires</span>
           </h1>
           <p className="text-xl text-gray-600 mb-8 animate-fade-in [animation-delay:200ms] opacity-0">
-            Employees don’t thrive with checklists. They thrive with guidance. {" "}
+            Employees don't thrive with checklists. They thrive with guidance. {" "}
             <span className="text-sagebright-green">sage</span>
             <span className="text-sagebright-gold">bright</span> is an AI-powered mentor that transforms onboarding into a personalized journey.
           </p>
