@@ -42,9 +42,11 @@ const Footer = () => {
            </div>
            */} 
             <nav className="flex flex-wrap justify-center space-x-6">
-              <a href="#why" className="text-gray-600 hover:text-sagebright-green">Why</a>
-              <a href="#how" className="text-gray-600 hover:text-sagebright-green">How It Works</a>
-              <a href="#who" className="text-gray-600 hover:text-sagebright-green">Who It's For</a>
+              <a href="#why" className="text-gray-600 hover:text-sagebright-green">Why {" "} <span className="text-sagebright-green">sage</span>
+            <span className="text-sagebright-gold">bright</span></a>
+              <a href="#how" className="text-gray-600 hover:text-sagebright-green">How {" "}<span className="text-sagebright-green">sage</span>
+            <span className="text-sagebright-gold">bright</span> {" "} Works</a>
+              <a href="#who" className="text-gray-600 hover:text-sagebright-green">Who We Help</a>
               <a href="#waitlist" className="text-gray-600 hover:text-sagebright-green">Join Beta</a>
             </nav>
           </div>
