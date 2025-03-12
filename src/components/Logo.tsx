@@ -11,7 +11,7 @@ const Logo = ({ variant = 'full', className = '' }: LogoProps) => {
     return (
       <div className={`flex items-center ${className}`}>
         <img 
-          src="/lovable-uploads/sb_logo_type.png" 
+          src="/lovable-uploads/sb_logo_type.svg" 
           alt="sagebright.ai logo" 
           className="h-48 w-auto"
         />
@@ -23,7 +23,7 @@ const Logo = ({ variant = 'full', className = '' }: LogoProps) => {
     return (
       <div className={`flex items-center ${className}`}>
         <img 
-          src="/lovable-uploads/sb_logo_type.png" 
+          src="/lovable-uploads/sb_logo_type.svg" 
           alt="sagebright.ai" 
           className="h-6 w-auto"
         />
