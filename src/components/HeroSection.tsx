@@ -13,8 +13,8 @@ const HeroSection = () => {
             <Logo variant="icon" className="h-48 w-auto" />
           </div>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6 animate-fade-in">
-            <span className="block text-sagebright-green">Your Company's AI Mentor</span>
-            <span className="block text-sagebright-orange">for New Hires</span>
+            <span className="block text-sagebright-green">Your AI Mentor</span>
+            <span className="block text-sagebright-gold">for New Hires</span>
           </h1>
           <p className="text-xl text-gray-600 mb-8 animate-fade-in [animation-delay:200ms] opacity-0">
             Employees don’t thrive with checklists. They thrive with guidance. {" "}
