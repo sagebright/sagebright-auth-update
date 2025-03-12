@@ -83,14 +83,14 @@ const WaitlistSection = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Input
                       type="text"
-                      placeholder="First Name"
+                      placeholder="Alex"
                       className="py-6 px-4"
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
                     />
                     <Input
                       type="text"
-                      placeholder="Last Name"
+                      placeholder="Walker"
                       className="py-6 px-4"
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
@@ -98,7 +98,7 @@ const WaitlistSection = () => {
                   </div>
                   <Input
                     type="email"
-                    placeholder="Enter your email address"
+                    placeholder="alex@walkercatering.com"
                     className="py-6 px-4"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -106,7 +106,7 @@ const WaitlistSection = () => {
                   />
                   <Input
                     type="text"
-                    placeholder="Company (optional)"
+                    placeholder="Walker Catering (optional)"
                     className="py-6 px-4"
                     value={company}
                     onChange={(e) => setCompany(e.target.value)}
