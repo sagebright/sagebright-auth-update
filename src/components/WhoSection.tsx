@@ -6,18 +6,18 @@ const WhoSection = () => {
   const audiences = [
     {
       icon: <Building className="h-16 w-16 text-sagebright-gold" />,
-      title: "HR Leaders",
-      description: "Transform your onboarding from a time sink into a strategic advantage. Reduce administrative workload while improving new hire outcomes."
+      title: "Startups & Growing Companies",
+      description: "Onboard new hires without slowing down"
     },
     {
       icon: <Users className="h-16 w-16 text-sagebright-green" />,
-      title: "Team Managers",
-      description: "Stop reinventing the wheel for each new team member. Ensure consistent, high-quality onboarding without the manual effort."
+      title: "People-First Companies",
+      description: "Build stronger engagement from day one"
     },
     {
       icon: <GraduationCap className="h-16 w-16 text-sagebright-gold" />,
-      title: "New Employees",
-      description: "Get exactly what you need to succeed, when you need it. Less overwhelm, more clarity, and a smoother transition into your new role."
+      title: "Remote & Hybrid Teams",
+      description: "Provide seamless, high-touch onboarding from anywhere"
     }
   ];
 
@@ -29,7 +29,7 @@ const WhoSection = () => {
             Who <span className="text-sagebright-green">sage</span><span className="text-sagebright-gold">bright</span> Is For
           </h2>
           <p className="text-xl text-gray-600">
-            Our platform benefits everyone involved in the onboarding process, from HR teams to new hires themselves.
+           Sagebright is designed for companies that believe their people are their greatest advantage. If you want to create an onboarding experience that inspires, we’d love to have you in our beta.
           </p>
         </div>
 
