@@ -47,14 +47,14 @@ const HowSection = () => {
             {steps.map((step, index) => (
               <div 
                 key={index} 
-                className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-300"
+                className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-300 flex flex-col h-full"
               >
                 <div className="flex justify-center items-center w-16 h-16 mb-6 mx-auto bg-sagebright-green/10 rounded-full">
                   {step.icon}
                 </div>
                 <h3 className="text-xl font-semibold mb-3 text-center">{step.title}</h3>
-                <p className="text-gray-600 text-center">{step.description}</p>
-                <div className="hidden lg:flex justify-center mt-6 items-end">
+                <p className="text-gray-600 text-center flex-grow">{step.description}</p>
+                <div className="hidden lg:flex justify-center mt-auto">
                   <span className="w-8 h-8 rounded-full bg-sagebright-green text-white flex items-center justify-center font-semibold">
                     {index + 1}
                   </span>
