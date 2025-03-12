@@ -13,7 +13,8 @@ const HeroSection = () => {
             <Logo variant="icon" className="h-48 w-auto" />
           </div>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6 animate-fade-in">
-            A Smarter Way to <span className="text-sagebright-green">Onboard, Engage, and Grow</span>
+            <span className="block">A Smarter Way to</span>
+            <span className="block text-sagebright-green">Onboard, Engage, and Grow</span>
           </h1>
           <p className="text-xl text-gray-600 mb-8 animate-fade-in [animation-delay:200ms] opacity-0">
             Employees don’t thrive with checklists. They thrive with guidance. Sagebright is an AI-powered mentor that transforms onboarding into a personalized journey.
