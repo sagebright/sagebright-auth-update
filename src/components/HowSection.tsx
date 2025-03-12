@@ -30,7 +30,10 @@ const HowSection = () => {
     <section className="py-20" id="how">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">How sagebright Works</h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-6">
+            <span className="text-sagebright-green">sage</span>
+            <span className="text-sagebright-gold">bright</span> Works
+          </h2>
           <p className="text-xl text-gray-600">
             Our AI platform transforms your existing resources into an intelligent onboarding system that adapts to each new hire.
           </p>
@@ -50,7 +53,7 @@ const HowSection = () => {
                 </div>
                 <h3 className="text-xl font-semibold mb-3 text-center">{step.title}</h3>
                 <p className="text-gray-600 text-center">{step.description}</p>
-                <div className="hidden lg:flex justify-center mt-6">
+                <div className="hidden lg:flex justify-center mt-6 items-end">
                   <span className="w-8 h-8 rounded-full bg-sagebright-green text-white flex items-center justify-center font-semibold">
                     {index + 1}
                   </span>

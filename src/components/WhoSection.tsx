@@ -25,7 +25,9 @@ const WhoSection = () => {
     <section className="py-20 bg-gradient-to-br from-white to-gray-50" id="who">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">Who sagebright Is For</h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-6">
+            Who <span className="text-sagebright-green">sage</span><span className="text-sagebright-gold">bright</span> Is For
+          </h2>
           <p className="text-xl text-gray-600">
             Our platform benefits everyone involved in the onboarding process, from HR teams to new hires themselves.
           </p>

@@ -4,14 +4,18 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowRight, Check } from 'lucide-react';
+import { supabase } from "@/integrations/supabase/client";
 
 const WaitlistSection = () => {
   const [email, setEmail] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [company, setCompany] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!email || !email.includes('@')) {
@@ -24,16 +28,41 @@ const WaitlistSection = () => {
     
     setIsSubmitting(true);
     
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      // Insert the signup data into the Beta Signups table
+      const { error } = await supabase
+        .from('Beta Signups')
+        .insert([
+          { 
+            email,
+            first_name: firstName,
+            last_name: lastName,
+            company
+          }
+        ]);
+      
+      if (error) {
+        throw error;
+      }
+      
       setIsSubmitting(false);
       setIsSubmitted(true);
+      
       toast({
         title: "Success!",
         description: "You've been added to our beta waitlist. We'll be in touch soon.",
         variant: "default"
       });
-    }, 1000);
+    } catch (error) {
+      console.error('Error submitting to waitlist:', error);
+      setIsSubmitting(false);
+      
+      toast({
+        title: "Something went wrong",
+        description: "There was an error adding you to the waitlist. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -51,15 +80,38 @@ const WaitlistSection = () => {
               
               {!isSubmitted ? (
                 <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Input
-                      type="email"
-                      placeholder="Enter your email address"
-                      className="flex-grow py-6 px-4"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
+                      type="text"
+                      placeholder="First Name"
+                      className="py-6 px-4"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
                     />
+                    <Input
+                      type="text"
+                      placeholder="Last Name"
+                      className="py-6 px-4"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                    />
+                  </div>
+                  <Input
+                    type="email"
+                    placeholder="Enter your email address"
+                    className="py-6 px-4"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                  <Input
+                    type="text"
+                    placeholder="Company (optional)"
+                    className="py-6 px-4"
+                    value={company}
+                    onChange={(e) => setCompany(e.target.value)}
+                  />
+                  <div className="flex justify-center mt-6">
                     <Button 
                       type="submit" 
                       className="bg-sagebright-green hover:bg-sagebright-green/90 text-white py-6 px-8"
