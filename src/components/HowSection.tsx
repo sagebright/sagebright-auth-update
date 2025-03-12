@@ -1,13 +1,13 @@
 
 import React from 'react';
-import { Sparkles, Clock, Users, FileText } from 'lucide-react';
+import { Sparkles, Calendar, Lightbulb, UserRound } from 'lucide-react';
 
 const HowSection = () => {
   const steps = [
     {
-      icon: <FileText className="h-10 w-10 text-sagebright-green" />,
+      icon: <UserRound className="h-10 w-10 text-sagebright-green" />,
       title: "AI Makes It Personal",
-      description: "Interactive guidance tailored to the employee’s role and preferences"
+      description: "Interactive guidance tailored to the employee's role and preferences"
     },
     {
       icon: <Sparkles className="h-10 w-10 text-sagebright-green" />,
@@ -15,14 +15,14 @@ const HowSection = () => {
       description: "Employees can ask anything and get instant, company-specific answers"
     },
     {
-      icon: <Users className="h-10 w-10 text-sagebright-green" />,
+      icon: <Calendar className="h-10 w-10 text-sagebright-green" />,
       title: "Ongoing Check-Ins",
       description: "Tracks progress, adapts to feedback, and refines recommendations"
     },
     {
-      icon: <Clock className="h-10 w-10 text-sagebright-green" />,
+      icon: <Lightbulb className="h-10 w-10 text-sagebright-green" />,
       title: "Bigger Picture Insights",
-      description: "Helps employees see how their work connects to the company’s mission"
+      description: "Helps employees see how their work connects to the company's mission"
     }
   ];
 

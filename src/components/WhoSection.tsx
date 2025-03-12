@@ -1,11 +1,11 @@
 
 import React from 'react';
-import { Building, Users, GraduationCap } from 'lucide-react';
+import { TrendingUp, Network, GraduationCap } from 'lucide-react';
 
 const WhoSection = () => {
   const audiences = [
     {
-      icon: <Building className="h-16 w-16 text-sagebright-gold" />,
+      icon: <TrendingUp className="h-16 w-16 text-sagebright-green" />,
       title: "Fast-Growing Companies",
       description: "Onboard new hires without slowing down"
     },
@@ -15,7 +15,7 @@ const WhoSection = () => {
       description: "Build stronger engagement from day one"
     },
     {
-      icon: <GraduationCap className="h-16 w-16 text-sagebright-gold" />,
+      icon: <Network className="h-16 w-16 text-sagebright-green" />,
       title: "Remote & Hybrid Teams",
       description: "Provide seamless, high-touch onboarding from anywhere"
     }
@@ -29,7 +29,7 @@ const WhoSection = () => {
             Who <span className="text-sagebright-green">sage</span><span className="text-sagebright-gold">bright</span> Is For
           </h2>
           <p className="text-xl text-gray-600">
-           Sagebright is designed for companies that believe their people are their greatest advantage. If you want to create an onboarding experience that inspires, we’d love to have you in our beta.
+           Sagebright is designed for companies that believe their people are their greatest advantage. If you want to create an onboarding experience that inspires, we'd love to have you in our beta.
           </p>
         </div>
 
