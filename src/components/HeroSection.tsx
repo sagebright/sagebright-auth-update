@@ -13,10 +13,10 @@ const HeroSection = () => {
             <Logo variant="icon" className="h-48 w-auto" />
           </div>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6 animate-fade-in">
-            Reimagine Employee <span className="text-sagebright-green">Onboarding</span>
+            A Smarter Way to <span className="text-sagebright-green">Onboard, Engage, and Grow</span>
           </h1>
           <p className="text-xl text-gray-600 mb-8 animate-fade-in [animation-delay:200ms] opacity-0">
-            AI-powered onboarding that saves time and improves new hire experiences. Elevate your company's first impression.
+            Employees don’t thrive with checklists. They thrive with guidance. Sagebright is an AI-powered mentor that transforms onboarding into a personalized journey.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4 animate-fade-in [animation-delay:400ms] opacity-0">
             <Button asChild className="bg-sagebright-green hover:bg-sagebright-green/90 text-white px-8 py-6 text-lg">
