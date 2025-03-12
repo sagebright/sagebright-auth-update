@@ -6,23 +6,23 @@ const HowSection = () => {
   const steps = [
     {
       icon: <FileText className="h-10 w-10 text-sagebright-green" />,
-      title: "Connect Your Resources",
-      description: "Easily integrate your existing knowledge base, handbooks, and documentation into our platform."
+      title: "AI Makes It Personal",
+      description: "Interactive guidance tailored to the employee’s role and preferences"
     },
     {
       icon: <Sparkles className="h-10 w-10 text-sagebright-green" />,
-      title: "AI Organizes Everything",
-      description: "Our AI processes and structures your information into a personalized learning journey."
+      title: "Real-Time Q&A",
+      description: "Employees can ask anything and get instant, company-specific answers"
     },
     {
       icon: <Users className="h-10 w-10 text-sagebright-green" />,
-      title: "Tailored Onboarding",
-      description: "Each new hire receives a customized onboarding experience based on their role and team."
+      title: "Ongoing Check-Ins",
+      description: "Tracks progress, adapts to feedback, and refines recommendations"
     },
     {
       icon: <Clock className="h-10 w-10 text-sagebright-green" />,
-      title: "Continuous Adaptation",
-      description: "The platform learns from feedback and evolves, keeping onboarding materials fresh and relevant."
+      title: "Bigger Picture Insights",
+      description: "Helps employees see how their work connects to the company’s mission"
     }
   ];
 
@@ -31,12 +31,10 @@ const HowSection = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-6"> 
-            How{" "}
-            <span className="text-sagebright-green">sage</span>
-            <span className="text-sagebright-gold">bright</span> Works
+            Your AI-Powered Guide for the First Days, Weeks, and Beyond
           </h2>
           <p className="text-xl text-gray-600">
-            Our AI platform transforms your existing resources into an intelligent onboarding system that adapts to each new hire.
+          Sagebright doesn’t just provide information—it acts as a mentor. By learning about each employee’s role, challenges, and work style, it personalizes their onboarding experience, helping them integrate faster and feel more connected from day one.
           </p>
         </div>
 
