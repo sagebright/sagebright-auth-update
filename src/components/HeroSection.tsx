@@ -11,13 +11,14 @@ const HeroSection = () => {
         <div className="max-w-3xl mx-auto text-center">
           <div className="flex justify-center mb-6 animate-fade-in">
             <div className="relative w-full max-w-md h-64 mb-8">
-              <img 
-                src="/lovable-uploads/two_women_computer.png?auto=format&fit=crop&w=800&q=80" 
-                alt="Professional using AI assistant for onboarding" 
-                className="rounded-lg object-cover w-full h-full shadow-lg"
-              />
-          
-            </div>
+              <img src="/lovable-uploads/two_women_computer.png?auto=format&fit=crop&w=800&q=80" 
+              alt="Professional using AI assistant for onboarding" 
+              className="rounded-lg object-cover w-full h-full shadow-lg filter contrast-[1.2] saturate-[1.3] brightness-[0.9]"
+  />
+  
+  {/* Overlay for More Pronounced Filtering */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent rounded-lg"></div>
+      </div>
           </div>   
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6 animate-fade-in">
             <span className="block text-sagebright-green">Your AI Mentor</span>
