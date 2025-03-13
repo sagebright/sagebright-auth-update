@@ -1,26 +1,26 @@
 
 import React from 'react';
-import { Clock, AlertTriangle, DollarSign, Frown } from 'lucide-react';
+import { Timer, ShieldAlert, Wallet, BrainCircuit } from 'lucide-react';
 
 const WhySection = () => {
   const problems = [
     {
-      icon: <Clock className="h-10 w-10 text-sagebright-gold" />,
+      icon: <Timer className="h-10 w-10 text-sagebright-gold" />,
       title: "Time-Consuming Processes",
       description: "HR teams struggle to provide personalized support at scale."
     },
     {
-      icon: <AlertTriangle className="h-10 w-10 text-sagebright-gold" />,
+      icon: <ShieldAlert className="h-10 w-10 text-sagebright-gold" />,
       title: "Inconsistent Experiences",
       description: "Managers don't have the bandwidth to guide every new hire effectively."
     },
     {
-      icon: <DollarSign className="h-10 w-10 text-sagebright-gold" />,
+      icon: <Wallet className="h-10 w-10 text-sagebright-gold" />,
       title: "Costly Mistakes",
       description: "Poor onboarding leads to higher turnover and significantly reduces new hire productivity."
     },
     {
-      icon: <Frown className="h-10 w-10 text-sagebright-gold" />,
+      icon: <BrainCircuit className="h-10 w-10 text-sagebright-gold" />,
       title: "Information Overload",
       description: "Employees feel lost in a sea of information."
     }
