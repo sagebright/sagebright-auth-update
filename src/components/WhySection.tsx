@@ -12,7 +12,7 @@ const WhySection = () => {
     {
       icon: <AlertTriangle className="h-10 w-10 text-sagebright-gold" />,
       title: "Inconsistent Experiences",
-      description: "Managers don’t have the bandwidth to guide every new hire effectively."
+      description: "Managers don't have the bandwidth to guide every new hire effectively."
     },
     {
       icon: <DollarSign className="h-10 w-10 text-sagebright-gold" />,
@@ -27,10 +27,10 @@ const WhySection = () => {
   ];
 
   return (
-    <section className="py-20 bg-gray-50" id="why">
+    <section className="py-24 bg-gradient-to-br from-gray-50 to-sagebright-accent/5" id="why">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">A Better Start Leads to Better Work</h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-6 text-sagebright-green">A Better Start Leads to Better Work</h2>
           <p className="text-xl text-gray-600">
             Companies struggle with onboarding that's manual, disjointed, and fails to provide new hires with what they need when they need it.
           </p>
@@ -40,10 +40,12 @@ const WhySection = () => {
           {problems.map((problem, index) => (
             <div 
               key={index} 
-              className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-300"
+              className="bg-white p-8 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition-shadow duration-300 flex flex-col"
             >
-              <div className="mb-4">{problem.icon}</div>
-              <h3 className="text-xl font-semibold mb-3">{problem.title}</h3>
+              <div className="mb-6 bg-sagebright-accent/20 p-4 rounded-full inline-block">
+                {problem.icon}
+              </div>
+              <h3 className="text-xl font-semibold mb-3 text-gray-800">{problem.title}</h3>
               <p className="text-gray-600">{problem.description}</p>
             </div>
           ))}

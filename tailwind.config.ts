@@ -26,8 +26,9 @@ export default {
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				sagebright: {
-					gold: '#FF7300',  // Updated from F5BA44 to FF7300
-					green: '#00A676',  // Updated from 3C906E to 00A676
+					gold: '#F98948',  // Updated from FF7300 to F98948
+					green: '#2C6E49',  // Updated from 00A676 to 2C6E49
+					accent: '#F4F1BB', // Added accent color
 				},
 				primary: {
 					DEFAULT: 'hsl(var(--primary))',
