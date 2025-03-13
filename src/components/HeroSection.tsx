@@ -11,7 +11,7 @@ const HeroSection = () => {
         <div className="max-w-3xl mx-auto text-center">
           <div className="flex justify-center mb-6 animate-fade-in">
             <div className="relative w-full max-w-md h-64 mb-8">
-              <img src="/lovable-uploads/two_women_computer.png?auto=format&fit=crop&w=800&q=80" 
+              <img src="/lovable-uploads/work group.png?auto=format&fit=crop&w=800&q=80" 
               alt="Professional using AI assistant for onboarding" 
               className="rounded-lg object-cover w-full h-full shadow-lg filter contrast-[1.2] saturate-[1.3] brightness-[0.9]"
   />
