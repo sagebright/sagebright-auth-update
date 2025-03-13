@@ -74,7 +74,7 @@ const WaitlistSection = () => {
               <div className="text-center mb-8">
                 <h2 className="text-3xl md:text-4xl font-bold mb-4">Join Our Beta Waitlist</h2>
                 <p className="text-lg text-gray-600">
-                  Be among the first to transform your onboarding experience with sagebright.ai.
+                  Be among the first to transform your onboarding experience with Sagebright.
                 </p>
               </div>
               
