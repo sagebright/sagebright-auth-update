@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Timer, ShieldAlert, Wallet, BrainCircuit } from 'lucide-react';
+import { Timer, ShieldAlert, Wallet, Battery } from 'lucide-react';
 
 const WhySection = () => {
   const problems = [
@@ -20,7 +20,7 @@ const WhySection = () => {
       description: "Poor onboarding leads to higher turnover and significantly reduces new hire productivity"
     },
     {
-      icon: <BatteryLow className="h-10 w-10 text-sagebright-gold" />,
+      icon: <Battery className="h-10 w-10 text-sagebright-gold" />,
       title: "Information Overwhelm",
       description: "New hires feel drained and lost in a sea of information"
     }
