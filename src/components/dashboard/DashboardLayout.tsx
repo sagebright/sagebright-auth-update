@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import Logo from "@/components/Logo";
 import { SidebarProvider, Sidebar, SidebarContent, SidebarMenu, 
   SidebarMenuItem, SidebarMenuButton, SidebarHeader, SidebarFooter } from "@/components/ui/sidebar";
-import { LayoutDashboard, MessageSquareQuestion, ListChecks, Calendar, Users, Settings, LogOut } from "lucide-react";
+import { LayoutDashboard, HelpCircle, ListChecks, Calendar, Users, Settings, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface DashboardLayoutProps {
@@ -36,7 +36,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               <SidebarMenuItem>
                 <SidebarMenuButton asChild tooltip="Ask Sage">
                   <Link to="#">
-                    <MessageSquareQuestion />
+                    <HelpCircle />
                     <span>Ask Sage</span>
                   </Link>
                 </SidebarMenuButton>
