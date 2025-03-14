@@ -8,6 +8,7 @@ import TasksList from "@/components/dashboard/TasksList";
 import UpcomingMeetings from "@/components/dashboard/UpcomingMeetings";
 import OnboardingProgress from "@/components/dashboard/OnboardingProgress";
 import TeamContacts from "@/components/dashboard/TeamContacts";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 export default function Dashboard() {
   return (
@@ -68,8 +69,16 @@ export default function Dashboard() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-xl font-medium">Have a question?</div>
-              <p className="text-xs text-white/80 mt-1">Get help from your AI mentor</p>
+              <div className="flex items-center gap-3">
+                <Avatar className="h-12 w-12 border-2 border-white">
+                  <AvatarImage src="/lovable-uploads/c3955ded-e6fc-4975-936a-d6fa82f47f72.png" alt="Sage AI Assistant" />
+                  <AvatarFallback className="bg-sagebright-accent text-sagebright-green">SG</AvatarFallback>
+                </Avatar>
+                <div>
+                  <div className="text-xl font-medium">Have a question?</div>
+                  <p className="text-xs text-white/80 mt-1">Get help from your AI mentor</p>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>
