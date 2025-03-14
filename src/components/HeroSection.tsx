@@ -18,15 +18,17 @@ const HeroSection = () => {
               Employees don't thrive with checklists. They thrive with guidance. Sagebright is an AI-powered mentor that transforms onboarding into a personalized journey.
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4 animate-fade-in [animation-delay:400ms] opacity-0">
-              <Button asChild className="bg-sagebright-green hover:bg-sagebright-green/90 text-white px-8 py-6 text-lg rounded-md">
-                <a href="#waitlist">
+              <a href="#waitlist" className="inline-block w-full sm:w-auto">
+                <Button className="bg-sagebright-green hover:bg-sagebright-green/90 text-white px-8 py-6 text-lg rounded-md w-full">
                   Join the Beta
                   <ArrowRight className="ml-2 h-5 w-5" />
-                </a>
-              </Button>
-              <Button asChild variant="outline" className="border-sagebright-gold hover:bg-sagebright-gold/10 text-gray-800 px-8 py-6 text-lg">
-                <a href="#how">Learn How It Works</a>
-              </Button>
+                </Button>
+              </a>
+              <a href="#how" className="inline-block w-full sm:w-auto">
+                <Button variant="outline" className="border-sagebright-gold hover:bg-sagebright-gold/10 text-gray-800 px-8 py-6 text-lg w-full">
+                  Learn How It Works
+                </Button>
+              </a>
             </div>
           </div>
         </div>
