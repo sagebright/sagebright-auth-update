@@ -36,7 +36,7 @@ const HeroSection = () => {
         <div className="mt-8 relative max-w-5xl mx-auto animate-fade-in [animation-delay:600ms] opacity-0">
           <div className="relative rounded-xl overflow-hidden shadow-2xl border border-gray-100">
             <img 
-              src="/lovable-uploads/70199d64-30d2-401f-b042-711e5a9d2f8b.png" 
+              src="/lovable-uploads/sb_dashboard.png" 
               alt="Professional using AI assistant for onboarding" 
               className="w-full object-cover"
             />
