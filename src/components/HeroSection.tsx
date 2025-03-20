@@ -12,7 +12,7 @@ const HeroSection = () => {
           <div className="mb-8 animate-fade-in">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6">
               <span className="block text-sagebright-green">Your AI Mentor</span>
-              <span className="block text-sagebright-gold">for New Hires</span>
+              <span className="block text-sagebright-navy">for New Hires</span>
             </h1>
             <p className="text-xl text-gray-600 mb-8 animate-fade-in [animation-delay:200ms] opacity-0">
               Employees don't thrive with checklists. They thrive with guidance. Sagebright is an AI-powered mentor that transforms onboarding into a personalized journey.
@@ -25,7 +25,7 @@ const HeroSection = () => {
                 </Button>
               </a>
               <a href="#how" className="inline-block w-full sm:w-auto">
-                <Button variant="outline" className="border-sagebright-gold hover:bg-sagebright-gold/10 text-gray-800 px-8 py-6 text-lg w-full">
+                <Button variant="outline" className="border-sagebright-navy hover:bg-sagebright-navy/10 text-gray-800 px-8 py-6 text-lg w-full">
                   Learn How It Works
                 </Button>
               </a>
@@ -42,7 +42,7 @@ const HeroSection = () => {
             />
             <div className="absolute inset-0 bg-gradient-to-t from-sagebright-green/40 via-transparent to-transparent"></div>
           </div>
-          <div className="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-gradient-to-r from-sagebright-gold/10 to-sagebright-green/10 blur-3xl rounded-full opacity-30"></div>
+          <div className="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-gradient-to-r from-sagebright-navy/10 to-sagebright-green/10 blur-3xl rounded-full opacity-30"></div>
         </div>
       </div>
     </section>
