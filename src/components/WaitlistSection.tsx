@@ -66,32 +66,32 @@ const WaitlistSection = () => {
   };
 
   return (
-    <section className="bg-sagebright-accent/10" id="waitlist">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+    <section className="py-20 bg-sagebright-green/10" id="waitlist">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto">
-          <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-sagebright-gold/20">
-            <div className="p-10 md:p-16">
-              <div className="text-center mb-12 p-text-spacing text-block">
-                <h2 className="text-headline font-dmSans font-bold mb-6">Join Our Beta Waitlist</h2>
+          <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+            <div className="p-8 md:p-12">
+              <div className="text-center mb-8 p-text-spacing">
+                <h2 className="text-headline font-dmSans font-bold mb-4">Join Our Beta Waitlist</h2>
                 <p className="text-body font-sans text-gray-600">
                   Be among the first to transform your onboarding experience with Sagebright.
                 </p>
               </div>
               
               {!isSubmitted ? (
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Input
                       type="text"
                       placeholder="First Name"
-                      className="py-6 px-4 text-body font-sans border-sagebright-navy/20 focus-visible:ring-sagebright-gold"
+                      className="py-6 px-4 text-body font-sans"
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
                     />
                     <Input
                       type="text"
                       placeholder="Last Name"
-                      className="py-6 px-4 text-body font-sans border-sagebright-navy/20 focus-visible:ring-sagebright-gold"
+                      className="py-6 px-4 text-body font-sans"
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
                     />
@@ -99,7 +99,7 @@ const WaitlistSection = () => {
                   <Input
                     type="email"
                     placeholder="Email Address"
-                    className="py-6 px-4 text-body font-sans border-sagebright-navy/20 focus-visible:ring-sagebright-gold"
+                    className="py-6 px-4 text-body font-sans"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
@@ -107,14 +107,14 @@ const WaitlistSection = () => {
                   <Input
                     type="text"
                     placeholder="Company (optional)"
-                    className="py-6 px-4 text-body font-sans border-sagebright-navy/20 focus-visible:ring-sagebright-gold"
+                    className="py-6 px-4 text-body font-sans"
                     value={company}
                     onChange={(e) => setCompany(e.target.value)}
                   />
-                  <div className="flex justify-center mt-8">
+                  <div className="flex justify-center mt-6">
                     <Button 
                       type="submit" 
-                      className="py-6 px-8 text-cta font-dmSans hover:scale-[1.03] hover:brightness-105 hover:shadow-lg"
+                      className="bg-sagebright-coral hover:bg-sagebright-coral/90 text-white py-6 px-8 text-cta font-dmSans"
                       disabled={isSubmitting}
                     >
                       {isSubmitting ? (
@@ -126,18 +126,18 @@ const WaitlistSection = () => {
                       )}
                     </Button>
                   </div>
-                  <p className="text-sm text-gray-500 text-center font-sans mt-4">
+                  <p className="text-sm text-gray-500 text-center font-sans">
                     We respect your privacy and will never share your information.
                   </p>
                 </form>
               ) : (
-                <div className="text-center py-12">
-                  <div className="flex justify-center mb-6">
+                <div className="text-center py-8">
+                  <div className="flex justify-center mb-4">
                     <div className="bg-sagebright-green/10 p-4 rounded-full">
                       <Check className="h-10 w-10 text-sagebright-green" />
                     </div>
                   </div>
-                  <h3 className="text-subheading font-dmSans font-medium mb-4">Thank You!</h3>
+                  <h3 className="text-subheading font-dmSans font-medium mb-2">Thank You!</h3>
                   <p className="text-body font-sans text-gray-600">
                     We've added you to our waitlist. We'll be in touch soon with more information about the beta program.
                   </p>

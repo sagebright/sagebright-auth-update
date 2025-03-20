@@ -27,10 +27,10 @@ export default {
 				foreground: 'hsl(var(--foreground))',
 				sagebright: {
 					green: '#2a9d90',     // Updated primary color
-					gold: '#ffcb5c',      // Sunglow accent color
-					accent: '#88d8b0',    // Celadon
-					navy: '#274754',      // Charcoal
-					coral: '#ff6e61',     // Bittersweet
+					gold: '#ffcb5c',      // Updated from orange to gold
+					accent: '#88d8b0',    // Updated accent color
+					navy: '#274754',      // Added navy color
+					coral: '#ff6e61',     // Added coral color
 				},
 				primary: {
 					DEFAULT: 'hsl(var(--primary))',
@@ -76,13 +76,12 @@ export default {
 				dmSans: ['DM Sans', 'sans-serif'],
 			},
 			fontSize: {
-				// Using rem for better responsiveness
-				'headline': ['2.5rem', { lineHeight: '1.3', fontWeight: '700' }],
-				'headline-lg': ['3.5rem', { lineHeight: '1.3', fontWeight: '700' }],
-				'subheading': ['1.75rem', { lineHeight: '1.3', fontWeight: '500' }],
-				'subheading-lg': ['2rem', { lineHeight: '1.3', fontWeight: '500' }],
-				'body': ['1.125rem', { lineHeight: '1.5', fontWeight: '400' }],
-				'cta': ['1.25rem', { lineHeight: '1.3', fontWeight: '600' }],
+				'headline': ['2.5rem', { lineHeight: '1.3', fontWeight: '700' }], // 40px
+				'headline-lg': ['3.5rem', { lineHeight: '1.3', fontWeight: '700' }], // 56px
+				'subheading': ['1.75rem', { lineHeight: '1.3', fontWeight: '500' }], // 28px
+				'subheading-lg': ['2rem', { lineHeight: '1.3', fontWeight: '500' }], // 32px
+				'body': ['1.125rem', { lineHeight: '1.3', fontWeight: '400' }], // 18px
+				'cta': ['1.25rem', { lineHeight: '1.3', fontWeight: '600' }], // 20px
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -115,16 +114,6 @@ export default {
 						opacity: '1',
 						transform: 'translateY(0)'
 					}
-				},
-				'slide-in-from-top': {
-					'0%': {
-						opacity: '0',
-						transform: 'translateY(-20px)'
-					},
-					'100%': {
-						opacity: '1',
-						transform: 'translateY(0)'
-					}
 				}
 			},
 			animation: {
@@ -132,7 +121,6 @@ export default {
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'fade-in': 'fade-in 0.5s ease-out forwards',
 				'ping': 'ping 2s cubic-bezier(0, 0, 0.2, 1) infinite',
-				'slide-in-from-top': 'slide-in-from-top 0.3s ease-out'
 			},
 			transitionDuration: {
 				'5000': '5000ms',
