@@ -13,8 +13,11 @@ const WhoSection = () => {
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            entry.target.classList.add('animate-visible');
-            observer.unobserve(entry.target);
+            // Use requestAnimationFrame for smoother animations
+            requestAnimationFrame(() => {
+              entry.target.classList.add('animate-visible');
+              observer.unobserve(entry.target);
+            });
           }
         });
       },
@@ -81,7 +84,7 @@ const WhoSection = () => {
             <div 
               key={index}
               ref={el => audiencesRef.current[index] = el}
-              className="bg-white p-6 md:p-10 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-300 text-center section-animate hover:scale-[1.01] transition-transform hover:border-sagebright-gold/50"
+              className="bg-white p-6 md:p-10 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-300 text-center section-animate hover:scale-[1.01] transition-transform hover:border-sagebright-gold/50 will-change-transform"
               style={{ animationDelay: `${index * 150}ms` }}
             >
               <div className="flex justify-center mb-6 md:mb-8 transition-transform hover:scale-[1.05] duration-300">{audience.icon}</div>

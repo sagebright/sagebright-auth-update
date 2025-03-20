@@ -98,9 +98,14 @@
 
   body {
     @apply bg-background text-foreground;
+    font-display: swap;
   }
   
-  /* Responsive font sizes using rem */
+  /* Responsive font sizes using rem with improved loading behavior */
+  h1, h2, h3, h4, h5, h6, p {
+    font-display: swap;
+  }
+  
   h1 {
     font-size: 2rem;
     line-height: 1.3;

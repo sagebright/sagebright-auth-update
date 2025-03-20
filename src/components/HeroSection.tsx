@@ -3,6 +3,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import Logo from './Logo';
+import LazyImage from './LazyImage';
 
 const HeroSection = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -81,7 +82,7 @@ const HeroSection = () => {
             <div className="absolute z-10 top-1/4 left-1/4 w-8 h-8 rounded-full bg-sagebright-green/30 animate-ping [animation-delay:1000ms]"></div>
             <div className="absolute z-10 top-1/2 right-1/4 w-6 h-6 rounded-full bg-sagebright-coral/30 animate-ping [animation-delay:1500ms]"></div>
             <div className="absolute z-10 bottom-1/4 left-1/3 w-7 h-7 rounded-full bg-sagebright-gold/30 animate-ping [animation-delay:2000ms]"></div>
-            <img 
+            <LazyImage 
               src="/lovable-uploads/sb_dashboard.png" 
               alt="Professional using AI assistant for onboarding" 
               className={`w-full object-cover transition-transform duration-5000 ease-out ${isVisible ? 'scale-[1.08]' : 'scale-100'}`}
