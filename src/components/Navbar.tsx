@@ -1,24 +1,37 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Logo from './Logo';
 import { Button } from '@/components/ui/button';
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
 
+  // Use throttled scroll handler for better performance
+  const handleScroll = useCallback(() => {
+    const isScrolled = window.scrollY > 20;
+    if (isScrolled !== scrolled) {
+      setScrolled(isScrolled);
+    }
+  }, [scrolled]);
+
   useEffect(() => {
-    const handleScroll = () => {
-      const isScrolled = window.scrollY > 20;
-      if (isScrolled !== scrolled) {
-        setScrolled(isScrolled);
+    // Throttle scroll event for better performance
+    let scrollTimer: number;
+    const throttledScroll = () => {
+      if (!scrollTimer) {
+        scrollTimer = window.setTimeout(() => {
+          scrollTimer = 0;
+          handleScroll();
+        }, 100);
       }
     };
 
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', throttledScroll, { passive: true });
     return () => {
-      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('scroll', throttledScroll);
+      clearTimeout(scrollTimer);
     };
-  }, [scrolled]);
+  }, [handleScroll]);
 
   return (
     <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${

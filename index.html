@@ -7,6 +7,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sagebright: AI-Powered Onboarding</title>
     <meta name="description" content="Sagebright transforms onboarding into a personalized journey. Your AI mentor for new hires." />
+    
+    <!-- Performance optimizations -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" media="print" onload="this.media='all'">
+    
+    <!-- Critical CSS inline styles (minimal styles needed for above-the-fold content) -->
+    <style>
+      body {margin: 0; font-family: 'DM Sans', sans-serif;}
+      .critical-hidden {opacity: 0;}
+      .critical-visible {opacity: 1; transition: opacity 0.3s ease;}
+    </style>
+    
+    <!-- Open Graph tags -->
     <meta property="og:title" content="Sagebright: AI-Powered Onboarding" />
     <meta property="og:description" content="Sagebright transforms onboarding into a personalized journey. Your AI mentor for new hires." />
     <meta property="og:image" content="/og-image.png" />
@@ -19,5 +34,21 @@
     <!-- Lovable script tag for enabling new features -->
     <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
     <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Defer non-critical scripts -->
+    <script>
+      // Add support for native lazy-loading
+      if ('loading' in HTMLImageElement.prototype) {
+        const images = document.querySelectorAll('img[loading="lazy"]');
+        images.forEach(img => {
+          img.src = img.dataset.src;
+        });
+      } else {
+        // Fallback for browsers that don't support lazy loading
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/lazysizes/5.3.2/lazysizes.min.js';
+        document.body.appendChild(script);
+      }
+    </script>
   </body>
 </html>

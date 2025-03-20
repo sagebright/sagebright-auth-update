@@ -1,8 +1,34 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* Font display settings for better performance */
 @layer base {
+  @font-face {
+    font-family: 'DM Sans';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: local('DM Sans'), local('DMSans-Regular');
+  }
+  
+  @font-face {
+    font-family: 'DM Sans';
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src: local('DM Sans Medium'), local('DMSans-Medium');
+  }
+  
+  @font-face {
+    font-family: 'DM Sans';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: local('DM Sans Bold'), local('DMSans-Bold');
+  }
+
   :root {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
@@ -97,5 +123,38 @@
 
   body {
     @apply bg-background text-foreground;
+    text-rendering: optimizeSpeed;
+  }
+  
+  /* Add preconnect hints for external resources */
+  head {
+    link[rel="preconnect"] {
+      href: "https://fonts.googleapis.com";
+    }
+    link[rel="preconnect"] {
+      href: "https://fonts.gstatic.com";
+      crossorigin: "";
+    }
+  }
+  
+  /* Add image loading optimization */
+  img {
+    @apply max-w-full h-auto;
+    content-visibility: auto;
+  }
+}
+
+/* Add performance optimization classes */
+@layer utilities {
+  .content-visibility-auto {
+    content-visibility: auto;
+  }
+  
+  .will-change-transform {
+    will-change: transform;
+  }
+  
+  .will-change-opacity {
+    will-change: opacity;
   }
 }

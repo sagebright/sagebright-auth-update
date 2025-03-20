@@ -1,18 +1,22 @@
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Sparkles, Calendar, Lightbulb, UserRound } from 'lucide-react';
 
 const HowSection = () => {
   const sectionRef = useRef<HTMLElement>(null);
+  const [isClient, setIsClient] = useState(false);
   
+  // Initialize on client side only
   useEffect(() => {
+    setIsClient(true);
+    
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
           entry.target.classList.add('is-visible');
         }
       });
-    }, { threshold: 0.1 });
+    }, { threshold: 0.1, rootMargin: '50px' });
     
     const fadeElements = document.querySelectorAll('.fade-in-section');
     fadeElements.forEach(el => {
@@ -50,7 +54,7 @@ const HowSection = () => {
   ];
 
   return (
-    <section className="py-24 bg-white" id="how" ref={sectionRef}>
+    <section className="py-24 bg-white content-visibility-auto" id="how" ref={sectionRef}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto text-center mb-16 p-text-spacing fade-in-section">
           <h2 className="text-headline font-dmSans font-bold mb-6 text-sagebright-green"> 
@@ -65,7 +69,7 @@ const HowSection = () => {
           <div className="hidden lg:block absolute top-1/2 left-0 right-0 h-1 bg-sagebright-accent/50 -translate-y-1/2 z-0"></div>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 relative z-10">
-            {steps.map((step, index) => (
+            {isClient && steps.map((step, index) => (
               <div 
                 key={index} 
                 className="bg-white p-8 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition-shadow duration-300 flex flex-col h-full fade-in-section"

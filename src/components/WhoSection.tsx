@@ -1,18 +1,25 @@
 
-import React, { useEffect, useRef } from 'react';
-import { TrendingUp, Network, GraduationCap, Users as UsersIcon } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { TrendingUp, Network, Users as UsersIcon } from 'lucide-react';
 
 const WhoSection = () => {
   const sectionRef = useRef<HTMLElement>(null);
+  const [isClient, setIsClient] = useState(false);
   
   useEffect(() => {
+    setIsClient(true);
+    
+    // Use IntersectionObserver API for efficient animations
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
           entry.target.classList.add('is-visible');
         }
       });
-    }, { threshold: 0.1 });
+    }, { 
+      threshold: 0.1,
+      rootMargin: '50px' // Preload a bit before visible for smoother transitions
+    });
     
     const fadeElements = document.querySelectorAll('.fade-in-section');
     fadeElements.forEach(el => {
@@ -45,7 +52,11 @@ const WhoSection = () => {
   ];
 
   return (
-    <section className="py-20 bg-gradient-to-br from-white to-gray-50" id="who" ref={sectionRef}>
+    <section 
+      className="py-20 bg-gradient-to-br from-white to-gray-50 content-visibility-auto" 
+      id="who" 
+      ref={sectionRef}
+    >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto text-center mb-16 p-text-spacing fade-in-section">
           <h2 className="text-headline font-dmSans font-bold mb-6 text-sagebright-green">
@@ -57,7 +68,7 @@ const WhoSection = () => {
         </div>
 
         <div className="grid md:grid-cols-3 gap-8">
-          {audiences.map((audience, index) => (
+          {isClient && audiences.map((audience, index) => (
             <div 
               key={index} 
               className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-300 text-center fade-in-section"

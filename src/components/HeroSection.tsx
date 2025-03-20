@@ -7,7 +7,9 @@ import Logo from './Logo';
 const HeroSection = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [imageZoomed, setImageZoomed] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
+  const imageRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
     // Set a small delay to ensure the animation triggers after component mount
@@ -16,8 +18,32 @@ const HeroSection = () => {
       setImageZoomed(true);
     }, 100);
     
-    return () => clearTimeout(timer);
+    // Implement Intersection Observer for lazy loading
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && imageRef.current) {
+          // Replace the src attribute when the image is about to enter the viewport
+          imageRef.current.src = imageRef.current.dataset.src || '';
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { rootMargin: '200px' });
+    
+    if (imageRef.current) {
+      observer.observe(imageRef.current);
+    }
+    
+    return () => {
+      clearTimeout(timer);
+      if (imageRef.current) {
+        observer.unobserve(imageRef.current);
+      }
+    };
   }, []);
+
+  const handleImageLoad = () => {
+    setImageLoaded(true);
+  };
 
   return (
     <section className="pt-32 pb-20 bg-gradient-to-br from-white to-sagebright-accent/10 overflow-hidden" id="hero" ref={sectionRef}>
@@ -55,9 +81,13 @@ const HeroSection = () => {
             <div className="absolute z-10 top-1/2 right-1/4 w-6 h-6 rounded-full bg-sagebright-coral/30 animate-ping [animation-delay:1500ms]"></div>
             <div className="absolute z-10 bottom-1/4 left-1/3 w-7 h-7 rounded-full bg-sagebright-gold/30 animate-ping [animation-delay:2000ms]"></div>
             <img 
-              src="/lovable-uploads/sb_dashboard.png" 
+              ref={imageRef}
+              data-src="/lovable-uploads/sb_dashboard.png" 
+              src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" 
               alt="Professional using AI assistant for onboarding" 
-              className={`w-full object-cover transition-transform duration-8000 ease-out zoom-on-load ${imageZoomed ? 'zoomed' : ''}`}
+              onLoad={handleImageLoad}
+              className={`w-full object-cover transition-transform duration-8000 ease-out zoom-on-load ${imageZoomed ? 'zoomed' : ''} ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+              loading="lazy"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-sagebright-green/40 via-transparent to-transparent"></div>
           </div>
