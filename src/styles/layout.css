@@ -1,0 +1,54 @@
+
+/* Reset unnecessary styles */
+#root {
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+}
+
+/* Add smooth scrolling */
+html {
+  scroll-behavior: smooth;
+  /* Use of rem for better responsiveness */
+  font-size: 16px;
+  /* Font display swap for better text rendering */
+  font-display: swap;
+}
+
+/* Mobile-first approach for sections */
+section {
+  min-height: 50vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 4rem 0; /* 64px on mobile */
+  margin-bottom: 1.5rem; /* 24px on mobile */
+  contain: content; /* Improve paint performance */
+}
+
+@media (min-width: 768px) {
+  section {
+    min-height: 60vh;
+    padding: 7.5rem 0; /* 120px on desktop */
+    margin-bottom: 0;
+  }
+}
+
+/* Override any conflicting styles */
+.card {
+  padding: 0;
+}
+
+.read-the-docs {
+  color: inherit;
+}
+
+/* Alternating section backgrounds */
+section:nth-of-type(odd) {
+  background-color: #fff;
+}
+
+section:nth-of-type(even) {
+  background-color: rgba(136, 216, 176, 0.1); /* Celadon at 10% opacity */
+}
