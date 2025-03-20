@@ -30,7 +30,7 @@ export default defineConfig(({ mode }) => ({
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom', 'react-router-dom'],
-          ui: ['@/components/ui/index'], // Point to the new index file
+          ui: ['@/components/ui'],
         },
       },
     },
