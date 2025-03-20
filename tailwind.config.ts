@@ -73,6 +73,7 @@ export default {
 			},
 			fontFamily: {
 				sans: ['Inter', 'sans-serif'],
+				dmSans: ['DM Sans', 'sans-serif'],
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -110,7 +111,11 @@ export default {
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
-				'fade-in': 'fade-in 0.5s ease-out forwards'
+				'fade-in': 'fade-in 0.5s ease-out forwards',
+				'ping': 'ping 2s cubic-bezier(0, 0, 0.2, 1) infinite',
+			},
+			transitionDuration: {
+				'5000': '5000ms',
 			}
 		}
 	},
