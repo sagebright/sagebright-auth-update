@@ -38,13 +38,15 @@ export * from "./sheet";
 export * from "./sidebar";
 export * from "./skeleton";
 export * from "./slider";
-export * from "./sonner";
 export * from "./switch";
 export * from "./table";
 export * from "./tabs";
 export * from "./textarea";
 export * from "./toast";
-export * from "./toaster";
+// Import and re-export the Toaster from toast.tsx with its original name
+export { Toaster } from "./toaster";
+// Import and re-export the Toaster from sonner.tsx with a different name
+export { Toaster as SonnerToaster } from "./sonner";
 export * from "./toggle";
 export * from "./toggle-group";
 export * from "./tooltip";
