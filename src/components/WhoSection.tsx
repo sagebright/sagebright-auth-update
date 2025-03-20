@@ -1,8 +1,31 @@
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { TrendingUp, Network, GraduationCap, Users as UsersIcon } from 'lucide-react';
 
 const WhoSection = () => {
+  const sectionRef = useRef<HTMLElement>(null);
+  
+  useEffect(() => {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+        }
+      });
+    }, { threshold: 0.1 });
+    
+    const fadeElements = document.querySelectorAll('.fade-in-section');
+    fadeElements.forEach(el => {
+      observer.observe(el);
+    });
+    
+    return () => {
+      fadeElements.forEach(el => {
+        observer.unobserve(el);
+      });
+    };
+  }, []);
+
   const audiences = [
     {
       icon: <TrendingUp className="h-16 w-16 text-sagebright-green" />,
@@ -22,9 +45,9 @@ const WhoSection = () => {
   ];
 
   return (
-    <section className="py-20 bg-gradient-to-br from-white to-gray-50" id="who">
+    <section className="py-20 bg-gradient-to-br from-white to-gray-50" id="who" ref={sectionRef}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="max-w-3xl mx-auto text-center mb-16 p-text-spacing">
+        <div className="max-w-3xl mx-auto text-center mb-16 p-text-spacing fade-in-section">
           <h2 className="text-headline font-dmSans font-bold mb-6 text-sagebright-green">
             Who <span className="text-sagebright-green">sagebright</span> Is For
           </h2>
@@ -37,7 +60,8 @@ const WhoSection = () => {
           {audiences.map((audience, index) => (
             <div 
               key={index} 
-              className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-300 text-center"
+              className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-300 text-center fade-in-section"
+              style={{ transitionDelay: `${index * 150}ms` }}
             >
               <div className="flex justify-center mb-6">{audience.icon}</div>
               <h3 className="text-subheading font-dmSans font-medium mb-4">{audience.title}</h3>

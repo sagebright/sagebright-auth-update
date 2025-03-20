@@ -1,23 +1,26 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import Logo from './Logo';
 
 const HeroSection = () => {
   const [isVisible, setIsVisible] = useState(false);
+  const [imageZoomed, setImageZoomed] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     // Set a small delay to ensure the animation triggers after component mount
     const timer = setTimeout(() => {
       setIsVisible(true);
+      setImageZoomed(true);
     }, 100);
     
     return () => clearTimeout(timer);
   }, []);
 
   return (
-    <section className="pt-32 pb-20 bg-gradient-to-br from-white to-sagebright-accent/10 overflow-hidden" id="hero">
+    <section className="pt-32 pb-20 bg-gradient-to-br from-white to-sagebright-accent/10 overflow-hidden" id="hero" ref={sectionRef}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto text-center">
           <div className="mb-8 animate-fade-in p-text-spacing">
@@ -31,14 +34,14 @@ const HeroSection = () => {
             <div className="flex flex-col sm:flex-row justify-center gap-4 p-text-spacing animate-fade-in [animation-delay:400ms] opacity-0">
               <a href="#waitlist" className="inline-block w-full sm:w-auto">
                 <Button 
-                  className="bg-sagebright-coral hover:bg-sagebright-coral/90 hover:shadow-lg hover:shadow-sagebright-coral/30 transition-all text-white px-8 py-6 text-cta font-dmSans rounded-md w-full"
+                  className="bg-sagebright-coral hover:bg-sagebright-coral/90 hover:shadow-lg hover:shadow-sagebright-coral/30 transition-all text-white px-8 py-6 text-cta font-dmSans rounded-md w-full hover:scale-103 hover:brightness-105"
                 >
                   Try Sagebright
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </a>
               <a href="#how" className="inline-block w-full sm:w-auto">
-                <Button variant="outline" className="border-sagebright-coral hover:bg-sagebright-coral/10 text-gray-800 px-8 py-6 text-cta font-dmSans w-full">
+                <Button variant="outline" className="border-sagebright-coral hover:bg-sagebright-coral/10 text-gray-800 px-8 py-6 text-cta font-dmSans w-full hover:scale-103">
                   Learn How It Works
                 </Button>
               </a>
@@ -54,7 +57,7 @@ const HeroSection = () => {
             <img 
               src="/lovable-uploads/sb_dashboard.png" 
               alt="Professional using AI assistant for onboarding" 
-              className={`w-full object-cover transition-transform duration-5000 ease-out ${isVisible ? 'scale-105' : 'scale-100'}`}
+              className={`w-full object-cover transition-transform duration-8000 ease-out zoom-on-load ${imageZoomed ? 'zoomed' : ''}`}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-sagebright-green/40 via-transparent to-transparent"></div>
           </div>

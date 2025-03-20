@@ -124,10 +124,17 @@ export default {
 			},
 			transitionDuration: {
 				'5000': '5000ms',
+				'8000': '8000ms',
 			},
 			spacing: {
 				'text-spacing': '0.8rem', // 8-12px padding for text blocks
-			}
+			},
+			scale: {
+				'103': '1.03',
+			},
+			brightness: {
+				'105': '1.05',
+			},
 		}
 	},
 	plugins: [require("tailwindcss-animate")],

@@ -20,6 +20,38 @@ section {
   justify-content: center;
 }
 
+/* Add global button hover effects */
+button, .button, a.button, .btn, a.btn {
+  transition: transform 0.3s ease, filter 0.3s ease !important;
+}
+
+button:hover, .button:hover, a.button:hover, .btn:hover, a.btn:hover {
+  transform: scale(1.03);
+  filter: brightness(1.05);
+}
+
+/* Add fade-in animation for sections */
+.fade-in-section {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.fade-in-section.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Add zoom animation for hero image */
+.zoom-on-load {
+  transform: scale(1);
+  transition: transform 8s ease-out;
+}
+
+.zoom-on-load.zoomed {
+  transform: scale(1.05);
+}
+
 /* Override any conflicting styles */
 .card {
   padding: 0;

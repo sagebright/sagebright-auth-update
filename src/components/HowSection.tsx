@@ -1,8 +1,31 @@
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Sparkles, Calendar, Lightbulb, UserRound } from 'lucide-react';
 
 const HowSection = () => {
+  const sectionRef = useRef<HTMLElement>(null);
+  
+  useEffect(() => {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+        }
+      });
+    }, { threshold: 0.1 });
+    
+    const fadeElements = document.querySelectorAll('.fade-in-section');
+    fadeElements.forEach(el => {
+      observer.observe(el);
+    });
+    
+    return () => {
+      fadeElements.forEach(el => {
+        observer.unobserve(el);
+      });
+    };
+  }, []);
+
   const steps = [
     {
       icon: <UserRound className="h-10 w-10 text-sagebright-green" />,
@@ -27,9 +50,9 @@ const HowSection = () => {
   ];
 
   return (
-    <section className="py-24 bg-white" id="how">
+    <section className="py-24 bg-white" id="how" ref={sectionRef}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="max-w-3xl mx-auto text-center mb-16 p-text-spacing">
+        <div className="max-w-3xl mx-auto text-center mb-16 p-text-spacing fade-in-section">
           <h2 className="text-headline font-dmSans font-bold mb-6 text-sagebright-green"> 
             Your AI-Powered Guide for the First Days, Weeks, and Beyond
           </h2>
@@ -45,7 +68,8 @@ const HowSection = () => {
             {steps.map((step, index) => (
               <div 
                 key={index} 
-                className="bg-white p-8 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition-shadow duration-300 flex flex-col h-full"
+                className="bg-white p-8 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition-shadow duration-300 flex flex-col h-full fade-in-section"
+                style={{ transitionDelay: `${index * 150}ms` }}
               >
                 <div className="flex justify-center items-center w-20 h-20 mb-6 mx-auto bg-sagebright-green/10 rounded-full">
                   {step.icon}
