@@ -71,9 +71,9 @@ const WaitlistSection = () => {
         <div className="max-w-3xl mx-auto">
           <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
             <div className="p-8 md:p-12">
-              <div className="text-center mb-8">
-                <h2 className="text-3xl md:text-4xl font-bold mb-4">Join Our Beta Waitlist</h2>
-                <p className="text-lg text-gray-600">
+              <div className="text-center mb-8 p-text-spacing">
+                <h2 className="text-headline font-dmSans font-bold mb-4">Join Our Beta Waitlist</h2>
+                <p className="text-body font-sans text-gray-600">
                   Be among the first to transform your onboarding experience with Sagebright.
                 </p>
               </div>
@@ -84,14 +84,14 @@ const WaitlistSection = () => {
                     <Input
                       type="text"
                       placeholder="First Name"
-                      className="py-6 px-4"
+                      className="py-6 px-4 text-body font-sans"
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
                     />
                     <Input
                       type="text"
                       placeholder="Last Name"
-                      className="py-6 px-4"
+                      className="py-6 px-4 text-body font-sans"
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
                     />
@@ -99,7 +99,7 @@ const WaitlistSection = () => {
                   <Input
                     type="email"
                     placeholder="Email Address"
-                    className="py-6 px-4"
+                    className="py-6 px-4 text-body font-sans"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
@@ -107,14 +107,14 @@ const WaitlistSection = () => {
                   <Input
                     type="text"
                     placeholder="Company (optional)"
-                    className="py-6 px-4"
+                    className="py-6 px-4 text-body font-sans"
                     value={company}
                     onChange={(e) => setCompany(e.target.value)}
                   />
                   <div className="flex justify-center mt-6">
                     <Button 
                       type="submit" 
-                      className="bg-sagebright-green hover:bg-sagebright-green/90 text-white py-6 px-8"
+                      className="bg-sagebright-coral hover:bg-sagebright-coral/90 text-white py-6 px-8 text-cta font-dmSans"
                       disabled={isSubmitting}
                     >
                       {isSubmitting ? (
@@ -126,7 +126,7 @@ const WaitlistSection = () => {
                       )}
                     </Button>
                   </div>
-                  <p className="text-sm text-gray-500 text-center">
+                  <p className="text-sm text-gray-500 text-center font-sans">
                     We respect your privacy and will never share your information.
                   </p>
                 </form>
@@ -137,8 +137,8 @@ const WaitlistSection = () => {
                       <Check className="h-10 w-10 text-sagebright-green" />
                     </div>
                   </div>
-                  <h3 className="text-2xl font-semibold mb-2">Thank You!</h3>
-                  <p className="text-gray-600">
+                  <h3 className="text-subheading font-dmSans font-medium mb-2">Thank You!</h3>
+                  <p className="text-body font-sans text-gray-600">
                     We've added you to our waitlist. We'll be in touch soon with more information about the beta program.
                   </p>
                 </div>

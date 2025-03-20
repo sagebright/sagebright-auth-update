@@ -10,18 +10,18 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-20">
           <Logo variant="full" />
           <nav className="hidden md:flex items-center space-x-8">
-            <a href="#why" className="text-gray-600 hover:text-sagebright-green transition-colors duration-200 font-medium">
+            <a href="#why" className="text-body font-sans text-gray-600 hover:text-sagebright-green transition-colors duration-200">
               Why{" "} <span className="text-sagebright-green">sagebright</span>
             </a>
-            <a href="#how" className="text-gray-600 hover:text-sagebright-green transition-colors duration-200 font-medium">
+            <a href="#how" className="text-body font-sans text-gray-600 hover:text-sagebright-green transition-colors duration-200">
               How {" "}  <span className="text-sagebright-green">sagebright</span> {" "} Works
             </a>
-            <a href="#who" className="text-gray-600 hover:text-sagebright-green transition-colors duration-200 font-medium">
+            <a href="#who" className="text-body font-sans text-gray-600 hover:text-sagebright-green transition-colors duration-200">
               Who We Help
             </a>
           </nav>
           <div>
-            <Button asChild className="bg-sagebright-green hover:bg-sagebright-green/90 text-white rounded-md">
+            <Button asChild className="bg-sagebright-coral hover:bg-sagebright-coral/90 text-white text-cta font-dmSans rounded-md">
               <a href="#waitlist">Join Beta</a>
             </Button>
           </div>

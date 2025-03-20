@@ -29,11 +29,11 @@ const HowSection = () => {
   return (
     <section className="py-24 bg-white" id="how">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="max-w-3xl mx-auto text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6 text-sagebright-green"> 
+        <div className="max-w-3xl mx-auto text-center mb-16 p-text-spacing">
+          <h2 className="text-headline font-dmSans font-bold mb-6 text-sagebright-green"> 
             Your AI-Powered Guide for the First Days, Weeks, and Beyond
           </h2>
-          <p className="text-xl text-gray-600">
+          <p className="text-body font-sans text-gray-600">
           Sagebright doesn't just provide information—it acts as a mentor. By learning about each employee's role, challenges, and work style, it personalizes their onboarding experience, helping them integrate faster and feel more connected from day one.
           </p>
         </div>
@@ -50,8 +50,8 @@ const HowSection = () => {
                 <div className="flex justify-center items-center w-20 h-20 mb-6 mx-auto bg-sagebright-green/10 rounded-full">
                   {step.icon}
                 </div>
-                <h3 className="text-xl font-semibold mb-4 text-center text-sagebright-green">{step.title}</h3>
-                <p className="text-gray-600 text-center flex-grow mb-6">{step.description}</p>
+                <h3 className="text-subheading font-dmSans font-medium mb-4 text-center text-sagebright-green">{step.title}</h3>
+                <p className="text-body font-sans text-center text-gray-600 flex-grow mb-6">{step.description}</p>
                 <div className="hidden lg:flex justify-center mt-auto">
                   <span className="w-10 h-10 rounded-full bg-sagebright-green text-white flex items-center justify-center font-semibold text-lg">
                     {index + 1}

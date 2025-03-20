@@ -12,7 +12,7 @@ const Footer = () => {
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="mb-6 md:mb-0">
             <Logo variant="full" />
-            <p className="text-gray-500 mt-2">Your AI Mentor for New Hires</p>
+            <p className="text-gray-500 mt-2 font-sans">Your AI Mentor for New Hires</p>
           </div>
 
           
@@ -42,15 +42,15 @@ const Footer = () => {
            </div>
            */} 
             <nav className="flex flex-wrap justify-center space-x-6">
-              <a href="#why" className="text-gray-600 hover:text-sagebright-green">Why {" "} <span className="text-sagebright-green">sagebright</span></a>
-              <a href="#how" className="text-gray-600 hover:text-sagebright-green">How {" "}<span className="text-sagebright-green">sagebright</span> {" "} Works</a>
-              <a href="#who" className="text-gray-600 hover:text-sagebright-green">Who We Help</a>
+              <a href="#why" className="text-body font-sans text-gray-600 hover:text-sagebright-green">Why {" "} <span className="text-sagebright-green">sagebright</span></a>
+              <a href="#how" className="text-body font-sans text-gray-600 hover:text-sagebright-green">How {" "}<span className="text-sagebright-green">sagebright</span> {" "} Works</a>
+              <a href="#who" className="text-body font-sans text-gray-600 hover:text-sagebright-green">Who We Help</a>
               {/* <a href="#waitlist" className="text-gray-600 hover:text-sagebright-green">Join Beta</a> */}
             </nav>
           </div>
         </div>
         
-        <div className="mt-8 pt-8 border-t border-gray-100 text-center text-gray-500 text-sm">
+        <div className="mt-8 pt-8 border-t border-gray-100 text-center text-gray-500 text-sm font-sans">
           <p>&copy; {currentYear} sagebright.ai. All rights reserved.</p>
         </div>
       </div>

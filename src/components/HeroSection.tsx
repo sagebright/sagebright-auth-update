@@ -20,25 +20,25 @@ const HeroSection = () => {
     <section className="pt-32 pb-20 bg-gradient-to-br from-white to-sagebright-accent/10 overflow-hidden" id="hero">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto text-center">
-          <div className="mb-8 animate-fade-in">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6 font-dmSans">
+          <div className="mb-8 animate-fade-in p-text-spacing">
+            <h1 className="text-headline-lg font-dmSans font-bold leading-tight mb-6">
               <span className="block text-sagebright-green">Your AI Mentor for</span>
               <span className="block text-sagebright-coral">Seamless Onboarding & Business Growth</span>
             </h1>
-            <p className="text-xl text-gray-600 mb-8 animate-fade-in [animation-delay:200ms] opacity-0">
+            <p className="text-body font-sans p-text-spacing animate-fade-in [animation-delay:200ms] opacity-0">
               Employees don't thrive with checklists. They thrive with guidance. Sagebright is an AI-powered mentor that transforms onboarding into a personalized journey.
             </p>
-            <div className="flex flex-col sm:flex-row justify-center gap-4 animate-fade-in [animation-delay:400ms] opacity-0">
+            <div className="flex flex-col sm:flex-row justify-center gap-4 p-text-spacing animate-fade-in [animation-delay:400ms] opacity-0">
               <a href="#waitlist" className="inline-block w-full sm:w-auto">
                 <Button 
-                  className="bg-sagebright-coral hover:bg-sagebright-coral/90 hover:shadow-lg hover:shadow-sagebright-coral/30 transition-all text-white px-8 py-6 text-lg rounded-md w-full"
+                  className="bg-sagebright-coral hover:bg-sagebright-coral/90 hover:shadow-lg hover:shadow-sagebright-coral/30 transition-all text-white px-8 py-6 text-cta font-dmSans rounded-md w-full"
                 >
                   Try Sagebright
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </a>
               <a href="#how" className="inline-block w-full sm:w-auto">
-                <Button variant="outline" className="border-sagebright-coral hover:bg-sagebright-coral/10 text-gray-800 px-8 py-6 text-lg w-full">
+                <Button variant="outline" className="border-sagebright-coral hover:bg-sagebright-coral/10 text-gray-800 px-8 py-6 text-cta font-dmSans w-full">
                   Learn How It Works
                 </Button>
               </a>

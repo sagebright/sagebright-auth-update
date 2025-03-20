@@ -75,6 +75,14 @@ export default {
 				sans: ['Inter', 'sans-serif'],
 				dmSans: ['DM Sans', 'sans-serif'],
 			},
+			fontSize: {
+				'headline': ['2.5rem', { lineHeight: '1.3', fontWeight: '700' }], // 40px
+				'headline-lg': ['3.5rem', { lineHeight: '1.3', fontWeight: '700' }], // 56px
+				'subheading': ['1.75rem', { lineHeight: '1.3', fontWeight: '500' }], // 28px
+				'subheading-lg': ['2rem', { lineHeight: '1.3', fontWeight: '500' }], // 32px
+				'body': ['1.125rem', { lineHeight: '1.3', fontWeight: '400' }], // 18px
+				'cta': ['1.25rem', { lineHeight: '1.3', fontWeight: '600' }], // 20px
+			},
 			borderRadius: {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
@@ -116,6 +124,9 @@ export default {
 			},
 			transitionDuration: {
 				'5000': '5000ms',
+			},
+			spacing: {
+				'text-spacing': '0.8rem', // 8-12px padding for text blocks
 			}
 		}
 	},
