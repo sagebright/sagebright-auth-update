@@ -58,7 +58,7 @@ const HeroSection = () => {
             <div className="flex flex-col sm:flex-row justify-center gap-6 p-text-spacing animate-fade-in [animation-delay:400ms] opacity-0">
               <a href="#waitlist" className="inline-block w-full sm:w-auto">
                 <Button 
-                  className="bg-sagebright-coral hover:bg-sagebright-coral/90 hover:shadow-lg hover:shadow-sagebright-coral/30 transition-all text-white px-8 py-6 text-cta font-dmSans rounded-md w-full hover:scale-[1.03] hover:brightness-105"
+                  className="px-8 py-6 text-cta font-dmSans rounded-md w-full hover:scale-[1.03] hover:brightness-105 hover:shadow-lg hover:shadow-sagebright-coral/30 transition-all"
                 >
                   Try Sagebright
                   <ArrowRight className="ml-2 h-5 w-5" />
@@ -66,8 +66,8 @@ const HeroSection = () => {
               </a>
               <a href="#how" className="inline-block w-full sm:w-auto">
                 <Button 
-                  variant="outline" 
-                  className="border-sagebright-coral hover:bg-sagebright-coral/10 text-gray-800 px-8 py-6 text-cta font-dmSans w-full hover:scale-[1.03] transition-transform"
+                  variant="secondary" 
+                  className="px-8 py-6 text-cta font-dmSans w-full hover:scale-[1.03] transition-transform hover:shadow-md"
                 >
                   Learn How It Works
                 </Button>
@@ -86,7 +86,7 @@ const HeroSection = () => {
               alt="Professional using AI assistant for onboarding" 
               className={`w-full object-cover transition-transform duration-5000 ease-out ${isVisible ? 'scale-[1.08]' : 'scale-100'}`}
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-sagebright-green/40 via-transparent to-transparent"></div>
+            <div className="absolute inset-0 bg-gradient-to-t from-sagebright-navy/30 via-transparent to-transparent"></div>
           </div>
           <div className="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-gradient-to-r from-sagebright-coral/10 to-sagebright-green/10 blur-3xl rounded-full opacity-30"></div>
         </div>

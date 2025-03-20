@@ -32,13 +32,13 @@ const Navbar = () => {
           
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            <a href="#why" className="text-body font-sans text-gray-600 hover:text-sagebright-green transition-colors duration-200 hover:scale-[1.03]">
+            <a href="#why" className="text-body font-sans text-gray-600 hover:text-sagebright-navy transition-colors duration-200 hover:scale-[1.03] border-b-2 border-transparent hover:border-sagebright-gold">
               Why{" "} <span className="text-sagebright-green">sagebright</span>
             </a>
-            <a href="#how" className="text-body font-sans text-gray-600 hover:text-sagebright-green transition-colors duration-200 hover:scale-[1.03]">
+            <a href="#how" className="text-body font-sans text-gray-600 hover:text-sagebright-navy transition-colors duration-200 hover:scale-[1.03] border-b-2 border-transparent hover:border-sagebright-gold">
               How {" "}  <span className="text-sagebright-green">sagebright</span> {" "} Works
             </a>
-            <a href="#who" className="text-body font-sans text-gray-600 hover:text-sagebright-green transition-colors duration-200 hover:scale-[1.03]">
+            <a href="#who" className="text-body font-sans text-gray-600 hover:text-sagebright-navy transition-colors duration-200 hover:scale-[1.03] border-b-2 border-transparent hover:border-sagebright-gold">
               Who We Help
             </a>
           </nav>
@@ -47,14 +47,14 @@ const Navbar = () => {
           <div className="md:hidden">
             <button 
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="text-gray-600 hover:text-sagebright-green transition-colors"
+              className="text-gray-600 hover:text-sagebright-navy transition-colors"
             >
               <Menu className="h-6 w-6" />
             </button>
           </div>
           
           <div className="hidden md:block">
-            <Button asChild className="bg-sagebright-coral hover:bg-sagebright-coral/90 text-white text-cta font-dmSans rounded-md transition-transform hover:scale-[1.03] hover:shadow-lg hover:brightness-105">
+            <Button asChild className="text-cta font-dmSans rounded-md transition-transform hover:scale-[1.03] hover:shadow-lg hover:brightness-105">
               <a href="#waitlist">Join Beta</a>
             </Button>
           </div>
@@ -66,16 +66,16 @@ const Navbar = () => {
         <div className="md:hidden bg-white border-t border-gray-100 py-4 animate-fade-in">
           <div className="container mx-auto px-4">
             <nav className="flex flex-col space-y-4">
-              <a href="#why" className="text-body font-sans text-gray-600 hover:text-sagebright-green transition-colors duration-200 py-2">
+              <a href="#why" className="text-body font-sans text-gray-600 hover:text-sagebright-navy transition-colors duration-200 py-2 border-l-2 border-transparent hover:border-sagebright-gold hover:pl-2">
                 Why <span className="text-sagebright-green">sagebright</span>
               </a>
-              <a href="#how" className="text-body font-sans text-gray-600 hover:text-sagebright-green transition-colors duration-200 py-2">
+              <a href="#how" className="text-body font-sans text-gray-600 hover:text-sagebright-navy transition-colors duration-200 py-2 border-l-2 border-transparent hover:border-sagebright-gold hover:pl-2">
                 How <span className="text-sagebright-green">sagebright</span> Works
               </a>
-              <a href="#who" className="text-body font-sans text-gray-600 hover:text-sagebright-green transition-colors duration-200 py-2">
+              <a href="#who" className="text-body font-sans text-gray-600 hover:text-sagebright-navy transition-colors duration-200 py-2 border-l-2 border-transparent hover:border-sagebright-gold hover:pl-2">
                 Who We Help
               </a>
-              <Button asChild className="bg-sagebright-coral hover:bg-sagebright-coral/90 text-white text-cta font-dmSans rounded-md w-full mt-2 transition-transform hover:scale-[1.03] hover:shadow-lg hover:brightness-105">
+              <Button asChild className="text-cta font-dmSans rounded-md w-full mt-2 transition-transform hover:scale-[1.03] hover:shadow-lg hover:brightness-105">
                 <a href="#waitlist">Join Beta</a>
               </Button>
             </nav>

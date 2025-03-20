@@ -66,10 +66,10 @@ const WaitlistSection = () => {
   };
 
   return (
-    <section className="bg-sagebright-green/10" id="waitlist">
+    <section className="bg-sagebright-accent/10" id="waitlist">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
         <div className="max-w-3xl mx-auto">
-          <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-sagebright-gold/20">
             <div className="p-10 md:p-16">
               <div className="text-center mb-12 p-text-spacing text-block">
                 <h2 className="text-headline font-dmSans font-bold mb-6">Join Our Beta Waitlist</h2>
@@ -84,14 +84,14 @@ const WaitlistSection = () => {
                     <Input
                       type="text"
                       placeholder="First Name"
-                      className="py-6 px-4 text-body font-sans"
+                      className="py-6 px-4 text-body font-sans border-sagebright-navy/20 focus-visible:ring-sagebright-gold"
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
                     />
                     <Input
                       type="text"
                       placeholder="Last Name"
-                      className="py-6 px-4 text-body font-sans"
+                      className="py-6 px-4 text-body font-sans border-sagebright-navy/20 focus-visible:ring-sagebright-gold"
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
                     />
@@ -99,7 +99,7 @@ const WaitlistSection = () => {
                   <Input
                     type="email"
                     placeholder="Email Address"
-                    className="py-6 px-4 text-body font-sans"
+                    className="py-6 px-4 text-body font-sans border-sagebright-navy/20 focus-visible:ring-sagebright-gold"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
@@ -107,14 +107,14 @@ const WaitlistSection = () => {
                   <Input
                     type="text"
                     placeholder="Company (optional)"
-                    className="py-6 px-4 text-body font-sans"
+                    className="py-6 px-4 text-body font-sans border-sagebright-navy/20 focus-visible:ring-sagebright-gold"
                     value={company}
                     onChange={(e) => setCompany(e.target.value)}
                   />
                   <div className="flex justify-center mt-8">
                     <Button 
                       type="submit" 
-                      className="bg-sagebright-coral hover:bg-sagebright-coral/90 text-white py-6 px-8 text-cta font-dmSans"
+                      className="py-6 px-8 text-cta font-dmSans hover:scale-[1.03] hover:brightness-105 hover:shadow-lg"
                       disabled={isSubmitting}
                     >
                       {isSubmitting ? (

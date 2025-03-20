@@ -80,3 +80,50 @@ section {
 .text-block {
   padding: 40px;
 }
+
+/* Accent colors and hover states */
+.hover-accent {
+  position: relative;
+}
+
+.hover-accent::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background-color: #FFCB5C; /* Sunglow accent color */
+  transition: width 0.3s ease;
+}
+
+.hover-accent:hover::after {
+  width: 100%;
+}
+
+/* Alternating section backgrounds */
+section:nth-of-type(odd) {
+  background-color: #fff;
+}
+
+section:nth-of-type(even) {
+  background-color: rgba(136, 216, 176, 0.1); /* Celadon at 10% opacity */
+}
+
+/* Enhanced button styles */
+button, .button {
+  transition: transform 0.3s ease, filter 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+}
+
+button:hover, .button:hover {
+  transform: scale(1.03);
+  filter: brightness(1.05);
+}
+
+/* Gold accent for focus states */
+input:focus, 
+textarea:focus, 
+select:focus {
+  outline-color: #FFCB5C !important; /* Sunglow accent color */
+  box-shadow: 0 0 0 2px rgba(255, 203, 92, 0.2) !important;
+}

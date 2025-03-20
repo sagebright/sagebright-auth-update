@@ -27,10 +27,10 @@ export default {
 				foreground: 'hsl(var(--foreground))',
 				sagebright: {
 					green: '#2a9d90',     // Updated primary color
-					gold: '#ffcb5c',      // Updated from orange to gold
-					accent: '#88d8b0',    // Updated accent color
-					navy: '#274754',      // Added navy color
-					coral: '#ff6e61',     // Added coral color
+					gold: '#ffcb5c',      // Sunglow accent color
+					accent: '#88d8b0',    // Celadon
+					navy: '#274754',      // Charcoal
+					coral: '#ff6e61',     // Bittersweet
 				},
 				primary: {
 					DEFAULT: 'hsl(var(--primary))',
