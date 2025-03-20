@@ -66,12 +66,12 @@ const HowSection = () => {
   return (
     <section 
       ref={sectionRef}
-      className="py-24 bg-white section-animate" 
+      className="bg-white section-animate" 
       id="how"
     >
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="max-w-3xl mx-auto text-center mb-16 p-text-spacing section-animate">
-          <h2 className="text-headline font-dmSans font-bold mb-6 text-sagebright-green"> 
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+        <div className="max-w-3xl mx-auto text-center mb-20 p-text-spacing section-animate text-block">
+          <h2 className="text-headline font-dmSans font-bold mb-8 text-sagebright-green"> 
             Your AI-Powered Guide for the First Days, Weeks, and Beyond
           </h2>
           <p className="text-body font-sans text-gray-600">
@@ -79,22 +79,22 @@ const HowSection = () => {
           </p>
         </div>
 
-        <div className="relative">
+        <div className="relative max-w-6xl mx-auto">
           <div className="hidden lg:block absolute top-1/2 left-0 right-0 h-1 bg-sagebright-accent/50 -translate-y-1/2 z-0"></div>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 relative z-10">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-10 relative z-10">
             {steps.map((step, index) => (
               <div 
                 key={index}
                 ref={el => stepsRef.current[index] = el}
-                className="bg-white p-8 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition-shadow duration-300 flex flex-col h-full section-animate"
+                className="bg-white p-10 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition-shadow duration-300 flex flex-col h-full section-animate"
                 style={{ animationDelay: `${index * 150}ms` }}
               >
                 <div className="flex justify-center items-center w-20 h-20 mb-6 mx-auto bg-sagebright-green/10 rounded-full transition-transform hover:scale-[1.05] duration-300">
                   {step.icon}
                 </div>
-                <h3 className="text-subheading font-dmSans font-medium mb-4 text-center text-sagebright-green">{step.title}</h3>
-                <p className="text-body font-sans text-center text-gray-600 flex-grow mb-6">{step.description}</p>
+                <h3 className="text-subheading font-dmSans font-medium mb-5 text-center text-sagebright-green">{step.title}</h3>
+                <p className="text-body font-sans text-center text-gray-600 flex-grow mb-8">{step.description}</p>
                 <div className="hidden lg:flex justify-center mt-auto">
                   <span className="w-10 h-10 rounded-full bg-sagebright-green text-white flex items-center justify-center font-semibold text-lg transition-transform hover:scale-110 duration-300">
                     {index + 1}

@@ -12,12 +12,13 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Ensure all sections take at least the viewport height */
+/* Ensure all sections take at least the viewport height and improve spacing between sections */
 section {
   min-height: 60vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  padding: 120px 0; /* Increased spacing between major sections */
 }
 
 /* Override any conflicting styles */
@@ -64,4 +65,18 @@ section {
 
 .gentle-zoom {
   animation: gentle-zoom 5s ease-out forwards;
+}
+
+/* 12-column grid system */
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  max-width: 1200px;
+  margin: 0 auto;
+  gap: 2rem;
+}
+
+/* Text block spacing */
+.text-block {
+  padding: 40px;
 }
