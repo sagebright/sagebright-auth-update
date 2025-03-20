@@ -11,12 +11,10 @@ const Navbar = () => {
           <Logo variant="full" />
           <nav className="hidden md:flex items-center space-x-8">
             <a href="#why" className="text-gray-600 hover:text-sagebright-green transition-colors duration-200 font-medium">
-              Why{" "} <span className="text-sagebright-green">sage</span>
-            <span className="text-sagebright-gold">bright</span>
+              Why{" "} <span className="text-sagebright-green">sagebright</span>
             </a>
             <a href="#how" className="text-gray-600 hover:text-sagebright-green transition-colors duration-200 font-medium">
-              How {" "}  <span className="text-sagebright-green">sage</span>
-            <span className="text-sagebright-gold">bright</span> {" "} Works
+              How {" "}  <span className="text-sagebright-green">sagebright</span> {" "} Works
             </a>
             <a href="#who" className="text-gray-600 hover:text-sagebright-green transition-colors duration-200 font-medium">
               Who We Help
