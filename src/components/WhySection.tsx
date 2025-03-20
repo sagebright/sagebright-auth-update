@@ -50,26 +50,26 @@ const WhySection = () => {
   ];
 
   return (
-    <section className="py-30 bg-gradient-to-br from-gray-50 to-sagebright-accent/5 section-spacing" id="why" ref={sectionRef}>
-      <div className="container mx-auto">
-        <div className="max-w-3xl mx-auto text-center mb-20 text-block fade-in-section">
-          <h2 className="text-headline font-dmSans font-bold mb-8 text-sagebright-green">A Better Start Leads to Better Work</h2>
-          <p className="text-body font-sans text-gray-600 py-6">
+    <section className="py-24 bg-gradient-to-br from-gray-50 to-sagebright-accent/5" id="why" ref={sectionRef}>
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-3xl mx-auto text-center mb-16 p-text-spacing fade-in-section">
+          <h2 className="text-headline font-dmSans font-bold mb-6 text-sagebright-green">A Better Start Leads to Better Work</h2>
+          <p className="text-body font-sans text-gray-600">
             Companies struggle with onboarding that's manual, disjointed, and fails to provide new hires with what they need when they need it.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
           {problems.map((problem, index) => (
             <div 
               key={index} 
-              className="bg-white p-10 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition-shadow duration-300 flex flex-col fade-in-section"
+              className="bg-white p-8 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition-shadow duration-300 flex flex-col fade-in-section"
               style={{ transitionDelay: `${index * 150}ms` }}
             >
               <div className="mb-6 bg-sagebright-accent/20 p-4 rounded-full inline-block">
                 {problem.icon}
               </div>
-              <h3 className="text-subheading font-dmSans font-medium mb-5 text-gray-800">{problem.title}</h3>
+              <h3 className="text-subheading font-dmSans font-medium mb-3 text-gray-800">{problem.title}</h3>
               <p className="text-body font-sans text-gray-600">{problem.description}</p>
             </div>
           ))}

@@ -20,18 +20,18 @@ const HeroSection = () => {
   }, []);
 
   return (
-    <section className="pt-40 pb-32 bg-gradient-to-br from-white to-sagebright-accent/10 overflow-hidden section-spacing" id="hero" ref={sectionRef}>
-      <div className="container mx-auto">
+    <section className="pt-32 pb-20 bg-gradient-to-br from-white to-sagebright-accent/10 overflow-hidden" id="hero" ref={sectionRef}>
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto text-center">
-          <div className="mb-12 animate-fade-in text-block">
-            <h1 className="text-headline-lg font-dmSans font-bold leading-tight mb-8">
+          <div className="mb-8 animate-fade-in p-text-spacing">
+            <h1 className="text-headline-lg font-dmSans font-bold leading-tight mb-6">
               <span className="block text-sagebright-green">Your AI Mentor for</span>
               <span className="block text-sagebright-coral">Seamless Onboarding & Business Growth</span>
             </h1>
-            <p className="text-body font-sans py-6 animate-fade-in [animation-delay:200ms] opacity-0">
+            <p className="text-body font-sans p-text-spacing animate-fade-in [animation-delay:200ms] opacity-0">
               Employees don't thrive with checklists. They thrive with guidance. Sagebright is an AI-powered mentor that transforms onboarding into a personalized journey.
             </p>
-            <div className="flex flex-col sm:flex-row justify-center gap-6 py-6 animate-fade-in [animation-delay:400ms] opacity-0">
+            <div className="flex flex-col sm:flex-row justify-center gap-4 p-text-spacing animate-fade-in [animation-delay:400ms] opacity-0">
               <a href="#waitlist" className="inline-block w-full sm:w-auto">
                 <Button 
                   className="bg-sagebright-coral hover:bg-sagebright-coral/90 hover:shadow-lg hover:shadow-sagebright-coral/30 transition-all text-white px-8 py-6 text-cta font-dmSans rounded-md w-full hover:scale-103 hover:brightness-105"
@@ -49,7 +49,7 @@ const HeroSection = () => {
           </div>
         </div>
         
-        <div className={`mt-16 relative max-w-5xl mx-auto transition-all duration-1000 ease-out ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
+        <div className={`mt-8 relative max-w-5xl mx-auto transition-all duration-1000 ease-out ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
           <div className="relative rounded-xl overflow-hidden shadow-2xl border border-gray-100">
             <div className="absolute z-10 top-1/4 left-1/4 w-8 h-8 rounded-full bg-sagebright-green/30 animate-ping [animation-delay:1000ms]"></div>
             <div className="absolute z-10 top-1/2 right-1/4 w-6 h-6 rounded-full bg-sagebright-coral/30 animate-ping [animation-delay:1500ms]"></div>

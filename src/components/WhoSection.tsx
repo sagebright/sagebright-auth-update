@@ -45,26 +45,26 @@ const WhoSection = () => {
   ];
 
   return (
-    <section className="section-spacing bg-gradient-to-br from-white to-gray-50" id="who" ref={sectionRef}>
-      <div className="container mx-auto">
-        <div className="max-w-3xl mx-auto text-center mb-20 text-block fade-in-section">
-          <h2 className="text-headline font-dmSans font-bold mb-8 text-sagebright-green">
+    <section className="py-20 bg-gradient-to-br from-white to-gray-50" id="who" ref={sectionRef}>
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-3xl mx-auto text-center mb-16 p-text-spacing fade-in-section">
+          <h2 className="text-headline font-dmSans font-bold mb-6 text-sagebright-green">
             Who <span className="text-sagebright-green">sagebright</span> Is For
           </h2>
-          <p className="text-body font-sans text-gray-600 py-6">
+          <p className="text-body font-sans text-gray-600">
            Sagebright is designed for companies that believe their people are their greatest advantage. If you want to create an onboarding experience that inspires, we'd love to have you in our beta.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+        <div className="grid md:grid-cols-3 gap-8">
           {audiences.map((audience, index) => (
             <div 
               key={index} 
-              className="bg-white p-10 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-300 text-center fade-in-section"
+              className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-300 text-center fade-in-section"
               style={{ transitionDelay: `${index * 150}ms` }}
             >
-              <div className="flex justify-center mb-8">{audience.icon}</div>
-              <h3 className="text-subheading font-dmSans font-medium mb-6">{audience.title}</h3>
+              <div className="flex justify-center mb-6">{audience.icon}</div>
+              <h3 className="text-subheading font-dmSans font-medium mb-4">{audience.title}</h3>
               <p className="text-body font-sans text-gray-600">{audience.description}</p>
             </div>
           ))}
