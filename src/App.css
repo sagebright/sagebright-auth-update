@@ -12,12 +12,14 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Ensure all sections take at least the viewport height */
+/* Ensure all sections take at least the viewport height and improve section spacing */
 section {
   min-height: 60vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  padding: 4rem 0;
+  margin: 2rem 0;
 }
 
 /* Add global button hover effects */
@@ -50,6 +52,27 @@ button:hover, .button:hover, a.button:hover, .btn:hover, a.btn:hover {
 
 .zoom-on-load.zoomed {
   transform: scale(1.05);
+}
+
+/* Improved content spacing */
+.container {
+  max-width: 1200px !important;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+/* Text block spacing */
+.text-block {
+  padding: 2.5rem;
+}
+
+/* Section spacing */
+.section-spacing {
+  padding-top: 7.5rem; /* 120px */
+  padding-bottom: 7.5rem; /* 120px */
 }
 
 /* Override any conflicting styles */
