@@ -12,8 +12,8 @@ export default function WelcomeCard() {
   return (
     <Card className="w-full bg-gradient-to-r from-sagebright-accent/20 to-sagebright-green/5 border border-sagebright-accent/20 rounded-2xl shadow-card hover:shadow-card-hover transition-shadow">
       <CardContent className="p-6 md:p-8">
-        <div className="flex flex-col items-center text-center md:items-center gap-6">
-          <Avatar className="h-20 w-20 border-2 border-white shadow-md">
+        <div className="flex flex-col md:flex-row items-center gap-6">
+          <Avatar className="h-24 w-24 md:h-32 md:w-32 border-2 border-white shadow-md">
             <AvatarImage src="/lovable-uploads/c3955ded-e6fc-4975-936a-d6fa82f47f72.png" alt="Sage AI Assistant" />
             <AvatarFallback className="bg-sagebright-accent text-sagebright-green">SG</AvatarFallback>
           </Avatar>
