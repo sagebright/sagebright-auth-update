@@ -17,11 +17,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       <div className="flex min-h-screen w-full bg-gray-50">
         <Sidebar>
           <SidebarHeader className="border-b pb-0">
-            <div className="flex items-center px-2 py-3">
+            <div className="flex items-center justify-center px-2 py-4">
               <img 
                 src="/lovable-uploads/sb_logo_type.svg" 
                 alt="Sagebright" 
-                className="h-8 w-auto" 
+                className="h-10 w-auto" 
               />
             </div>
           </SidebarHeader>
@@ -32,9 +32,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   asChild 
                   isActive={true} 
                   tooltip="Dashboard"
-                  className="!bg-sagebright-green/10 text-sagebright-green font-medium transition-colors data-[active=true]:!bg-sagebright-green/20 data-[active=true]:!text-sagebright-green hover:!bg-sagebright-green/20"
+                  className="!bg-sagebright-green/10 font-medium transition-colors text-sagebright-green
+                  data-[active=true]:!bg-sagebright-green/15 data-[active=true]:!text-sagebright-green 
+                  hover:!bg-sagebright-green/15 hover:!text-sagebright-green"
                 >
-                  <Link to="/dashboard">
+                  <Link to="/dashboard" className="flex items-center">
                     <LayoutDashboard className="text-sagebright-green" />
                     <span>Dashboard</span>
                   </Link>
@@ -45,9 +47,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 <SidebarMenuButton 
                   asChild 
                   tooltip="Ask Sage"
-                  className="text-sagebright-coral transition-colors hover:!bg-sagebright-coral/10 hover:!text-sagebright-coral"
+                  className="text-charcoal/70 font-medium transition-colors 
+                  hover:!bg-sagebright-coral/10 hover:!text-sagebright-coral"
                 >
-                  <Link to="#">
+                  <Link to="#" className="flex items-center">
                     <HelpCircle className="text-sagebright-coral" />
                     <span>Ask Sage</span>
                   </Link>
@@ -58,9 +61,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 <SidebarMenuButton 
                   asChild 
                   tooltip="Onboarding Roadmap"
-                  className="text-sagebright-navy transition-colors hover:!bg-sagebright-navy/10 hover:!text-sagebright-navy"
+                  className="text-charcoal/70 font-medium transition-colors 
+                  hover:!bg-sagebright-navy/10 hover:!text-sagebright-navy"
                 >
-                  <Link to="#">
+                  <Link to="#" className="flex items-center">
                     <ListChecks className="text-sagebright-navy" />
                     <span>Onboarding Roadmap</span>
                   </Link>
@@ -71,9 +75,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 <SidebarMenuButton 
                   asChild 
                   tooltip="Schedules"
-                  className="text-sagebright-gold transition-colors hover:!bg-sagebright-gold/10 hover:!text-sagebright-gold"
+                  className="text-charcoal/70 font-medium transition-colors 
+                  hover:!bg-sagebright-gold/10 hover:!text-sagebright-gold"
                 >
-                  <Link to="#">
+                  <Link to="#" className="flex items-center">
                     <Calendar className="text-sagebright-gold" />
                     <span>Schedules</span>
                   </Link>
@@ -84,9 +89,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 <SidebarMenuButton 
                   asChild 
                   tooltip="People"
-                  className="text-sagebright-accent transition-colors hover:!bg-sagebright-accent/10 hover:!text-sagebright-accent"
+                  className="text-charcoal/70 font-medium transition-colors 
+                  hover:!bg-sagebright-accent/10 hover:!text-sagebright-accent"
                 >
-                  <Link to="#">
+                  <Link to="#" className="flex items-center">
                     <Users className="text-sagebright-accent" />
                     <span>People</span>
                   </Link>
@@ -97,10 +103,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 <SidebarMenuButton 
                   asChild 
                   tooltip="Settings"
-                  className="text-gray-600 transition-colors hover:!bg-gray-200 hover:!text-gray-800"
+                  className="text-charcoal/70 font-medium transition-colors 
+                  hover:!bg-gray-200 hover:!text-charcoal"
                 >
-                  <Link to="#">
-                    <Settings className="text-gray-600" />
+                  <Link to="#" className="flex items-center">
+                    <Settings className="text-charcoal/70" />
                     <span>Settings</span>
                   </Link>
                 </SidebarMenuButton>
@@ -109,7 +116,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </SidebarContent>
           <SidebarFooter className="border-t pt-2">
             <div className="px-3 py-2">
-              <Button variant="outline" className="w-full justify-start text-gray-600 hover:text-red-500 hover:border-red-200" asChild>
+              <Button 
+                variant="outline" 
+                className="w-full justify-start text-charcoal/70 font-medium 
+                hover:text-red-500 hover:border-red-200 transition-colors" 
+                asChild
+              >
                 <Link to="/">
                   <LogOut className="mr-2 h-4 w-4 text-red-500" />
                   <span>Log Out</span>

@@ -26,12 +26,13 @@ export default {
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				sagebright: {
-					green: '#2a9d90',     // Updated primary color
-					gold: '#ffcb5c',      // Updated from orange to gold
-					accent: '#88d8b0',    // Updated accent color
-					navy: '#274754',      // Added navy color
-					coral: '#ff6e61',     // Added coral color
+					green: '#2a9d90',     // Persian Green
+					gold: '#ffcb5c',      // Gold color
+					accent: '#88d8b0',    // Celadon
+					navy: '#274754',      // Navy color
+					coral: '#ff6e61',     // Coral color
 				},
+				charcoal: '#274754',      // Adding Charcoal as a direct color
 				primary: {
 					DEFAULT: 'hsl(var(--primary))',
 					foreground: 'hsl(var(--primary-foreground))'
