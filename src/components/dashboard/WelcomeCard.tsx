@@ -8,14 +8,6 @@ import { ArrowRight, HelpCircle } from "lucide-react";
 
 export default function WelcomeCard() {
   const [userInput, setUserInput] = useState("");
-  const greeting = getGreeting();
-  
-  function getGreeting() {
-    const hour = new Date().getHours();
-    if (hour < 12) return "Good morning";
-    if (hour < 17) return "Good afternoon";
-    return "Good evening";
-  }
   
   return (
     <Card className="w-full bg-gradient-to-r from-sagebright-accent/30 to-sagebright-green/10 border-none">
@@ -29,7 +21,7 @@ export default function WelcomeCard() {
           <div className="flex-1 space-y-6">
             <div>
               <h2 className="text-2xl md:text-3xl font-bold text-gray-800">
-                {greeting}, Adam
+                Good morning, Adam!
               </h2>
               <p className="text-gray-600 mt-1">
                 Want help figuring out what's most important today?
@@ -40,7 +32,7 @@ export default function WelcomeCard() {
               <Input
                 value={userInput}
                 onChange={(e) => setUserInput(e.target.value)}
-                placeholder="What would you like help with today?"
+                placeholder="Type your response or question"
                 className="bg-white"
               />
               
