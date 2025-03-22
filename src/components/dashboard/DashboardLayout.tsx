@@ -18,8 +18,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         <Sidebar>
           <SidebarHeader className="border-b pb-0">
             <div className="flex items-center px-2 py-3">
-              <Logo className="h-8 w-auto mr-2" />
-              <div className="font-bold text-xl text-sagebright-green">Sagebright</div>
+              <img 
+                src="/lovable-uploads/sb_logo_type.svg" 
+                alt="Sagebright" 
+                className="h-8 w-auto" 
+              />
             </div>
           </SidebarHeader>
           <SidebarContent>
@@ -61,10 +64,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               </SidebarMenuItem>
               
               <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="Contacts">
+                <SidebarMenuButton asChild tooltip="People">
                   <Link to="#">
                     <Users />
-                    <span>Contacts</span>
+                    <span>People</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
