@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tv, Star, MessageSquare, Award } from "lucide-react";
+import { Tv, MessageSquare, Award } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function JustForFunSection() {
@@ -17,15 +17,6 @@ export default function JustForFunSection() {
       bgColor: "bg-pink-50",
       iconColor: "text-pink-500",
       size: "small"
-    },
-    {
-      id: 2,
-      title: "What are 3 words to describe your onboarding so far?",
-      type: "chat",
-      icon: Star,
-      bgColor: "bg-orange-50",
-      iconColor: "text-orange-500",
-      size: "medium"
     },
     {
       id: 3,
@@ -43,7 +34,7 @@ export default function JustForFunSection() {
       icon: Award,
       bgColor: "bg-indigo-50",
       iconColor: "text-indigo-500",
-      size: "medium",
+      size: "small",
       choices: ["John Smith", "Maria Garcia", "Alex Johnson", "Taylor Wu"]
     }
   ];
@@ -62,7 +53,7 @@ export default function JustForFunSection() {
             key={item.id} 
             className={cn(
               "bg-white hover:shadow-md transition-shadow flex flex-col justify-between", 
-              item.size === "small" ? "md:col-span-2" : "md:col-span-4"
+              "md:col-span-2"
             )}
           >
             <CardContent className="p-6">

@@ -1,7 +1,8 @@
 
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Video, ClipboardCheck, BookOpen, Users } from "lucide-react";
+import { Video, ClipboardCheck, Users } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default function SagePicksSection() {
   const sagePickItems = [
@@ -20,14 +21,6 @@ export default function SagePicksSection() {
       icon: ClipboardCheck,
       bgColor: "bg-green-50",
       iconColor: "text-green-500"
-    },
-    {
-      id: 3,
-      title: "Review Employee Handbook Highlights",
-      timeEstimate: 8,
-      icon: BookOpen,
-      bgColor: "bg-amber-50",
-      iconColor: "text-amber-500"
     },
     {
       id: 4,
@@ -87,6 +80,3 @@ const Button = React.forwardRef<
   );
 });
 Button.displayName = "Button";
-
-// Import cn utility
-import { cn } from "@/lib/utils";
