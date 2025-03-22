@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,26 @@ import { ArrowRight, HelpCircle } from "lucide-react";
 
 export default function WelcomeCard() {
   const [userInput, setUserInput] = useState("");
+  const [displayedText, setDisplayedText] = useState("");
+  const fullText = "Want help figuring out what's most important today?";
+  
+  useEffect(() => {
+    let index = 0;
+    // Reset the displayed text when component mounts
+    setDisplayedText("");
+    
+    // Create a typing effect interval
+    const typingInterval = setInterval(() => {
+      if (index < fullText.length) {
+        setDisplayedText(prev => prev + fullText.charAt(index));
+        index++;
+      } else {
+        clearInterval(typingInterval);
+      }
+    }, 50); // Adjust typing speed here
+    
+    return () => clearInterval(typingInterval);
+  }, []);
   
   return (
     <Card className="w-full bg-gradient-to-r from-sagebright-accent/20 to-sagebright-green/5 border border-sagebright-accent/20 rounded-2xl shadow-card hover:shadow-card-hover transition-shadow">
@@ -21,7 +41,8 @@ export default function WelcomeCard() {
           <div className="w-full max-w-2xl space-y-5">
             <div className="bg-white/80 backdrop-blur-sm p-5 rounded-xl border border-sagebright-accent/20 shadow-sm">
               <h2 className="text-2xl md:text-3xl font-helvetica font-bold text-charcoal">
-                Want help figuring out what's most important today?
+                {displayedText}
+                <span className="animate-pulse">|</span>
               </h2>
               <p className="text-charcoal/80 mt-2 font-roboto">
                 I can guide you through your priorities or help you discover resources you might need.

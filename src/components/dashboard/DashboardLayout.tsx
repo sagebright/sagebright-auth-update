@@ -32,9 +32,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   asChild 
                   isActive={true} 
                   tooltip="Dashboard"
-                  className="!bg-sagebright-accent/20 font-medium transition-colors text-sagebright-green
+                  className="!bg-sagebright-accent/20 font-medium transition-all text-sagebright-green
                   data-[active=true]:!bg-sagebright-accent/25 data-[active=true]:!text-sagebright-green 
-                  hover:!bg-sagebright-accent/25 hover:!text-sagebright-green"
+                  hover:!bg-sagebright-accent/25 hover:!text-sagebright-green hover:scale-[1.02]"
                 >
                   <Link to="/dashboard" className="flex items-center">
                     <LayoutDashboard className="text-sagebright-green" />
@@ -47,8 +47,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 <SidebarMenuButton 
                   asChild 
                   tooltip="Ask Sage"
-                  className="text-charcoal/70 font-medium transition-colors 
-                  hover:!bg-bittersweet/10 hover:!text-bittersweet"
+                  className="text-charcoal/70 font-normal transition-all duration-200
+                  hover:!bg-bittersweet/10 hover:!text-bittersweet hover:scale-[1.02]"
                 >
                   <Link to="#" className="flex items-center">
                     <HelpCircle className="text-bittersweet" />
@@ -61,8 +61,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 <SidebarMenuButton 
                   asChild 
                   tooltip="Onboarding Roadmap"
-                  className="text-charcoal/70 font-medium transition-colors 
-                  hover:!bg-charcoal/10 hover:!text-charcoal"
+                  className="text-charcoal/70 font-normal transition-all duration-200
+                  hover:!bg-charcoal/10 hover:!text-charcoal hover:scale-[1.02]"
                 >
                   <Link to="#" className="flex items-center">
                     <ListChecks className="text-charcoal" />
@@ -75,8 +75,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 <SidebarMenuButton 
                   asChild 
                   tooltip="Schedules"
-                  className="text-charcoal/70 font-medium transition-colors 
-                  hover:!bg-sunglow/10 hover:!text-sunglow"
+                  className="text-charcoal/70 font-normal transition-all duration-200
+                  hover:!bg-sunglow/10 hover:!text-sunglow hover:scale-[1.02]"
                 >
                   <Link to="#" className="flex items-center">
                     <Calendar className="text-sunglow" />
@@ -89,8 +89,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 <SidebarMenuButton 
                   asChild 
                   tooltip="People"
-                  className="text-charcoal/70 font-medium transition-colors 
-                  hover:!bg-sagebright-accent/10 hover:!text-sagebright-accent"
+                  className="text-charcoal/70 font-normal transition-all duration-200
+                  hover:!bg-sagebright-accent/10 hover:!text-sagebright-accent hover:scale-[1.02]"
                 >
                   <Link to="#" className="flex items-center">
                     <Users className="text-sagebright-accent" />
@@ -103,8 +103,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 <SidebarMenuButton 
                   asChild 
                   tooltip="Settings"
-                  className="text-charcoal/70 font-medium transition-colors 
-                  hover:!bg-gray-200 hover:!text-charcoal"
+                  className="text-charcoal/70 font-normal transition-all duration-200
+                  hover:!bg-gray-200 hover:!text-charcoal hover:scale-[1.02]"
                 >
                   <Link to="#" className="flex items-center">
                     <Settings className="text-charcoal/70" />
@@ -118,8 +118,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             <div className="px-3 py-2">
               <Button 
                 variant="outline" 
-                className="w-full justify-start text-charcoal/70 font-medium 
-                hover:text-bittersweet hover:border-bittersweet/20 transition-colors" 
+                className="w-full justify-start text-charcoal/70 font-normal
+                hover:text-bittersweet hover:border-bittersweet/20 hover:scale-[1.02] transition-all duration-200" 
                 asChild
               >
                 <Link to="/">
