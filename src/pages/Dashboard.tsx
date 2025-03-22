@@ -10,20 +10,24 @@ import YourProgressSection from "@/components/dashboard/YourProgressSection";
 export default function Dashboard() {
   return (
     <DashboardLayout>
-      <div className="flex-1 space-y-8 p-4 md:p-8 pt-6">
+      <div className="flex-1 space-y-8 p-4 md:p-8 pt-6 bg-gray-50/50">
+        {/* Header with welcome message */}
         <DashboardHeader />
         
-        {/* Task 1: Welcome Card */}
+        {/* Sage's Welcome Card - Central positioning */}
         <WelcomeCard />
         
-        {/* Task 2: Sage's Picks Section */}
-        <SagePicksSection />
-        
-        {/* Task 3: Just for Fun Section */}
-        <JustForFunSection />
-        
-        {/* Task 4: Your Progress Section */}
-        <YourProgressSection />
+        {/* Content Sections with consistent spacing */}
+        <div className="space-y-10">
+          {/* Sage's Picks Section */}
+          <SagePicksSection />
+          
+          {/* Just for Fun Section */}
+          <JustForFunSection />
+          
+          {/* Your Progress Section */}
+          <YourProgressSection />
+        </div>
       </div>
     </DashboardLayout>
   );

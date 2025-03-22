@@ -10,21 +10,21 @@ export default function WelcomeCard() {
   const [userInput, setUserInput] = useState("");
   
   return (
-    <Card className="w-full bg-gradient-to-r from-sagebright-accent/30 to-sagebright-green/10 border-none">
+    <Card className="w-full bg-gradient-to-r from-sagebright-accent/20 to-sagebright-green/5 border border-sagebright-accent/20 rounded-2xl shadow-card hover:shadow-card-hover transition-shadow">
       <CardContent className="p-6 md:p-8">
-        <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-          <Avatar className="h-16 w-16 border-2 border-white">
+        <div className="flex flex-col items-center text-center md:items-center gap-6">
+          <Avatar className="h-20 w-20 border-2 border-white shadow-md">
             <AvatarImage src="/lovable-uploads/c3955ded-e6fc-4975-936a-d6fa82f47f72.png" alt="Sage AI Assistant" />
             <AvatarFallback className="bg-sagebright-accent text-sagebright-green">SG</AvatarFallback>
           </Avatar>
           
-          <div className="flex-1 space-y-6">
-            <div>
-              <h2 className="text-2xl md:text-3xl font-bold text-gray-800">
-                Good morning, Adam!
-              </h2>
-              <p className="text-gray-600 mt-1">
+          <div className="w-full max-w-2xl space-y-5">
+            <div className="bg-white/80 backdrop-blur-sm p-5 rounded-xl border border-sagebright-accent/20 shadow-sm">
+              <h2 className="text-2xl md:text-3xl font-helvetica font-bold text-charcoal">
                 Want help figuring out what's most important today?
+              </h2>
+              <p className="text-charcoal/80 mt-2 font-roboto">
+                I can guide you through your priorities or help you discover resources you might need.
               </p>
             </div>
             
@@ -33,17 +33,17 @@ export default function WelcomeCard() {
                 value={userInput}
                 onChange={(e) => setUserInput(e.target.value)}
                 placeholder="Type your response or question"
-                className="bg-white"
+                className="bg-white border-sagebright-green/30 focus:border-sagebright-green"
               />
               
-              <div className="flex flex-wrap gap-3">
-                <Button className="bg-sagebright-green hover:bg-sagebright-green/90">
+              <div className="flex flex-wrap justify-center gap-3">
+                <Button className="bg-sagebright-green hover:bg-sagebright-green/90 text-white shadow-sm">
                   Show me <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
-                <Button variant="outline">
+                <Button variant="outline" className="border-sagebright-green/30 text-charcoal hover:bg-sagebright-green/10">
                   Maybe later
                 </Button>
-                <Button variant="ghost" className="flex items-center gap-1">
+                <Button variant="ghost" className="flex items-center gap-1 text-sagebright-coral hover:bg-sagebright-coral/10">
                   <HelpCircle className="h-4 w-4" /> 
                   Why this matters
                 </Button>

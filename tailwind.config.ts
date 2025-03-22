@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -33,6 +32,8 @@ export default {
 					coral: '#ff6e61',     // Coral color
 				},
 				charcoal: '#274754',      // Adding Charcoal as a direct color
+				bittersweet: '#FF6E61',   // Bittersweet color
+				sunglow: '#FFCB5C',       // Sunglow color
 				primary: {
 					DEFAULT: 'hsl(var(--primary))',
 					foreground: 'hsl(var(--primary-foreground))'
@@ -75,6 +76,8 @@ export default {
 			fontFamily: {
 				sans: ['Inter', 'sans-serif'],
 				dmSans: ['DM Sans', 'sans-serif'],
+				helvetica: ['"Helvetica Neue"', 'Helvetica', 'Arial', 'sans-serif'],
+				roboto: ['Roboto', 'Arial', 'sans-serif'],
 			},
 			fontSize: {
 				'headline': ['2.5rem', { lineHeight: '1.3', fontWeight: '700' }], // 40px
@@ -87,7 +90,12 @@ export default {
 			borderRadius: {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
-				sm: 'calc(var(--radius) - 4px)'
+				sm: 'calc(var(--radius) - 4px)',
+				'2xl': '12px',  // Adding the 2xl border radius
+			},
+			boxShadow: {
+				'card': '0 4px 12px rgba(0, 0, 0, 0.05)',
+				'card-hover': '0 8px 16px rgba(0, 0, 0, 0.08)',
 			},
 			keyframes: {
 				'accordion-down': {

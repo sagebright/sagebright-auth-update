@@ -4,6 +4,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tv, MessageSquare, Award } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Separator } from "@/components/ui/separator";
 
 export default function JustForFunSection() {
   const [activeCardId, setActiveCardId] = useState<number | null>(null);
@@ -14,8 +15,8 @@ export default function JustForFunSection() {
       title: "What's a TV show you've enjoyed recently?",
       type: "chat",
       icon: Tv,
-      bgColor: "bg-pink-50",
-      iconColor: "text-pink-500",
+      bgColor: "bg-bittersweet/10",
+      iconColor: "text-bittersweet",
       size: "small"
     },
     {
@@ -23,8 +24,8 @@ export default function JustForFunSection() {
       title: "What stood out about onboarding yesterday?",
       type: "chat",
       icon: MessageSquare,
-      bgColor: "bg-teal-50",
-      iconColor: "text-teal-500",
+      bgColor: "bg-sagebright-green/10",
+      iconColor: "text-sagebright-green",
       size: "small"
     },
     {
@@ -32,8 +33,8 @@ export default function JustForFunSection() {
       title: "Which of your teammates is an Eagle Scout?",
       type: "multiple-choice",
       icon: Award,
-      bgColor: "bg-indigo-50",
-      iconColor: "text-indigo-500",
+      bgColor: "bg-sunglow/10",
+      iconColor: "text-sunglow",
       size: "small",
       choices: ["John Smith", "Maria Garcia", "Alex Johnson", "Taylor Wu"]
     }
@@ -44,23 +45,22 @@ export default function JustForFunSection() {
   };
 
   return (
-    <div className="space-y-4">
-      <h2 className="text-xl font-bold text-gray-800">Just for Fun</h2>
+    <div className="space-y-5">
+      <h2 className="text-xl font-helvetica font-bold text-charcoal">Just for Fun</h2>
       
-      <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+      <Separator className="bg-sagebright-accent/20" />
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {funItems.map((item) => (
           <Card 
             key={item.id} 
-            className={cn(
-              "bg-white hover:shadow-md transition-shadow flex flex-col justify-between", 
-              "md:col-span-2"
-            )}
+            className="bg-white hover:shadow-card-hover transition-shadow rounded-2xl border border-gray-100 shadow-card flex flex-col justify-between"
           >
             <CardContent className="p-6">
               <div className={`${item.bgColor} p-3 rounded-full w-fit mb-4`}>
                 <item.icon className={`h-5 w-5 ${item.iconColor}`} />
               </div>
-              <h3 className="font-medium text-lg">{item.title}</h3>
+              <h3 className="font-helvetica font-medium text-lg text-charcoal">{item.title}</h3>
             </CardContent>
             
             <CardFooter className="px-6 pb-6 pt-0">
@@ -69,7 +69,7 @@ export default function JustForFunSection() {
                   {item.type === "chat" ? (
                     <div className="space-y-3">
                       <textarea 
-                        className="w-full p-3 border rounded-md h-24 text-sm" 
+                        className="w-full p-3 border rounded-xl h-24 text-sm font-roboto border-sagebright-green/30 focus:border-sagebright-green outline-none" 
                         placeholder="Type your response here..."
                       />
                       <div className="flex justify-end gap-2">
@@ -77,12 +77,13 @@ export default function JustForFunSection() {
                           variant="outline" 
                           size="sm"
                           onClick={() => setActiveCardId(null)}
+                          className="border-sagebright-green/30 text-charcoal hover:bg-sagebright-green/10"
                         >
                           Cancel
                         </Button>
                         <Button 
                           size="sm"
-                          className="bg-sagebright-green hover:bg-sagebright-green/90"
+                          className="bg-sagebright-green hover:bg-sagebright-green/90 text-white"
                         >
                           Submit
                         </Button>
@@ -93,7 +94,7 @@ export default function JustForFunSection() {
                       {item.choices?.map((choice, index) => (
                         <button
                           key={index}
-                          className="w-full text-left p-3 border rounded-md hover:bg-gray-50 text-sm"
+                          className="w-full text-left p-3 border rounded-xl hover:bg-sagebright-green/5 text-sm font-roboto border-sagebright-green/30"
                         >
                           {String.fromCharCode(65 + index)}. {choice}
                         </button>
@@ -103,6 +104,7 @@ export default function JustForFunSection() {
                           variant="outline" 
                           size="sm"
                           onClick={() => setActiveCardId(null)}
+                          className="border-sagebright-green/30 text-charcoal hover:bg-sagebright-green/10"
                         >
                           Cancel
                         </Button>
@@ -113,7 +115,7 @@ export default function JustForFunSection() {
               ) : (
                 <Button 
                   variant="outline"
-                  className="w-full"
+                  className="w-full border-sagebright-green/30 text-charcoal hover:bg-sagebright-green/10"
                   onClick={() => handleCardClick(item.id)}
                 >
                   Click to Answer
