@@ -61,7 +61,7 @@ export default function YourProgressSection() {
             
             <CardContent className="px-6 pb-6 pt-0">
               <div className="space-y-2">
-                <Progress 
+                <CustomProgress 
                   value={item.percentage} 
                   className="h-2" 
                   indicatorClassName={getProgressColor(item.percentage)}
@@ -87,9 +87,9 @@ function getProgressColor(percentage: number): string {
 }
 
 // Extend Progress component to accept indicatorClassName
-const Progress = React.forwardRef<
-  React.ElementRef<typeof import("@/components/ui/progress").Progress>,
-  React.ComponentPropsWithoutRef<typeof import("@/components/ui/progress").Progress> & {
+const CustomProgress = React.forwardRef<
+  React.ElementRef<typeof Progress>,
+  React.ComponentPropsWithoutRef<typeof Progress> & {
     indicatorClassName?: string;
   }
 >(({ className, indicatorClassName, value, ...props }, ref) => {
@@ -112,4 +112,4 @@ const Progress = React.forwardRef<
     </div>
   );
 });
-Progress.displayName = "ProgressIndicator";
+CustomProgress.displayName = "CustomProgressIndicator";
