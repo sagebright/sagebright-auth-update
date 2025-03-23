@@ -77,14 +77,11 @@ const HeroSection = () => {
         
         <div className={`mt-8 relative max-w-5xl mx-auto transition-all duration-1000 ease-out ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
           <div className="relative rounded-xl overflow-hidden shadow-2xl border border-gray-100">
-            <div className="absolute z-10 top-1/4 left-1/4 w-8 h-8 rounded-full bg-sagebright-green/30 animate-ping [animation-delay:1000ms]"></div>
-            <div className="absolute z-10 top-1/2 right-1/4 w-6 h-6 rounded-full bg-sagebright-coral/30 animate-ping [animation-delay:1500ms]"></div>
-            <div className="absolute z-10 bottom-1/4 left-1/3 w-7 h-7 rounded-full bg-sagebright-gold/30 animate-ping [animation-delay:2000ms]"></div>
             <img 
               ref={imageRef}
-              data-src="/lovable-uploads/sb_dashboard.png" 
+              data-src="/lovable-uploads/d71356c7-4f54-4d70-a401-443fef77aff5.png" 
               src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" 
-              alt="Professional using AI assistant for onboarding" 
+              alt="Sagebright AI mentor dashboard showing personalized guidance" 
               onLoad={handleImageLoad}
               className={`w-full object-cover transition-transform duration-8000 ease-out zoom-on-load ${imageZoomed ? 'zoomed' : ''} ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
               loading="lazy"
