@@ -65,7 +65,7 @@ const Navbar = () => {
                   <Link to="/auth/login">Sign In</Link>
                 </Button>
                 <Button asChild className="bg-sagebright-coral hover:bg-sagebright-coral/90 text-white text-cta font-dmSans rounded-md transition-transform duration-300 hover:scale-103 hover:brightness-105">
-                  <Link to="/auth/signup">Sign Up</Link>
+                  <Link to="/auth/signup">Request Access</Link>
                 </Button>
               </>
             )}
