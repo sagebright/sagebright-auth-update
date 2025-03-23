@@ -19,7 +19,7 @@ export default function WelcomeCard() {
     // Create a typing effect interval
     const typingInterval = setInterval(() => {
       if (index < fullText.length) {
-        setDisplayedText(prev => prev + fullText.charAt(index));
+        setDisplayedText(fullText.substring(0, index + 1));
         index++;
       } else {
         clearInterval(typingInterval);
