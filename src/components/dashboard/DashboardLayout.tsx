@@ -48,10 +48,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   asChild 
                   tooltip="Ask Sage"
                   className="text-charcoal/70 font-normal transition-all duration-200
-                  hover:!bg-bittersweet/10 hover:!text-bittersweet hover:scale-[1.02]"
+                  hover:!bg-sagebright-accent/25 hover:!text-sagebright-green hover:scale-[1.02]"
                 >
                   <Link to="#" className="flex items-center">
-                    <HelpCircle className="text-bittersweet" />
+                    <HelpCircle className="text-charcoal/70 group-hover:text-sagebright-green" />
                     <span>Ask Sage</span>
                   </Link>
                 </SidebarMenuButton>
@@ -62,10 +62,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   asChild 
                   tooltip="Onboarding Roadmap"
                   className="text-charcoal/70 font-normal transition-all duration-200
-                  hover:!bg-charcoal/10 hover:!text-charcoal hover:scale-[1.02]"
+                  hover:!bg-sagebright-accent/25 hover:!text-sagebright-green hover:scale-[1.02]"
                 >
                   <Link to="#" className="flex items-center">
-                    <ListChecks className="text-charcoal" />
+                    <ListChecks className="text-charcoal/70 group-hover:text-sagebright-green" />
                     <span>Onboarding Roadmap</span>
                   </Link>
                 </SidebarMenuButton>
@@ -76,10 +76,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   asChild 
                   tooltip="Schedules"
                   className="text-charcoal/70 font-normal transition-all duration-200
-                  hover:!bg-sunglow/10 hover:!text-sunglow hover:scale-[1.02]"
+                  hover:!bg-sagebright-accent/25 hover:!text-sagebright-green hover:scale-[1.02]"
                 >
                   <Link to="#" className="flex items-center">
-                    <Calendar className="text-sunglow" />
+                    <Calendar className="text-charcoal/70 group-hover:text-sagebright-green" />
                     <span>Schedules</span>
                   </Link>
                 </SidebarMenuButton>
@@ -90,10 +90,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   asChild 
                   tooltip="People"
                   className="text-charcoal/70 font-normal transition-all duration-200
-                  hover:!bg-sagebright-accent/10 hover:!text-sagebright-accent hover:scale-[1.02]"
+                  hover:!bg-sagebright-accent/25 hover:!text-sagebright-green hover:scale-[1.02]"
                 >
                   <Link to="#" className="flex items-center">
-                    <Users className="text-sagebright-accent" />
+                    <Users className="text-charcoal/70 group-hover:text-sagebright-green" />
                     <span>People</span>
                   </Link>
                 </SidebarMenuButton>
@@ -104,10 +104,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   asChild 
                   tooltip="Settings"
                   className="text-charcoal/70 font-normal transition-all duration-200
-                  hover:!bg-gray-200 hover:!text-charcoal hover:scale-[1.02]"
+                  hover:!bg-sagebright-accent/25 hover:!text-sagebright-green hover:scale-[1.02]"
                 >
                   <Link to="#" className="flex items-center">
-                    <Settings className="text-charcoal/70" />
+                    <Settings className="text-charcoal/70 group-hover:text-sagebright-green" />
                     <span>Settings</span>
                   </Link>
                 </SidebarMenuButton>
