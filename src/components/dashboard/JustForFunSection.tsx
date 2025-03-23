@@ -2,12 +2,14 @@
 import React, { useState } from "react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tv, MessageSquare, Award } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Tv, MessageSquare, Award, CheckCircle } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/hooks/use-toast";
 
 export default function JustForFunSection() {
   const [activeCardId, setActiveCardId] = useState<number | null>(null);
+  const [textInputs, setTextInputs] = useState<Record<number, string>>({});
+  const { toast } = useToast();
   
   const funItems = [
     {
@@ -36,12 +38,59 @@ export default function JustForFunSection() {
       bgColor: "bg-sunglow/10",
       iconColor: "text-sunglow",
       size: "small",
-      choices: ["John Smith", "Maria Garcia", "Alex Johnson", "Taylor Wu"]
+      choices: ["John Smith", "Maria Garcia", "Alex Johnson", "Taylor Wu"],
+      correctAnswer: "Alex Johnson"
     }
   ];
 
   const handleCardClick = (id: number) => {
     setActiveCardId(activeCardId === id ? null : id);
+  };
+
+  const handleTextChange = (id: number, text: string) => {
+    setTextInputs({
+      ...textInputs,
+      [id]: text
+    });
+  };
+
+  const handleTextSubmit = (id: number) => {
+    const item = funItems.find(item => item.id === id);
+    if (!item) return;
+
+    // Show confirmation toast for chat submissions
+    toast({
+      title: "Response Submitted",
+      description: `Thanks for sharing! I'll keep that in mind about ${item.title.toLowerCase().replace(/\?$/, '')}.`,
+      duration: 5000,
+    });
+
+    // Reset UI
+    setActiveCardId(null);
+    setTextInputs({
+      ...textInputs,
+      [id]: ""
+    });
+  };
+
+  const handleMultipleChoiceSubmit = (id: number, choice: string) => {
+    const item = funItems.find(item => item.id === id);
+    if (!item || !('correctAnswer' in item)) return;
+
+    const isCorrect = choice === item.correctAnswer;
+    
+    // Show correct/incorrect toast
+    toast({
+      title: isCorrect ? "Correct Answer!" : "Not quite right",
+      description: isCorrect 
+        ? `${choice} is indeed an Eagle Scout!` 
+        : `The correct answer is ${item.correctAnswer}.`,
+      duration: 5000,
+      variant: isCorrect ? "default" : "destructive",
+    });
+
+    // Reset UI
+    setActiveCardId(null);
   };
 
   return (
@@ -71,6 +120,8 @@ export default function JustForFunSection() {
                       <textarea 
                         className="w-full p-3 border rounded-xl h-24 text-sm font-roboto border-sagebright-green/30 focus:border-sagebright-green outline-none" 
                         placeholder="Type your response here..."
+                        value={textInputs[item.id] || ""}
+                        onChange={(e) => handleTextChange(item.id, e.target.value)}
                       />
                       <div className="flex justify-end gap-2">
                         <Button 
@@ -84,6 +135,8 @@ export default function JustForFunSection() {
                         <Button 
                           size="sm"
                           className="bg-sagebright-green hover:bg-sagebright-green/90 text-white"
+                          onClick={() => handleTextSubmit(item.id)}
+                          disabled={!textInputs[item.id]?.trim()}
                         >
                           Submit
                         </Button>
@@ -95,6 +148,7 @@ export default function JustForFunSection() {
                         <button
                           key={index}
                           className="w-full text-left p-3 border rounded-xl hover:bg-sagebright-green/5 text-sm font-roboto border-sagebright-green/30"
+                          onClick={() => handleMultipleChoiceSubmit(item.id, choice)}
                         >
                           {String.fromCharCode(65 + index)}. {choice}
                         </button>
