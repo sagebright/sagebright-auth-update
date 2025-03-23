@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -17,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import Logo from "@/components/Logo";
-import { Eye, EyeOff, LogIn, Mail, Google } from "lucide-react";
+import { Eye, EyeOff, LogIn, Mail, Chrome } from "lucide-react";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
@@ -33,7 +32,6 @@ export default function Login() {
   const [isLoading, setIsLoading] = React.useState(false);
   const [showPassword, setShowPassword] = React.useState(false);
   
-  // Get the return URL from location state or default to /dashboard
   const from = (location.state as any)?.from?.pathname || "/dashboard";
   
   const form = useForm<LoginValues>({
@@ -88,7 +86,7 @@ export default function Login() {
                 className="w-full font-roboto"
                 onClick={handleGoogleSignIn}
               >
-                <Google className="mr-2 h-4 w-4" />
+                <Chrome className="mr-2 h-4 w-4" />
                 Continue with Google
               </Button>
               

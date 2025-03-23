@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import Logo from "@/components/Logo";
-import { Eye, EyeOff, Mail, User, Google } from "lucide-react";
+import { Eye, EyeOff, Mail, User, Chrome } from "lucide-react";
 
 const signupSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
@@ -86,7 +86,7 @@ export default function Signup() {
                 className="w-full font-roboto"
                 onClick={handleGoogleSignIn}
               >
-                <Google className="mr-2 h-4 w-4" />
+                <Chrome className="mr-2 h-4 w-4" />
                 Continue with Google
               </Button>
               
