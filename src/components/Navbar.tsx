@@ -1,10 +1,13 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import Logo from './Logo';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
+  const { user } = useAuth();
 
   // Use throttled scroll handler for better performance
   const handleScroll = useCallback(() => {
@@ -51,10 +54,21 @@ const Navbar = () => {
               Who We Help
             </a>
           </nav>
-          <div>
-            <Button asChild className="bg-sagebright-coral hover:bg-sagebright-coral/90 text-white text-cta font-dmSans rounded-md transition-transform duration-300 hover:scale-103 hover:brightness-105">
-              <a href="#waitlist">Join Beta</a>
-            </Button>
+          <div className="flex items-center space-x-4">
+            {user ? (
+              <Button asChild className="bg-sagebright-green hover:bg-sagebright-green/90 text-white text-cta font-dmSans rounded-md transition-transform duration-300 hover:scale-103 hover:brightness-105">
+                <Link to="/dashboard">Dashboard</Link>
+              </Button>
+            ) : (
+              <>
+                <Button asChild variant="ghost" className="text-gray-700 hover:text-sagebright-green">
+                  <Link to="/auth/login">Sign In</Link>
+                </Button>
+                <Button asChild className="bg-sagebright-coral hover:bg-sagebright-coral/90 text-white text-cta font-dmSans rounded-md transition-transform duration-300 hover:scale-103 hover:brightness-105">
+                  <Link to="/auth/signup">Sign Up</Link>
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </div>

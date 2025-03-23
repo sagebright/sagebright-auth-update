@@ -6,12 +6,15 @@ import { SidebarProvider, Sidebar, SidebarContent, SidebarMenu,
   SidebarMenuItem, SidebarMenuButton, SidebarHeader, SidebarFooter } from "@/components/ui/sidebar";
 import { LayoutDashboard, HelpCircle, ListChecks, Calendar, Users, Settings, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
+  const { signOut } = useAuth();
+
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-gray-50">
@@ -120,12 +123,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 variant="outline" 
                 className="w-full justify-start text-charcoal/70 font-normal
                 hover:text-bittersweet hover:border-bittersweet/20 hover:scale-[1.02] transition-all duration-200" 
-                asChild
+                onClick={() => signOut()}
               >
-                <Link to="/">
-                  <LogOut className="mr-2 h-4 w-4 text-bittersweet" />
-                  <span>Log Out</span>
-                </Link>
+                <LogOut className="mr-2 h-4 w-4 text-bittersweet" />
+                <span>Log Out</span>
               </Button>
             </div>
           </SidebarFooter>
