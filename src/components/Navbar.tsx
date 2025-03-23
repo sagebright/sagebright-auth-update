@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import Logo from './Logo';
@@ -9,7 +8,6 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const { user } = useAuth();
 
-  // Use throttled scroll handler for better performance
   const handleScroll = useCallback(() => {
     const isScrolled = window.scrollY > 20;
     if (isScrolled !== scrolled) {
@@ -18,7 +16,6 @@ const Navbar = () => {
   }, [scrolled]);
 
   useEffect(() => {
-    // Throttle scroll event for better performance
     let scrollTimer: number;
     const throttledScroll = () => {
       if (!scrollTimer) {
@@ -60,14 +57,9 @@ const Navbar = () => {
                 <Link to="/dashboard">Dashboard</Link>
               </Button>
             ) : (
-              <>
-                <Button asChild variant="ghost" className="text-gray-700 hover:text-sagebright-green">
-                  <Link to="/auth/login">Sign In</Link>
-                </Button>
-                <Button asChild className="bg-sagebright-coral hover:bg-sagebright-coral/90 text-white text-cta font-dmSans rounded-md transition-transform duration-300 hover:scale-103 hover:brightness-105">
-                  <Link to="/auth/signup">Request Access</Link>
-                </Button>
-              </>
+              <Button asChild className="bg-sagebright-coral hover:bg-sagebright-coral/90 text-white text-cta font-dmSans rounded-md transition-transform duration-300 hover:scale-103 hover:brightness-105">
+                <Link to="/auth/signup">Request Access</Link>
+              </Button>
             )}
           </div>
         </div>
