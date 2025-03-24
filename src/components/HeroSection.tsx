@@ -51,11 +51,11 @@ const HeroSection = () => {
         <div className="max-w-3xl mx-auto text-center">
           <div className="mb-8 animate-fade-in p-text-spacing">
             <h1 className="text-headline-lg font-dmSans font-bold leading-tight mb-6">
-              <span className="block text-sagebright-green">Your AI Mentor for</span>
-              <span className="block text-sagebright-coral">Seamless Onboarding & Business Growth</span>
+              <span className="block text-sagebright-green">Personalized Onboarding AI</span>
+              <span className="block text-sagebright-coral">That Feels Like Part of Your Team</span>
             </h1>
             <p className="text-body font-sans p-text-spacing animate-fade-in [animation-delay:200ms] opacity-0">
-              Employees don't thrive with checklists. They thrive with guidance. Sagebright is an AI-powered mentor that transforms onboarding into a personalized journey.
+              Sagebright gives every new hire a guide who understands your company, culture, and tools — and helps them get what they need to thrive. It's onboarding that feels personal, intuitive, and built for humans.
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4 p-text-spacing animate-fade-in [animation-delay:400ms] opacity-0">
               <a href="#waitlist" className="inline-block w-full sm:w-auto">
