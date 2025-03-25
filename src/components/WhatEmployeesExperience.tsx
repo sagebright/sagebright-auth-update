@@ -38,7 +38,7 @@ const WhatEmployeesExperience = () => {
     <section className="py-20 bg-white" id="employees">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         {/* Side-by-side layout for headline and screenshot */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 mb-16 items-center">
           {/* Left column - Text content */}
           <div className="flex flex-col justify-center">
             <h2 className="text-headline font-dmSans font-bold mb-6">Onboarding that feels like a conversation — not a checklist.</h2>
@@ -49,17 +49,17 @@ const WhatEmployeesExperience = () => {
           
           {/* Right column - Screenshot */}
           <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-100 transition-transform duration-500 hover:shadow-card-hover">
-            <AspectRatio ratio={16/9}>
+            <div className="w-full h-full">
               <img 
                 ref={imageRef}
                 data-src="/lovable-uploads/dashboard-screenshot.png" 
                 src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" 
                 alt="Sagebright AI dashboard showing personalized guidance" 
                 onLoad={handleImageLoad}
-                className={`w-full h-full object-cover transition-opacity duration-500 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                className={`w-full h-auto object-contain transition-opacity duration-500 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
                 loading="lazy"
               />
-            </AspectRatio>
+            </div>
             
             {/* Decorative background */}
             <div className="absolute -z-10 -inset-4 bg-gradient-to-r from-sagebright-coral/5 to-sagebright-green/5 blur-2xl rounded-full"></div>
