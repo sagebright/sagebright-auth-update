@@ -34,15 +34,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               <SidebarMenuItem>
                 <SidebarMenuButton 
                   asChild 
-                  isActive={location.pathname === "/dashboard"} 
-                  tooltip="Dashboard"
+                  isActive={location.pathname === "/hr-dashboard"} 
+                  tooltip="Admin Dashboard"
                   className="font-medium transition-all text-charcoal/70
                   data-[active=true]:!bg-sagebright-accent/25 data-[active=true]:!text-sagebright-green 
                   hover:!bg-sagebright-accent/25 hover:!text-sagebright-green hover:scale-[1.02]"
                 >
-                  <Link to="/dashboard" className="flex items-center">
+                  <Link to="/hr-dashboard" className="flex items-center">
                     <LayoutDashboard className="text-charcoal/70 group-hover:text-sagebright-green" />
-                    <span>Dashboard</span>
+                    <span>Admin Dashboard</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
