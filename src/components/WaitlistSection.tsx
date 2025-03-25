@@ -26,10 +26,19 @@ const WaitlistSection = () => {
       return;
     }
     
+    if (!firstName.trim() || !lastName.trim()) {
+      toast({
+        title: "Please enter your name",
+        description: "First name and last name are required.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setIsSubmitting(true);
     
     try {
-      // Insert the signup data into the Beta Signups table
+      // 1. Insert the signup data into the Beta Signups table
       const { error } = await supabase
         .from('Beta Signups')
         .insert([
@@ -43,6 +52,24 @@ const WaitlistSection = () => {
       
       if (error) {
         throw error;
+      }
+      
+      // 2. Send confirmation email using our edge function
+      const emailResponse = await fetch('/api/send-waitlist-confirmation', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          firstName,
+          lastName,
+          email,
+          company
+        }),
+      });
+      
+      if (!emailResponse.ok) {
+        console.warn('Confirmation email could not be sent, but user was added to the waitlist');
       }
       
       setIsSubmitting(false);
@@ -87,6 +114,7 @@ const WaitlistSection = () => {
                       className="py-6 px-4 text-body font-sans"
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
+                      required
                     />
                     <Input
                       type="text"
@@ -94,6 +122,7 @@ const WaitlistSection = () => {
                       className="py-6 px-4 text-body font-sans"
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
+                      required
                     />
                   </div>
                   <Input
@@ -138,8 +167,11 @@ const WaitlistSection = () => {
                     </div>
                   </div>
                   <h3 className="text-subheading font-dmSans font-medium mb-2">Thank You!</h3>
-                  <p className="text-body font-sans text-gray-600">
+                  <p className="text-body font-sans text-gray-600 mb-4">
                     We've added you to our waitlist. We'll be in touch soon with more information about the beta program.
+                  </p>
+                  <p className="text-sm text-sagebright-green font-medium">
+                    Check your inbox for a confirmation email from the Sagebright team.
                   </p>
                 </div>
               )}

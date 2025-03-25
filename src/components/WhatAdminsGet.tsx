@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { BarChart3, Lightbulb, Mic, Bell } from 'lucide-react';
+import { AspectRatio } from "@/components/ui/aspect-ratio";
 
 const WhatAdminsGet = () => {
   return (
@@ -13,7 +14,7 @@ const WhatAdminsGet = () => {
           </p>
         </div>
         
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           <div className="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow duration-300">
             <div className="bg-sagebright-coral/10 w-12 h-12 flex items-center justify-center rounded-full mb-4">
               <BarChart3 className="h-6 w-6 text-sagebright-coral" />
@@ -52,6 +53,19 @@ const WhatAdminsGet = () => {
             <p className="text-gray-600 font-sans text-sm">
               Receive alerts only when needed, helping you provide timely support without micromanaging.
             </p>
+          </div>
+        </div>
+        
+        <div className="mt-16 mx-auto max-w-4xl rounded-xl overflow-hidden shadow-xl">
+          <AspectRatio ratio={16/9} className="bg-sagebright-green/5">
+            <img 
+              src="/lovable-uploads/4f042efc-8a4c-4190-92f4-1a4fd894d7b1.png" 
+              alt="HR Dashboard - Onboarding Analytics" 
+              className="w-full h-full object-cover rounded-xl"
+            />
+          </AspectRatio>
+          <div className="bg-white p-4 text-center">
+            <p className="text-charcoal text-sm font-medium">Track onboarding performance and identify areas for improvement</p>
           </div>
         </div>
       </div>

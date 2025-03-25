@@ -9,7 +9,7 @@ import DesignedToFeelHuman from '@/components/DesignedToFeelHuman';
 import WaitlistSection from '@/components/WaitlistSection';
 import Footer from '@/components/Footer';
 
-const AlternateIndex = () => {
+const Index = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -26,4 +26,4 @@ const AlternateIndex = () => {
   );
 };
 
-export default AlternateIndex;
+export default Index;
