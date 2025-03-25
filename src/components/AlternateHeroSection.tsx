@@ -51,8 +51,8 @@ const AlternateHeroSection = () => {
         <div className="max-w-3xl mx-auto text-center">
           <div className="mb-8 animate-fade-in p-text-spacing">
             <h1 className="text-headline-lg font-dmSans font-bold leading-tight mb-6">
-              <span className="block text-sagebright-green">Personal AI</span>
-              <span className="block text-sagebright-coral">That Feels Like Part of Your Team</span>
+              <span className="block text-sagebright-green whitespace-nowrap md:whitespace-normal">Personal AI That Feels</span>
+              <span className="block text-sagebright-coral whitespace-nowrap md:whitespace-normal">Like a Part of Your Team</span>
             </h1>
             <p className="text-body font-sans p-text-spacing animate-fade-in [animation-delay:200ms] opacity-0">
               Sagebright gives every new hire a guide who understands your company, culture, and tools — and helps them get what they need to thrive. It's onboarding that feels personal, intuitive, and built for humans.
