@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-import Navbar from "@/components/Navbar";
+import AlternateNavbar from "@/components/AlternateNavbar";
 import Footer from "@/components/Footer";
 
 // Form validation schema
@@ -73,7 +73,7 @@ const ContactUs = () => {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <Navbar />
+      <AlternateNavbar />
       
       <main className="flex-1 bg-gray-50">
         <div className="container mx-auto max-w-4xl px-4 py-16 md:py-24">

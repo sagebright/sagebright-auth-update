@@ -1,7 +1,6 @@
 
 import React from 'react';
 import Logo from './Logo';
-import { Linkedin } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { useLocation } from 'react-router-dom';
 
@@ -66,22 +65,10 @@ const Footer = () => {
         
         <Separator className="bg-gray-100 my-6" />
         
-        <div className="flex flex-col md:flex-row justify-between items-center">
-          <p className="text-gray-500 text-sm font-helvetica mb-4 md:mb-0">
+        <div className="flex justify-center items-center">
+          <p className="text-gray-500 text-sm font-helvetica text-center">
             &copy; {currentYear} sagebright.ai. All rights reserved.
           </p>
-          
-          <div className="flex space-x-4">
-            <a 
-              href="https://linkedin.com" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-gray-400 hover:text-sagebright-green transition-colors"
-              aria-label="LinkedIn"
-            >
-              <Linkedin size={24} />
-            </a>
-          </div>
         </div>
       </div>
     </footer>
