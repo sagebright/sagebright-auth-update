@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import HRDashboard from "./pages/HRDashboard";
 import AskSage from "./pages/AskSage";
+import ContactUs from "./pages/ContactUs";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
@@ -28,6 +29,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/index-v1" element={<IndexV1 />} />
+            <Route path="/contact-us" element={<ContactUs />} />
             
             {/* Auth Routes */}
             <Route path="/auth">
