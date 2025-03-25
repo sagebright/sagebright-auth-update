@@ -49,12 +49,12 @@ const WhatEmployeesExperience = () => {
           
           {/* Right column - Screenshot */}
           <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-100 transition-transform duration-500 hover:shadow-card-hover">
-            <AspectRatio ratio={4/3}>
+            <AspectRatio ratio={16/9}>
               <img 
                 ref={imageRef}
-                data-src="/lovable-uploads/ask-sage-screenshot.png" 
+                data-src="/lovable-uploads/dashboard-screenshot.png" 
                 src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" 
-                alt="Ask Sage Interface - AI Assistant for Onboarding" 
+                alt="Sagebright AI dashboard showing personalized guidance" 
                 onLoad={handleImageLoad}
                 className={`w-full h-full object-cover transition-opacity duration-500 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
                 loading="lazy"

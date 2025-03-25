@@ -1,16 +1,69 @@
 
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Compass, CircleUser, Handshake, FilePen } from 'lucide-react';
+import { AspectRatio } from "@/components/ui/aspect-ratio";
 
 const DesignedToFeelHuman = () => {
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const imageRef = useRef<HTMLImageElement>(null);
+
+  useEffect(() => {
+    // Implement Intersection Observer for lazy loading
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && imageRef.current) {
+          // Replace the src attribute when the image is about to enter the viewport
+          imageRef.current.src = imageRef.current.dataset.src || '';
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { rootMargin: '200px' });
+    
+    if (imageRef.current) {
+      observer.observe(imageRef.current);
+    }
+    
+    return () => {
+      if (imageRef.current) {
+        observer.unobserve(imageRef.current);
+      }
+    };
+  }, []);
+
+  const handleImageLoad = () => {
+    setImageLoaded(true);
+  };
+
   return (
     <section className="py-20 bg-sagebright-green/5" id="human">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="max-w-3xl mx-auto text-center mb-16">
-          <h2 className="text-headline font-dmSans font-bold mb-6">An AI that doesn't feel like AI.</h2>
-          <p className="text-body font-sans text-gray-600">
-            Sage isn't a bot that throws articles at you. It's a conversational guide that feels human — because it's built with intention, voice, and empathy from day one.
-          </p>
+        {/* Side-by-side layout for headline and screenshot */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 mb-16">
+          {/* Left column - Text content */}
+          <div className="flex flex-col justify-center">
+            <h2 className="text-headline font-dmSans font-bold mb-6">An AI that doesn't feel like AI.</h2>
+            <p className="text-body font-sans text-gray-600">
+              Sage isn't a bot that throws articles at you. It's a conversational guide that feels human — because it's built with intention, voice, and empathy from day one.
+            </p>
+          </div>
+          
+          {/* Right column - Screenshot */}
+          <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-100 transition-transform duration-500 hover:shadow-card-hover">
+            <AspectRatio ratio={4/3}>
+              <img 
+                ref={imageRef}
+                data-src="/lovable-uploads/ask-sage-screenshot.png" 
+                src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" 
+                alt="Ask Sage Interface - AI Assistant for Onboarding" 
+                onLoad={handleImageLoad}
+                className={`w-full h-full object-cover transition-opacity duration-500 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                loading="lazy"
+              />
+            </AspectRatio>
+            
+            {/* Decorative background */}
+            <div className="absolute -z-10 -inset-4 bg-gradient-to-r from-sagebright-coral/5 to-sagebright-green/5 blur-2xl rounded-full"></div>
+          </div>
         </div>
         
         <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">

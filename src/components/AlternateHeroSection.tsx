@@ -1,54 +1,26 @@
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
-import Logo from './Logo';
 
 const AlternateHeroSection = () => {
   const [isVisible, setIsVisible] = useState(false);
-  const [imageZoomed, setImageZoomed] = useState(false);
-  const [imageLoaded, setImageLoaded] = useState(false);
-  const sectionRef = useRef<HTMLElement>(null);
-  const imageRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
     // Set a small delay to ensure the animation triggers after component mount
     const timer = setTimeout(() => {
       setIsVisible(true);
-      setImageZoomed(true);
     }, 100);
-    
-    // Implement Intersection Observer for lazy loading
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting && imageRef.current) {
-          // Replace the src attribute when the image is about to enter the viewport
-          imageRef.current.src = imageRef.current.dataset.src || '';
-          observer.unobserve(entry.target);
-        }
-      });
-    }, { rootMargin: '200px' });
-    
-    if (imageRef.current) {
-      observer.observe(imageRef.current);
-    }
     
     return () => {
       clearTimeout(timer);
-      if (imageRef.current) {
-        observer.unobserve(imageRef.current);
-      }
     };
   }, []);
 
-  const handleImageLoad = () => {
-    setImageLoaded(true);
-  };
-
   return (
-    <section className="pt-32 pb-20 bg-gradient-to-br from-white to-sagebright-accent/10 overflow-hidden" id="hero" ref={sectionRef}>
+    <section className="pt-32 pb-20 bg-gradient-to-br from-white to-sagebright-accent/10 overflow-hidden" id="hero">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="max-w-3xl mx-auto text-center">
+        <div className={`max-w-3xl mx-auto text-center transition-all duration-1000 ease-out ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
           <div className="mb-8 animate-fade-in p-text-spacing">
             <h1 className="text-headline-lg font-dmSans font-bold leading-tight mb-6">
               <span className="block text-sagebright-green whitespace-nowrap md:whitespace-normal">Personal AI That Feels</span>
@@ -73,22 +45,6 @@ const AlternateHeroSection = () => {
               </a>
             </div>
           </div>
-        </div>
-        
-        <div className={`mt-8 relative max-w-5xl mx-auto transition-all duration-1000 ease-out ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
-          <div className="relative rounded-xl overflow-hidden shadow-2xl border border-gray-100">
-            <img 
-              ref={imageRef}
-              data-src="/lovable-uploads/dashboard-screenshot.png" 
-              src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" 
-              alt="Sagebright AI mentor dashboard showing personalized guidance" 
-              onLoad={handleImageLoad}
-              className={`w-full object-cover transition-transform duration-8000 ease-out zoom-on-load ${imageZoomed ? 'zoomed' : ''} ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
-              loading="lazy"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-sagebright-green/40 via-transparent to-transparent"></div>
-          </div>
-          <div className="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-gradient-to-r from-sagebright-coral/10 to-sagebright-green/10 blur-3xl rounded-full opacity-30"></div>
         </div>
       </div>
     </section>
