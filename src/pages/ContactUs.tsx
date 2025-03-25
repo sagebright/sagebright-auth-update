@@ -11,7 +11,6 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -45,7 +44,7 @@ const ContactUs = () => {
       email: "",
       company: "",
       isBetaClient: false,
-      message: "What's on your mind?",
+      message: "",
     },
   });
 
@@ -68,7 +67,7 @@ const ContactUs = () => {
       email: "",
       company: "",
       isBetaClient: false,
-      message: "What's on your mind?",
+      message: "",
     });
   };
 
@@ -95,10 +94,9 @@ const ContactUs = () => {
                     name="firstName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-charcoal">First Name</FormLabel>
                         <FormControl>
                           <Input 
-                            placeholder="Your first name" 
+                            placeholder="First Name" 
                             className="border-sagebright-accent/30 focus-visible:ring-sagebright-green" 
                             {...field} 
                           />
@@ -114,10 +112,9 @@ const ContactUs = () => {
                     name="lastName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-charcoal">Last Name</FormLabel>
                         <FormControl>
                           <Input 
-                            placeholder="Your last name" 
+                            placeholder="Last Name" 
                             className="border-sagebright-accent/30 focus-visible:ring-sagebright-green" 
                             {...field} 
                           />
@@ -134,11 +131,10 @@ const ContactUs = () => {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-charcoal">Email</FormLabel>
                       <FormControl>
                         <Input 
                           type="email" 
-                          placeholder="Your email address" 
+                          placeholder="Email Address" 
                           className="border-sagebright-accent/30 focus-visible:ring-sagebright-green" 
                           {...field} 
                         />
@@ -154,12 +150,9 @@ const ContactUs = () => {
                   name="company"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-charcoal flex items-center gap-1">
-                        Company <span className="text-sm text-charcoal/60">(optional)</span>
-                      </FormLabel>
                       <FormControl>
                         <Input 
-                          placeholder="Your company name" 
+                          placeholder="Company (optional)" 
                           className="border-sagebright-accent/30 focus-visible:ring-sagebright-green" 
                           {...field} 
                         />
@@ -183,9 +176,9 @@ const ContactUs = () => {
                         />
                       </FormControl>
                       <div className="space-y-1 leading-none">
-                        <FormLabel className="text-charcoal">
+                        <p className="text-charcoal text-sm">
                           I am a current beta client
-                        </FormLabel>
+                        </p>
                       </div>
                     </FormItem>
                   )}
@@ -197,17 +190,11 @@ const ContactUs = () => {
                   name="message"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-charcoal">Message</FormLabel>
                       <FormControl>
                         <Textarea 
                           placeholder="What's on your mind?" 
-                          className="min-h-[150px] border-sagebright-accent/30 focus-visible:ring-sagebright-green" 
+                          className="min-h-[150px] border-sagebright-accent/30 focus-visible:ring-sagebright-green text-gray-500" 
                           {...field} 
-                          onFocus={(e) => {
-                            if (e.target.value === "What's on your mind?") {
-                              field.onChange("");
-                            }
-                          }}
                         />
                       </FormControl>
                       <FormMessage />
