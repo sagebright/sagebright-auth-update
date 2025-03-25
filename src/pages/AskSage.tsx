@@ -5,7 +5,6 @@ import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { ChatHeader } from '@/components/ask-sage/ChatHeader';
 import { ChatMessage } from '@/components/ask-sage/ChatMessage';
 import { ChatInputBar } from '@/components/ask-sage/ChatInputBar';
-import { SuggestedQuestions } from '@/components/ask-sage/SuggestedQuestions';
 import { ReflectionForm, ReflectionData } from '@/components/ask-sage/ReflectionForm';
 import { ResourcesSidebar } from '@/components/ask-sage/ResourcesSidebar';
 import { TypingIndicator } from '@/components/ask-sage/TypingIndicator';
@@ -71,14 +70,6 @@ const AskSage = () => {
                 
                 <div ref={chatEndRef} />
               </div>
-              
-              {/* Suggested Questions section */}
-              {messages.length < 3 && (
-                <SuggestedQuestions 
-                  questions={suggestedQuestions}
-                  onSelectQuestion={handleSendMessage}
-                />
-              )}
             </div>
             
             {/* Input Bar (Sticky at Bottom) */}
@@ -86,6 +77,8 @@ const AskSage = () => {
               onSendMessage={handleSendMessage}
               onReflectionSubmit={handleReflectionSubmit}
               isLoading={isLoading}
+              suggestedQuestions={suggestedQuestions}
+              onSelectQuestion={handleSendMessage}
             />
           </div>
           
