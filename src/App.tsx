@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import IndexV1 from "./pages/IndexV1";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
+import HRDashboard from "./pages/HRDashboard";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
@@ -42,6 +43,15 @@ const App = () => (
                   <Dashboard />
                 </ProtectedRoute>
               } 
+            />
+            
+            <Route
+              path="/hr-dashboard"
+              element={
+                <ProtectedRoute>
+                  <HRDashboard />
+                </ProtectedRoute>
+              }
             />
             
             {/* Redirects */}
