@@ -8,6 +8,7 @@ import IndexV1 from "./pages/IndexV1";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import HRDashboard from "./pages/HRDashboard";
+import AskSage from "./pages/AskSage";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
@@ -50,6 +51,15 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <HRDashboard />
+                </ProtectedRoute>
+              }
+            />
+            
+            <Route
+              path="/ask-sage"
+              element={
+                <ProtectedRoute>
+                  <AskSage />
                 </ProtectedRoute>
               }
             />
