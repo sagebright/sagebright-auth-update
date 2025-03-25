@@ -1,7 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Target, Brain, MessageSquare } from 'lucide-react';
-import { AspectRatio } from "@/components/ui/aspect-ratio";
 
 const WhatEmployeesExperience = () => {
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -37,18 +36,18 @@ const WhatEmployeesExperience = () => {
   return (
     <section className="py-20 bg-white" id="employees">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Side-by-side layout for headline and screenshot */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 mb-16 items-center">
-          {/* Left column - Text content */}
-          <div className="flex flex-col justify-center">
+        {/* Side-by-side layout with adjusted ratio (1/3 text, 2/3 image) */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12 mb-16 items-center">
+          {/* Left column - Text content (1/3) */}
+          <div className="flex flex-col justify-center md:col-span-1">
             <h2 className="text-headline font-dmSans font-bold mb-6">Onboarding that feels like a conversation — not a checklist.</h2>
             <p className="text-body font-sans text-gray-600">
               Sage acts like a helpful teammate who never gets tired of answering questions. It's always available, always personal, and always grounded in your company's unique values, tone, and expertise.
             </p>
           </div>
           
-          {/* Right column - Screenshot */}
-          <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-100 transition-transform duration-500 hover:shadow-card-hover">
+          {/* Right column - Screenshot (2/3) */}
+          <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-100 transition-transform duration-500 hover:shadow-card-hover md:col-span-2">
             <div className="w-full h-full">
               <img 
                 ref={imageRef}
