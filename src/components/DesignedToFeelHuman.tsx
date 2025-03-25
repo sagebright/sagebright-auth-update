@@ -21,7 +21,7 @@ const DesignedToFeelHuman = () => {
               </div>
             </div>
             <div>
-              <h3 className="text-xl font-dmSans font-semibold mb-3">Personal guidance > generic automation</h3>
+              <h3 className="text-xl font-dmSans font-semibold mb-3">Personal guidance {`>`} generic automation</h3>
               <p className="text-gray-600 font-sans">
                 Sage tailors its approach to each employee, offering guidance that feels conversational and relevant.
               </p>
