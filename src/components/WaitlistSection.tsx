@@ -74,7 +74,7 @@ const WaitlistSection = () => {
               <div className="text-center mb-8 p-text-spacing">
                 <h2 className="text-headline font-dmSans font-bold mb-4">Request Early Access</h2>
                 <p className="text-body font-sans text-gray-600">
-                  Sagebright is currently in closed beta — and we're inviting a few thoughtful teams to help shape what's next. If you're building a better onboarding experience and want a partner who listens, we'd love to hear from you. Share your info and we'll be in touch.
+                  Sagebright is in closed beta — and we're inviting a few thoughtful teams to help shape what's next. If you're building a better onboarding experience, we'd love to hear from you.
                 </p>
               </div>
               
