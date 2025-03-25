@@ -40,12 +40,18 @@ const App = () => (
             
             {/* Protected Routes */}
             <Route 
-              path="/dashboard" 
+              path="/user-dashboard" 
               element={
                 <ProtectedRoute>
                   <Dashboard />
                 </ProtectedRoute>
               } 
+            />
+            
+            {/* Redirect old dashboard route to new user-dashboard route */}
+            <Route
+              path="/dashboard"
+              element={<Navigate to="/user-dashboard" replace />}
             />
             
             <Route
