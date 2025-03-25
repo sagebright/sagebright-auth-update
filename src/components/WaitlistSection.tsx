@@ -72,9 +72,9 @@ const WaitlistSection = () => {
           <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
             <div className="p-8 md:p-12">
               <div className="text-center mb-8 p-text-spacing">
-                <h2 className="text-headline font-dmSans font-bold mb-4">Request Beta Access</h2>
+                <h2 className="text-headline font-dmSans font-bold mb-4">Request Early Access</h2>
                 <p className="text-body font-sans text-gray-600">
-                  We're currently in a closed beta, but we're opening doors slowly to teams who are excited to transform onboarding with Sagebright. Drop your info here and we'll be in touch—if it's a good fit, we'll add you to our beta queue.
+                  Sagebright is currently in closed beta — and we're inviting a few thoughtful teams to help shape what's next. If you're building a better onboarding experience and want a partner who listens, we'd love to hear from you. Share your info and we'll be in touch.
                 </p>
               </div>
               
