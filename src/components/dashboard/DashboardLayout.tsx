@@ -23,9 +23,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <SidebarHeader className="border-b border-sagebright-accent/20 pb-0">
             <div className="flex items-center justify-center py-5">
               <img 
-                src="/lovable-uploads/sb_logo_type.svg" 
+                src="/lovable-uploads/sb_logo_type.png" 
                 alt="Sagebright" 
-                className="h-16 w-auto" 
+                className="h-12 w-auto" 
               />
             </div>
           </SidebarHeader>
