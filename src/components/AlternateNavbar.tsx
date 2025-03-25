@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import Logo from './Logo';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 const AlternateNavbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const { user } = useAuth();
+  const location = useLocation();
 
   const handleScroll = useCallback(() => {
     const isScrolled = window.scrollY > 20;
@@ -34,6 +35,10 @@ const AlternateNavbar = () => {
     };
   }, [handleScroll]);
 
+  const isActive = (path: string) => {
+    return location.hash === path;
+  };
+
   return (
     <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
       scrolled ? 'bg-white shadow-sm' : 'bg-white/90 backdrop-blur-sm'
@@ -42,29 +47,39 @@ const AlternateNavbar = () => {
         <div className="flex items-center justify-between h-20">
           <Logo variant="full" />
           <nav className="hidden md:flex items-center space-x-8">
-            <a href="#employees" className="text-body font-sans text-gray-600 hover:text-sagebright-green transition-colors duration-200">
+            <a 
+              href="#employees" 
+              className={`text-body font-helvetica text-charcoal hover:text-sagebright-green transition-colors duration-200 group ${isActive('#employees') ? 'font-medium text-sagebright-green' : ''}`}
+            >
               For Employees
+              <span className={`block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform ${isActive('#employees') ? 'scale-x-100' : ''}`}></span>
             </a>
-            <a href="#admins" className="text-body font-sans text-gray-600 hover:text-sagebright-green transition-colors duration-200">
+            <a 
+              href="#admins" 
+              className={`text-body font-helvetica text-charcoal hover:text-sagebright-green transition-colors duration-200 group ${isActive('#admins') ? 'font-medium text-sagebright-green' : ''}`}
+            >
               For HR & Admins
+              <span className={`block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform ${isActive('#admins') ? 'scale-x-100' : ''}`}></span>
             </a>
-            <a href="#how" className="text-body font-sans text-gray-600 hover:text-sagebright-green transition-colors duration-200">
+            <a 
+              href="#how" 
+              className={`text-body font-helvetica text-charcoal hover:text-sagebright-green transition-colors duration-200 group ${isActive('#how') ? 'font-medium text-sagebright-green' : ''}`}
+            >
               How It Works
+              <span className={`block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform ${isActive('#how') ? 'scale-x-100' : ''}`}></span>
             </a>
-            <a href="#human" className="text-body font-sans text-gray-600 hover:text-sagebright-green transition-colors duration-200">
+            <a 
+              href="#human" 
+              className={`text-body font-helvetica text-charcoal hover:text-sagebright-green transition-colors duration-200 group ${isActive('#human') ? 'font-medium text-sagebright-green' : ''}`}
+            >
               Human Design
+              <span className={`block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform ${isActive('#human') ? 'scale-x-100' : ''}`}></span>
             </a>
           </nav>
           <div className="flex items-center space-x-4">
-            {user ? (
-              <Button asChild className="bg-sagebright-green hover:bg-sagebright-green/90 text-white text-cta font-dmSans rounded-md transition-transform duration-300 hover:scale-103 hover:brightness-105">
-                <Link to="/dashboard">Dashboard</Link>
-              </Button>
-            ) : (
-              <Button asChild className="bg-sagebright-coral hover:bg-sagebright-coral/90 text-white text-cta font-dmSans rounded-md transition-transform duration-300 hover:scale-103 hover:brightness-105">
-                <Link to="/auth/signup">Request Access</Link>
-              </Button>
-            )}
+            <Button asChild className="bg-sagebright-coral hover:bg-sagebright-coral/90 text-white text-cta font-dmSans rounded-md transition-transform duration-300 hover:scale-103 hover:brightness-105">
+              <Link to="/auth/signup">Request Access</Link>
+            </Button>
           </div>
         </div>
       </div>
