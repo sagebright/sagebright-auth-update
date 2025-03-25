@@ -1,7 +1,7 @@
 
 import React from "react";
 import { useLocation } from "react-router-dom";
-import { SidebarProvider, Sidebar } from "@/components/ui/sidebar";
+import { SidebarProvider, Sidebar } from "@/components/ui/sidebar"; // This import path stays the same
 import { useAuth } from "@/contexts/AuthContext";
 import UserSidebar from "./UserSidebar";
 import AdminSidebar from "./AdminSidebar";

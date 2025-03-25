@@ -4,7 +4,7 @@ import { Link, useLocation } from "react-router-dom";
 import { 
   SidebarContent, SidebarMenu, SidebarMenuItem, 
   SidebarMenuButton, SidebarHeader, SidebarFooter 
-} from "@/components/ui/sidebar";
+} from "@/components/ui/sidebar"; // This import path stays the same
 import { 
   LayoutDashboard, HelpCircle, ListTodo, 
   Calendar, Users, Settings, LogOut 
