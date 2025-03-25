@@ -36,12 +36,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   asChild 
                   isActive={location.pathname === "/dashboard"} 
                   tooltip="Dashboard"
-                  className="!bg-sagebright-accent/20 font-medium transition-all text-sagebright-green
+                  className="font-medium transition-all text-charcoal/70
                   data-[active=true]:!bg-sagebright-accent/25 data-[active=true]:!text-sagebright-green 
                   hover:!bg-sagebright-accent/25 hover:!text-sagebright-green hover:scale-[1.02]"
                 >
                   <Link to="/dashboard" className="flex items-center">
-                    <LayoutDashboard className="text-sagebright-green" />
+                    <LayoutDashboard className="text-charcoal/70 group-hover:text-sagebright-green" />
                     <span>Dashboard</span>
                   </Link>
                 </SidebarMenuButton>
