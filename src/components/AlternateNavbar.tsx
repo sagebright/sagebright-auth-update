@@ -39,6 +39,8 @@ const AlternateNavbar = () => {
     return location.hash === path;
   };
 
+  const isContactPage = location.pathname === '/contact-us';
+
   return (
     <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
       scrolled ? 'bg-white shadow-sm' : 'bg-white/90 backdrop-blur-sm'
@@ -49,34 +51,71 @@ const AlternateNavbar = () => {
             <Logo variant="full" />
           </div>
           <nav className="hidden md:flex items-center space-x-6 ml-8">
-            <a 
-              href="#employees" 
-              className={`text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group ${isActive('#employees') ? 'font-medium text-sagebright-green' : ''}`}
-            >
-              For Employees
-              <span className={`block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200 ${isActive('#employees') ? 'scale-x-100' : ''}`}></span>
-            </a>
-            <a 
-              href="#admins" 
-              className={`text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group ${isActive('#admins') ? 'font-medium text-sagebright-green' : ''}`}
-            >
-              For HR & Admins
-              <span className={`block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200 ${isActive('#admins') ? 'scale-x-100' : ''}`}></span>
-            </a>
-            <a 
-              href="#how" 
-              className={`text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group ${isActive('#how') ? 'font-medium text-sagebright-green' : ''}`}
-            >
-              How It Works
-              <span className={`block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200 ${isActive('#how') ? 'scale-x-100' : ''}`}></span>
-            </a>
-            <a 
-              href="#human" 
-              className={`text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group ${isActive('#human') ? 'font-medium text-sagebright-green' : ''}`}
-            >
-              Human Design
-              <span className={`block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200 ${isActive('#human') ? 'scale-x-100' : ''}`}></span>
-            </a>
+            {isContactPage ? (
+              // If on contact page, link to sections on index page
+              <>
+                <Link 
+                  to="/#employees" 
+                  className="text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group"
+                >
+                  For Employees
+                  <span className="block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200"></span>
+                </Link>
+                <Link 
+                  to="/#admins" 
+                  className="text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group"
+                >
+                  For HR & Admins
+                  <span className="block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200"></span>
+                </Link>
+                <Link 
+                  to="/#how" 
+                  className="text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group"
+                >
+                  How It Works
+                  <span className="block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200"></span>
+                </Link>
+                <Link 
+                  to="/#human" 
+                  className="text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group"
+                >
+                  Human Design
+                  <span className="block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200"></span>
+                </Link>
+              </>
+            ) : (
+              // On index page, use anchor tags for smooth scrolling
+              <>
+                <a 
+                  href="#employees" 
+                  className={`text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group ${isActive('#employees') ? 'font-medium text-sagebright-green' : ''}`}
+                >
+                  For Employees
+                  <span className={`block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200 ${isActive('#employees') ? 'scale-x-100' : ''}`}></span>
+                </a>
+                <a 
+                  href="#admins" 
+                  className={`text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group ${isActive('#admins') ? 'font-medium text-sagebright-green' : ''}`}
+                >
+                  For HR & Admins
+                  <span className={`block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200 ${isActive('#admins') ? 'scale-x-100' : ''}`}></span>
+                </a>
+                <a 
+                  href="#how" 
+                  className={`text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group ${isActive('#how') ? 'font-medium text-sagebright-green' : ''}`}
+                >
+                  How It Works
+                  <span className={`block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200 ${isActive('#how') ? 'scale-x-100' : ''}`}></span>
+                </a>
+                <a 
+                  href="#human" 
+                  className={`text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group ${isActive('#human') ? 'font-medium text-sagebright-green' : ''}`}
+                >
+                  Human Design
+                  <span className={`block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200 ${isActive('#human') ? 'scale-x-100' : ''}`}></span>
+                </a>
+              </>
+            )}
             <Link 
               to="/contact-us" 
               className="text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group"

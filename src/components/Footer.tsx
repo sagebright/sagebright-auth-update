@@ -10,6 +10,7 @@ const Footer = () => {
   
   // Check if we're on the index-v1 page
   const isIndexV1Page = location.pathname.includes('index-v1');
+  const isContactPage = location.pathname === '/contact-us';
   
   return (
     <footer className="bg-white border-t border-gray-100 py-12">
@@ -18,7 +19,7 @@ const Footer = () => {
           <div className="mb-6 md:mb-0">
             <Logo variant="full" />
             <p className="text-gray-500 mt-2 font-helvetica text-body">
-              Personal AI That Feels Like a Part of Your Team
+              Personal AI That's Part of Your Team
             </p>
           </div>
           
@@ -43,8 +44,32 @@ const Footer = () => {
                   <span className="block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200"></span>
                 </Link>
               </nav>
+            ) : isContactPage ? (
+              // Links for the contact page (linking back to index sections)
+              <nav className="flex flex-wrap justify-center space-x-6">
+                <Link to="/#employees" className="text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group">
+                  For Employees
+                  <span className="block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200"></span>
+                </Link>
+                <Link to="/#admins" className="text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group">
+                  For HR & Admins
+                  <span className="block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200"></span>
+                </Link>
+                <Link to="/#how" className="text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group">
+                  How It Works
+                  <span className="block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200"></span>
+                </Link>
+                <Link to="/#human" className="text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group">
+                  Human Design
+                  <span className="block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200"></span>
+                </Link>
+                <Link to="/contact-us" className="text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group">
+                  Contact Us
+                  <span className="block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200"></span>
+                </Link>
+              </nav>
             ) : (
-              // Links for the main index page (former alternate)
+              // Links for the main index page
               <nav className="flex flex-wrap justify-center space-x-6">
                 <a href="#employees" className="text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group">
                   For Employees

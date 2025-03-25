@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 interface LogoProps {
   variant?: 'full' | 'icon' | 'text';
@@ -20,38 +21,19 @@ const Logo = ({
     xl: 'h-16'
   };
   
-  if (variant === 'icon') {
-    return (
-      <div className={`flex items-center ${className}`}>
-        <img 
-          src="/lovable-uploads/sb_logo_type.svg" 
-          alt="sagebright.ai logo" 
-          className={`${sizeClasses[size]} w-auto`}
-        />
-      </div>
-    );
-  }
+  const logoImg = (
+    <img 
+      src={variant === 'icon' || variant === 'text' ? "/lovable-uploads/sb_logo_type.svg" : "/lovable-uploads/sb_logo_type.png"}
+      alt="sagebright.ai" 
+      className={`${sizeClasses[size]} w-auto`}
+    />
+  );
   
-  if (variant === 'text') {
-    return (
-      <div className={`flex items-center ${className}`}>
-        <img 
-          src="/lovable-uploads/sb_logo_type.svg" 
-          alt="sagebright.ai" 
-          className={`${sizeClasses[size]} w-auto`}
-        />
-      </div>
-    );
-  }
-  
-  // Default is full logo (icon + text)
   return (
     <div className={`flex items-center ${className}`}>
-      <img 
-        src="/lovable-uploads/sb_logo_type.png" 
-        alt="sagebright.ai" 
-        className={`${sizeClasses[size]} w-auto`}
-      />
+      <Link to="/">
+        {logoImg}
+      </Link>
     </div>
   );
 };
