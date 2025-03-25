@@ -86,7 +86,7 @@ const WhatEmployeesExperience = () => {
         <div className="mt-16 mx-auto max-w-5xl relative overflow-visible">
           <div className="w-full flex justify-center items-center">
             <div className="relative w-full rounded-xl overflow-hidden shadow-2xl border border-gray-100">
-              <AspectRatio ratio={16/9} className="bg-sagebright-green/5">
+              <AspectRatio ratio={16/9}>
                 <img 
                   ref={imageRef}
                   data-src="/lovable-uploads/ask-sage-screenshot.png" 
