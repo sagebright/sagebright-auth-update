@@ -21,11 +21,15 @@ const Logo = ({
     xl: 'h-16'
   };
   
+  // For SVG rendering, we'll use PNG formats to avoid rendering artifacts
   const logoImg = (
     <img 
-      src={variant === 'icon' || variant === 'text' ? "/lovable-uploads/sb_logo_type.svg" : "/lovable-uploads/sb_logo_type.png"}
+      src={variant === 'icon' 
+        ? "/lovable-uploads/sb_logo.png" 
+        : "/lovable-uploads/sb_logo_type.png"}
       alt="sagebright.ai" 
       className={`${sizeClasses[size]} w-auto`}
+      style={{ imageRendering: 'auto' }}
     />
   );
   

@@ -25,12 +25,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               <img 
                 src="/lovable-uploads/sb_logo_type.png" 
                 alt="Sagebright" 
-                className="h-12 w-auto" 
+                className="h-12 w-auto"
+                style={{ imageRendering: 'auto' }}
               />
             </div>
           </SidebarHeader>
           <SidebarContent>
-            <SidebarMenu>
+            <SidebarMenu className="pt-4">
               <SidebarMenuItem>
                 <SidebarMenuButton 
                   asChild 

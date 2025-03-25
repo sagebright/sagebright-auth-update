@@ -48,7 +48,7 @@ const AlternateNavbar = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           <div className="flex-shrink-0">
-            <Logo variant="full" />
+            <Logo variant="full" size="lg" />
           </div>
           <nav className="hidden md:flex items-center space-x-6 ml-8">
             {isContactPage ? (
