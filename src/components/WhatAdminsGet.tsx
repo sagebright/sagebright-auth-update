@@ -1,7 +1,5 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { BarChart3, Lightbulb, Mic, Bell } from 'lucide-react';
-import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const WhatAdminsGet = () => {
@@ -39,18 +37,18 @@ const WhatAdminsGet = () => {
   return (
     <section className="py-20 bg-sagebright-green/5" id="admins">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Side-by-side layout for headline and screenshot */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 mb-16 items-center">
-          {/* Left column - Text content */}
-          <div className="flex flex-col justify-center md:order-2">
+        {/* Side-by-side layout with adjusted ratio (40% text, 60% screenshot) */}
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-8 lg:gap-12 mb-16 items-center">
+          {/* Left column - Text content (appears on right) */}
+          <div className="flex flex-col justify-center md:col-span-2 md:order-2">
             <h2 className="text-headline font-dmSans font-bold mb-6">Clarity when it counts. Privacy where it matters.</h2>
             <p className="text-body font-sans text-gray-600">
               You see how onboarding is landing — what's working across teams, where people may be hesitating, and where they might need more clarity. Sage protects privacy by default, and only surfaces trends or flags when it could improve someone's experience.
             </p>
           </div>
           
-          {/* Right column - Screenshot (appears on left for WhatAdminsGet) */}
-          <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-100 transition-transform duration-500 hover:shadow-card-hover md:order-1">
+          {/* Right column - Screenshot (appears on left with 60% width) */}
+          <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-100 transition-transform duration-500 hover:shadow-card-hover md:col-span-3 md:order-1">
             <div className="w-full h-full">
               <img 
                 ref={imageRef}

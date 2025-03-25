@@ -18,7 +18,7 @@ const AlternateHeroSection = () => {
   }, []);
 
   return (
-    <section className="pt-32 pb-20 bg-gradient-to-br from-white to-sagebright-accent/10 overflow-hidden" id="hero">
+    <section className="pt-24 pb-16 bg-gradient-to-br from-white to-sagebright-accent/10 overflow-hidden" id="hero">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className={`max-w-3xl mx-auto text-center transition-all duration-1000 ease-out ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
           <div className="mb-8 animate-fade-in p-text-spacing">
