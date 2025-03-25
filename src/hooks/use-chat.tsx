@@ -1,13 +1,12 @@
-
 import { useState, useEffect } from 'react';
 import { Message } from '@/components/ask-sage/ChatMessage';
 
-// Updated suggested questions
+// Updated suggested questions order to prioritize the two required questions
 const SUGGESTED_QUESTIONS = [
-  "How to set up my development environment",
-  "How I can add value right away",
   "Who's who on my team",
   "What high performers here do differently",
+  "How to set up my development environment",
+  "How I can add value right away",
   "Our team's biggest goals right now"
 ];
 

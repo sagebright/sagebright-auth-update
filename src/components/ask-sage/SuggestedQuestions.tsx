@@ -1,12 +1,14 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { 
-  Code, 
-  Lightbulb, 
   Users, 
   TrendingUp, 
-  Target 
+  Code,
+  Lightbulb,
+  Target,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 
 interface SuggestedQuestionsProps {
@@ -18,6 +20,11 @@ export const SuggestedQuestions: React.FC<SuggestedQuestionsProps> = ({
   questions, 
   onSelectQuestion 
 }) => {
+  const [expanded, setExpanded] = useState(false);
+  
+  // Show only two initial questions unless expanded
+  const displayedQuestions = expanded ? questions : questions.slice(0, 2);
+
   // Map of icons for each question
   const getIconForQuestion = (question: string) => {
     if (question.includes('development environment')) return <Code className="w-4 h-4 mr-2" />;
@@ -29,10 +36,10 @@ export const SuggestedQuestions: React.FC<SuggestedQuestionsProps> = ({
   };
 
   return (
-    <div className="max-w-3xl mx-auto mt-8">
+    <div className="max-w-3xl mx-auto mt-4">
       <h3 className="text-sm font-medium text-gray-500 mb-3">Ask Sage about…</h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-        {questions.map((question, index) => (
+        {displayedQuestions.map((question, index) => (
           <Button 
             key={index} 
             variant="outline"
@@ -44,6 +51,25 @@ export const SuggestedQuestions: React.FC<SuggestedQuestionsProps> = ({
           </Button>
         ))}
       </div>
+      
+      {questions.length > 2 && (
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="text-sagebright-green hover:text-sagebright-green/80 text-sm font-medium flex items-center mt-3 transition-colors"
+        >
+          {expanded ? (
+            <>
+              Show less
+              <ChevronUp size={16} className="ml-1" />
+            </>
+          ) : (
+            <>
+              Show more
+              <ChevronDown size={16} className="ml-1" />
+            </>
+          )}
+        </button>
+      )}
     </div>
   );
 };
