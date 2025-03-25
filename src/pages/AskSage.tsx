@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { ThumbsUp, ThumbsDown, Search, MessageCircle, CircleDot, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Avatar } from '@/components/ui/avatar';
@@ -36,13 +37,13 @@ interface Message {
   disliked?: boolean;
 }
 
-// Common onboarding questions
+// Updated suggested questions
 const suggestedQuestions = [
-  "What should I focus on this week?",
-  "Where do I find our PTO policy?",
-  "Who do I talk to about benefits?",
-  "How do I set up my development environment?",
-  "What's the process for requesting equipment?"
+  "How to set up my development environment",
+  "How I can add value right away",
+  "Who's who on my team",
+  "What high performers here do differently",
+  "Our team's biggest goals right now"
 ];
 
 // Recently viewed answers
@@ -68,7 +69,7 @@ const AskSage = () => {
       setMessages([
         {
           id: '1',
-          content: "Hey there — I'm Sage. I'm here to help you settle in, answer questions, and check in when things feel unclear or overwhelming. Just type anything below and I'll take it from there.",
+          content: "Welcome back, Adam! You're doing the work — I'm just here to help make it smoother. What do you want to explore next?",
           sender: 'sage',
           timestamp: new Date(),
         }
@@ -162,7 +163,7 @@ const AskSage = () => {
               </Avatar>
               <div>
                 <h1 className="text-xl font-helvetica font-medium text-charcoal">Ask Sage</h1>
-                <p className="text-sm text-gray-500">Your personal onboarding assistant</p>
+                <p className="text-sm text-gray-500">Answers that help you move forward</p>
               </div>
             </div>
             
@@ -249,10 +250,10 @@ const AskSage = () => {
                 <div ref={chatEndRef} />
               </div>
               
-              {/* Suggested Questions (if chat is relatively empty) */}
+              {/* Updated Suggested Questions section with new title and questions */}
               {messages.length < 3 && (
                 <div className="max-w-3xl mx-auto mt-8">
-                  <h3 className="text-sm font-medium text-gray-500 mb-3">Common questions:</h3>
+                  <h3 className="text-sm font-medium text-gray-500 mb-3">Ask Sage about…</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {suggestedQuestions.map((question, index) => (
                       <Button 

@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import Logo from "@/components/Logo";
 import { SidebarProvider, Sidebar, SidebarContent, SidebarMenu, 
   SidebarMenuItem, SidebarMenuButton, SidebarHeader, SidebarFooter } from "@/components/ui/sidebar";
@@ -14,6 +14,7 @@ interface DashboardLayoutProps {
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const { signOut } = useAuth();
+  const location = useLocation();
 
   return (
     <SidebarProvider>
@@ -33,7 +34,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               <SidebarMenuItem>
                 <SidebarMenuButton 
                   asChild 
-                  isActive={true} 
+                  isActive={location.pathname === "/dashboard"} 
                   tooltip="Dashboard"
                   className="!bg-sagebright-accent/20 font-medium transition-all text-sagebright-green
                   data-[active=true]:!bg-sagebright-accent/25 data-[active=true]:!text-sagebright-green 
@@ -49,11 +50,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               <SidebarMenuItem>
                 <SidebarMenuButton 
                   asChild 
+                  isActive={location.pathname === "/ask-sage"}
                   tooltip="Ask Sage"
                   className="text-charcoal/70 font-normal transition-all duration-200
-                  hover:!bg-sagebright-accent/25 hover:!text-sagebright-green hover:scale-[1.02]"
+                  hover:!bg-sagebright-accent/25 hover:!text-sagebright-green hover:scale-[1.02]
+                  data-[active=true]:!bg-sagebright-accent/25 data-[active=true]:!text-sagebright-green"
                 >
-                  <Link to="#" className="flex items-center">
+                  <Link to="/ask-sage" className="flex items-center">
                     <HelpCircle className="text-charcoal/70 group-hover:text-sagebright-green" />
                     <span>Ask Sage</span>
                   </Link>
