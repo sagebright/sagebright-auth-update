@@ -1,10 +1,11 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Send } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 import {
   Form,
@@ -36,6 +37,7 @@ type ContactFormProps = {
 
 const ContactForm = ({ onSubmitSuccess }: ContactFormProps) => {
   const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Initialize form with default values
   const form = useForm<ContactFormValues>({
@@ -51,29 +53,63 @@ const ContactForm = ({ onSubmitSuccess }: ContactFormProps) => {
   });
 
   // Form submission handler
-  const onSubmit = (data: ContactFormValues) => {
-    // Here you would normally send the data to your backend
-    console.log("Form submitted:", data);
+  const onSubmit = async (data: ContactFormValues) => {
+    setIsSubmitting(true);
     
-    // Show success message
-    toast({
-      title: "Message sent!",
-      description: "Thank you for reaching out. We'll be in touch soon.",
-      duration: 5000,
-    });
-    
-    // Reset form
-    form.reset({
-      firstName: "",
-      lastName: "",
-      email: "",
-      company: "",
-      isBetaClient: false,
-      message: "",
-    });
-    
-    if (onSubmitSuccess) {
-      onSubmitSuccess();
+    try {
+      // Submit data to Supabase
+      const { error } = await supabase
+        .from('contact_submissions')
+        .insert({
+          first_name: data.firstName,
+          last_name: data.lastName,
+          email: data.email,
+          company: data.company || null,
+          is_beta_client: data.isBetaClient,
+          message: data.message
+        });
+      
+      if (error) {
+        console.error("Error submitting form:", error);
+        toast({
+          title: "Something went wrong",
+          description: "Your message could not be sent. Please try again later.",
+          variant: "destructive",
+          duration: 5000,
+        });
+        return;
+      }
+      
+      // Show success message
+      toast({
+        title: "Message sent!",
+        description: "Thank you for reaching out. We'll be in touch soon.",
+        duration: 5000,
+      });
+      
+      // Reset form
+      form.reset({
+        firstName: "",
+        lastName: "",
+        email: "",
+        company: "",
+        isBetaClient: false,
+        message: "",
+      });
+      
+      if (onSubmitSuccess) {
+        onSubmitSuccess();
+      }
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      toast({
+        title: "Something went wrong",
+        description: "Your message could not be sent. Please try again later.",
+        variant: "destructive",
+        duration: 5000,
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -200,9 +236,10 @@ const ContactForm = ({ onSubmitSuccess }: ContactFormProps) => {
             <Button 
               type="submit" 
               className="bg-sagebright-green hover:bg-sagebright-green/90 text-white w-full sm:w-auto"
+              disabled={isSubmitting}
             >
               <Send className="mr-2 h-4 w-4" />
-              Send Message
+              {isSubmitting ? "Sending..." : "Send Message"}
             </Button>
           </div>
         </form>
