@@ -6,18 +6,18 @@ import { CheckCircle, Clock, UserCheck, Book, ExternalLink } from 'lucide-react'
 const MetricCardsGrid = () => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      {/* Card 1: Overall Progress */}
+      {/* Card 1: Onboarding Completion Rate */}
       <Card className="bg-white overflow-hidden hover:shadow-md transition-shadow duration-200">
         <div className="h-1 bg-sagebright-green w-full"></div>
         <CardHeader className="pb-2">
           <div className="flex justify-between items-center">
-            <CardTitle className="text-lg font-helvetica text-charcoal">Overall Progress</CardTitle>
+            <CardTitle className="text-lg font-helvetica text-charcoal">Onboarding Completion Rate</CardTitle>
             <CheckCircle className="h-5 w-5 text-sagebright-green" />
           </div>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col">
-            <span className="text-4xl font-bold text-charcoal">82%</span>
+            <span className="text-4xl font-bold text-charcoal">93%</span>
             <span className="text-sm text-charcoal/70 mt-1">Completed core onboarding</span>
           </div>
         </CardContent>
@@ -29,19 +29,19 @@ const MetricCardsGrid = () => {
         </CardFooter>
       </Card>
 
-      {/* Card 2: Time to Complete */}
+      {/* Card 2: Milestone Reach Rate */}
       <Card className="bg-white overflow-hidden hover:shadow-md transition-shadow duration-200">
         <div className="h-1 bg-sunglow w-full"></div>
         <CardHeader className="pb-2">
           <div className="flex justify-between items-center">
-            <CardTitle className="text-lg font-helvetica text-charcoal">Time to Complete</CardTitle>
+            <CardTitle className="text-lg font-helvetica text-charcoal">Milestone Reach Rate</CardTitle>
             <Clock className="h-5 w-5 text-sunglow" />
           </div>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col">
-            <span className="text-4xl font-bold text-charcoal">12.4</span>
-            <span className="text-sm text-charcoal/70 mt-1">Average days to complete</span>
+            <span className="text-4xl font-bold text-charcoal">88%</span>
+            <span className="text-sm text-charcoal/70 mt-1">% of new hires hitting key onboarding milestones</span>
           </div>
           {/* Mini bar chart placeholder */}
           <div className="h-10 w-full mt-2 flex items-end space-x-1">
@@ -57,19 +57,19 @@ const MetricCardsGrid = () => {
         </CardContent>
       </Card>
 
-      {/* Card 3: Active Participants */}
+      {/* Card 3: Time to Productivity */}
       <Card className="bg-white overflow-hidden hover:shadow-md transition-shadow duration-200">
         <div className="h-1 bg-sagebright-green w-full"></div>
         <CardHeader className="pb-2">
           <div className="flex justify-between items-center">
-            <CardTitle className="text-lg font-helvetica text-charcoal">Active Participants</CardTitle>
+            <CardTitle className="text-lg font-helvetica text-charcoal">Time to Productivity</CardTitle>
             <UserCheck className="h-5 w-5 text-sagebright-green" />
           </div>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col">
-            <span className="text-4xl font-bold text-charcoal">14</span>
-            <span className="text-sm text-charcoal/70 mt-1">Employees in onboarding</span>
+            <span className="text-4xl font-bold text-charcoal">34</span>
+            <span className="text-sm text-charcoal/70 mt-1">Average days to baseline performance metrics</span>
           </div>
         </CardContent>
         <CardFooter className="pt-0">
@@ -80,19 +80,19 @@ const MetricCardsGrid = () => {
         </CardFooter>
       </Card>
 
-      {/* Card 4: Content Clarity */}
+      {/* Card 4: New Hire Retention */}
       <Card className="bg-white overflow-hidden hover:shadow-md transition-shadow duration-200">
         <div className="h-1 bg-sagebright-green w-full"></div>
         <CardHeader className="pb-2">
           <div className="flex justify-between items-center">
-            <CardTitle className="text-lg font-helvetica text-charcoal">Content Clarity</CardTitle>
+            <CardTitle className="text-lg font-helvetica text-charcoal">New Hire Retention</CardTitle>
             <Book className="h-5 w-5 text-sagebright-green" />
           </div>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col">
-            <span className="text-4xl font-bold text-charcoal">94%</span>
-            <span className="text-sm text-charcoal/70 mt-1">Overall clarity rating</span>
+            <span className="text-4xl font-bold text-charcoal">95%</span>
+            <span className="text-sm text-charcoal/70 mt-1">% of new hires employed 90 days after start</span>
           </div>
         </CardContent>
         <CardFooter className="pt-0">

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { HelpCircle, Info } from 'lucide-react';
@@ -24,7 +23,7 @@ const clarityModules = [
     name: "Benefits Enrollment", 
     score: 72, 
     sentiment: "medium",
-    tip: "3 employees hesitated here — consider rewording this step.",
+    tip: "3 employees hesitated here — consider process review.",
     quote: "I wasn't sure which option was best for my situation."
   },
   { 

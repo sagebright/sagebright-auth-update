@@ -66,13 +66,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               <SidebarMenuItem>
                 <SidebarMenuButton 
                   asChild 
-                  tooltip="Onboarding Roadmap"
+                  tooltip="Reports"
                   className="text-charcoal/70 font-normal transition-all duration-200
                   hover:!bg-sagebright-accent/25 hover:!text-sagebright-green hover:scale-[1.02]"
                 >
                   <Link to="#" className="flex items-center">
                     <ListChecks className="text-charcoal/70 group-hover:text-sagebright-green" />
-                    <span>Onboarding Roadmap</span>
+                    <span>Reports</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
