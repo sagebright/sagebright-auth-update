@@ -5,7 +5,7 @@ import { Message } from '@/components/ask-sage/ChatMessage';
 const SUGGESTED_QUESTIONS = [
   "Who's who on my team",
   "What high performers here do differently",
-  "How to set up my development environment",
+  "How to set up my development environment", 
   "How I can add value right away",
   "Our team's biggest goals right now"
 ];
@@ -21,7 +21,7 @@ export const useChat = () => {
       setMessages([
         {
           id: '1',
-          content: "Welcome back, Adam! You're doing the work — I'm just here to help make it smoother. What do you want to explore next?",
+          content: "Great question. High performers here really live our values—Own the Outcome, Earn Trust Every Day, and Build with Purpose. On your team, that might mean hitting 85% test coverage, giving clear code review feedback, or using sprint demos to connect the work to its purpose.",
           sender: 'sage',
           timestamp: new Date(),
         }
