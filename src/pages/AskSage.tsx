@@ -8,6 +8,7 @@ import { ChatInputBar } from '@/components/ask-sage/ChatInputBar';
 import { SuggestedQuestions } from '@/components/ask-sage/SuggestedQuestions';
 import { ReflectionForm, ReflectionData } from '@/components/ask-sage/ReflectionForm';
 import { ResourcesSidebar } from '@/components/ask-sage/ResourcesSidebar';
+import { TypingIndicator } from '@/components/ask-sage/TypingIndicator';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useChat } from '@/hooks/use-chat';
 import { useState } from 'react';
@@ -19,19 +20,20 @@ const AskSage = () => {
     showReflection, 
     setShowReflection, 
     handleSendMessage, 
-    handleFeedback 
+    handleFeedback,
+    isLoading
   } = useChat();
   
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
 
-  // Scroll to bottom of chat when messages update
+  // Scroll to bottom of chat when messages update or loading state changes
   useEffect(() => {
     if (chatEndRef.current) {
       chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [messages]);
+  }, [messages, isLoading]);
 
   const handleReflectionSubmit = (data: ReflectionData) => {
     console.log('Reflection submitted:', data);
@@ -63,6 +65,10 @@ const AskSage = () => {
                     <p>Start a conversation with Sage</p>
                   </div>
                 )}
+                
+                {/* Show typing indicator when loading */}
+                {isLoading && <TypingIndicator />}
+                
                 <div ref={chatEndRef} />
               </div>
               
@@ -79,6 +85,7 @@ const AskSage = () => {
             <ChatInputBar
               onSendMessage={handleSendMessage}
               onReflectionSubmit={handleReflectionSubmit}
+              isLoading={isLoading}
             />
           </div>
           

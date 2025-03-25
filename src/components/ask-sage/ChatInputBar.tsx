@@ -9,17 +9,19 @@ import { ReflectionForm, ReflectionData } from './ReflectionForm';
 interface ChatInputBarProps {
   onSendMessage: (content: string) => void;
   onReflectionSubmit: (data: ReflectionData) => void;
+  isLoading?: boolean;
 }
 
 export const ChatInputBar: React.FC<ChatInputBarProps> = ({ 
   onSendMessage, 
-  onReflectionSubmit 
+  onReflectionSubmit,
+  isLoading = false
 }) => {
   const [inputValue, setInputValue] = useState('');
   const [activeTab, setActiveTab] = useState('chat');
 
   const handleSendMessage = () => {
-    if (inputValue.trim()) {
+    if (inputValue.trim() && !isLoading) {
       onSendMessage(inputValue);
       setInputValue('');
     }
@@ -64,11 +66,13 @@ export const ChatInputBar: React.FC<ChatInputBarProps> = ({
               onChange={(e) => setInputValue(e.target.value)}
               placeholder="What's on your mind?"
               className="flex-1"
-              onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+              onKeyDown={(e) => e.key === 'Enter' && !isLoading && handleSendMessage()}
+              disabled={isLoading}
             />
             <Button 
               onClick={handleSendMessage}
               className="bg-sagebright-green hover:bg-sagebright-green/90"
+              disabled={isLoading || !inputValue.trim()}
             >
               Send
             </Button>

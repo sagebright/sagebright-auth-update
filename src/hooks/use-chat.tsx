@@ -14,6 +14,7 @@ const SUGGESTED_QUESTIONS = [
 export const useChat = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [showReflection, setShowReflection] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Add initial greeting from Sage if empty chat
   useEffect(() => {
@@ -52,6 +53,7 @@ export const useChat = () => {
     };
     
     setMessages(prev => [...prev, userMessage]);
+    setIsLoading(true);
 
     // Simulate Sage response
     setTimeout(() => {
@@ -62,6 +64,7 @@ export const useChat = () => {
         timestamp: new Date(),
       };
       setMessages(prev => [...prev, sageResponse]);
+      setIsLoading(false);
     }, 1000);
   };
 
@@ -101,6 +104,7 @@ export const useChat = () => {
     showReflection,
     setShowReflection,
     handleSendMessage,
-    handleFeedback
+    handleFeedback,
+    isLoading
   };
 };
