@@ -79,7 +79,7 @@ const AlternateHeroSection = () => {
           <div className="relative rounded-xl overflow-hidden shadow-2xl border border-gray-100">
             <img 
               ref={imageRef}
-              data-src="/lovable-uploads/d71356c7-4f54-4d70-a401-443fef77aff5.png" 
+              data-src="/lovable-uploads/dashboard-screenshot.png" 
               src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" 
               alt="Sagebright AI mentor dashboard showing personalized guidance" 
               onLoad={handleImageLoad}

@@ -49,7 +49,7 @@ const WhatEmployeesExperience = () => {
         <div className="mt-16 mx-auto max-w-4xl rounded-xl overflow-hidden shadow-xl">
           <AspectRatio ratio={16/9} className="bg-sagebright-green/5">
             <img 
-              src="/lovable-uploads/3dc82e16-06ba-488d-adb7-e767342c17d8.png" 
+              src="/lovable-uploads/ask-sage-screenshot.png" 
               alt="Ask Sage Interface - AI Assistant for Onboarding" 
               className="w-full h-full object-cover rounded-xl"
             />
