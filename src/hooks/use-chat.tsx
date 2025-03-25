@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Message } from '@/components/ask-sage/ChatMessage';
 
@@ -21,7 +22,7 @@ export const useChat = () => {
       setMessages([
         {
           id: '1',
-          content: "Great question. High performers here really live our values—Own the Outcome, Earn Trust Every Day, and Build with Purpose. On your team, that might mean hitting 85% test coverage, giving clear code review feedback, or using sprint demos to connect the work to its purpose.",
+          content: "Welcome back, Adam! You're doing the work — I'm just here to help make it smoother. What do you want to explore next?",
           sender: 'sage',
           timestamp: new Date(),
         }
@@ -68,6 +69,11 @@ export const useChat = () => {
   };
 
   const getSageResponse = (query: string): string => {
+    // Default comprehensive response for most questions
+    if (query.toLowerCase().includes('high performer') || query.toLowerCase().includes('values')) {
+      return "That's a great question! Company-wide, high performers really do live out our core values: Own the Outcome, Earn Trust Every Day, and Build with Purpose. On your engineering team, owning the outcome might look like making sure you have 85% test coverage. Earning trust might mean giving clear, actionable feedback in a code review. Building with purpose might mean taking time in a sprint demo to focus on why you're building a feature.";
+    }
+    
     // Simple response generator for demonstration
     if (query.toLowerCase().includes('pto') || query.toLowerCase().includes('time off')) {
       return "Great question! PTO policies can be found in the Employee Handbook under Benefits (Section 3.2). The basics: you have 15 days annually, accrued monthly. Your manager needs at least 2 weeks notice for extended time off. Need more details?";
@@ -81,7 +87,7 @@ export const useChat = () => {
       return "Based on your onboarding plan, this week you should focus on: 1) Completing your security training, 2) Setting up 1:1s with your team members, and 3) Reviewing the Q3 product roadmap. How's that sound?";
     }
     
-    return "That's a great question! I'll help you find the answer. Based on your role and team, here's what I'd recommend: reach out to your team lead or check the department resources in the knowledge base. Would you like me to point you to specific documentation?";
+    return "That's a great question! Company-wide, high performers really do live out our core values: Own the Outcome, Earn Trust Every Day, and Build with Purpose. On your engineering team, owning the outcome might look like making sure you have 85% test coverage. Earning trust might mean giving clear, actionable feedback in a code review. Building with purpose might mean taking time in a sprint demo to focus on why you're building a feature.";
   };
 
   const handleFeedback = (messageId: string, feedback: 'like' | 'dislike') => {
