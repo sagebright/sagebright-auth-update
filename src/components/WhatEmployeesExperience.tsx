@@ -1,9 +1,46 @@
 
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Target, Brain, MessageSquare } from 'lucide-react';
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 
 const WhatEmployeesExperience = () => {
+  const [imageZoomed, setImageZoomed] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const imageRef = useRef<HTMLImageElement>(null);
+
+  useEffect(() => {
+    // Set a small delay to ensure the animation triggers after component mount
+    const timer = setTimeout(() => {
+      setImageZoomed(true);
+    }, 100);
+    
+    // Implement Intersection Observer for lazy loading
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && imageRef.current) {
+          // Replace the src attribute when the image is about to enter the viewport
+          imageRef.current.src = imageRef.current.dataset.src || '';
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { rootMargin: '200px' });
+    
+    if (imageRef.current) {
+      observer.observe(imageRef.current);
+    }
+    
+    return () => {
+      clearTimeout(timer);
+      if (imageRef.current) {
+        observer.unobserve(imageRef.current);
+      }
+    };
+  }, []);
+
+  const handleImageLoad = () => {
+    setImageLoaded(true);
+  };
+
   return (
     <section className="py-20 bg-white" id="employees">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -46,17 +83,22 @@ const WhatEmployeesExperience = () => {
           </div>
         </div>
         
-        <div className="mt-16 mx-auto max-w-4xl rounded-xl overflow-hidden shadow-xl">
-          <AspectRatio ratio={16/9} className="bg-sagebright-green/5">
-            <img 
-              src="/lovable-uploads/ask-sage-screenshot.png" 
-              alt="Ask Sage Interface - AI Assistant for Onboarding" 
-              className="w-full h-full object-cover rounded-xl"
-            />
-          </AspectRatio>
-          <div className="bg-white p-4 text-center">
-            <p className="text-charcoal text-sm font-medium">Sage answers questions with the right level of detail at the right time</p>
+        <div className="mt-16 mx-auto max-w-5xl relative transition-all duration-1000 ease-out">
+          <div className="relative rounded-xl overflow-hidden shadow-2xl border border-gray-100">
+            <AspectRatio ratio={16/9} className="bg-sagebright-green/5">
+              <img 
+                ref={imageRef}
+                data-src="/lovable-uploads/ask-sage-screenshot.png" 
+                src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" 
+                alt="Ask Sage Interface - AI Assistant for Onboarding" 
+                onLoad={handleImageLoad}
+                className={`w-full h-full object-cover transition-transform duration-8000 ease-out zoom-on-load ${imageZoomed ? 'zoomed' : ''} ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                loading="lazy"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-sagebright-green/40 via-transparent to-transparent"></div>
+            </AspectRatio>
           </div>
+          <div className="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-gradient-to-r from-sagebright-coral/10 to-sagebright-green/10 blur-3xl rounded-full opacity-30"></div>
         </div>
       </div>
     </section>
