@@ -1,22 +1,24 @@
 
 import React from 'react';
-import Navbar from '@/components/Navbar';
-import HeroSection from '@/components/HeroSection';
-import WhySection from '@/components/WhySection';
-import HowSection from '@/components/HowSection';
-import WhoSection from '@/components/WhoSection';
+import Navbar from '@/components/AlternateNavbar';
+import AlternateHeroSection from '@/components/AlternateHeroSection';
+import WhatEmployeesExperience from '@/components/WhatEmployeesExperience';
+import WhatAdminsGet from '@/components/WhatAdminsGet';
+import HowItWorks from '@/components/HowItWorks';
+import DesignedToFeelHuman from '@/components/DesignedToFeelHuman';
 import WaitlistSection from '@/components/WaitlistSection';
 import Footer from '@/components/Footer';
 
-const Index = () => {
+const AlternateIndex = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-grow">
-        <HeroSection />
-        <WhySection />
-        <HowSection />
-        <WhoSection />
+        <AlternateHeroSection />
+        <WhatEmployeesExperience />
+        <WhatAdminsGet />
+        <HowItWorks />
+        <DesignedToFeelHuman />
         <WaitlistSection />
       </main>
       <Footer />
@@ -24,4 +26,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default AlternateIndex;

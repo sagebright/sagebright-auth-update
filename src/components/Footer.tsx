@@ -9,8 +9,8 @@ const Footer = () => {
   const currentYear = new Date().getFullYear();
   const location = useLocation();
   
-  // Check if we're on the alternate page
-  const isAlternatePage = location.pathname.includes('alternate');
+  // Check if we're on the index-v1 page
+  const isIndexV1Page = location.pathname.includes('index-v1');
   
   return (
     <footer className="bg-white border-t border-gray-100 py-12">
@@ -24,8 +24,24 @@ const Footer = () => {
           </div>
           
           <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-8">
-            {isAlternatePage ? (
-              // Links for the alternate page
+            {isIndexV1Page ? (
+              // Links for the index-v1 page
+              <nav className="flex flex-wrap justify-center space-x-6">
+                <a href="#why" className="text-body font-helvetica text-charcoal hover:text-sagebright-green transition-colors duration-200 group">
+                  Why <span className="text-sagebright-green">sagebright</span>
+                  <span className="block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform"></span>
+                </a>
+                <a href="#how" className="text-body font-helvetica text-charcoal hover:text-sagebright-green transition-colors duration-200 group">
+                  How <span className="text-sagebright-green">sagebright</span> Works
+                  <span className="block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform"></span>
+                </a>
+                <a href="#who" className="text-body font-helvetica text-charcoal hover:text-sagebright-green transition-colors duration-200 group">
+                  Who We Help
+                  <span className="block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform"></span>
+                </a>
+              </nav>
+            ) : (
+              // Links for the main index page (former alternate)
               <nav className="flex flex-wrap justify-center space-x-6">
                 <a href="#employees" className="text-body font-helvetica text-charcoal hover:text-sagebright-green transition-colors duration-200 group">
                   For Employees
@@ -41,22 +57,6 @@ const Footer = () => {
                 </a>
                 <a href="#human" className="text-body font-helvetica text-charcoal hover:text-sagebright-green transition-colors duration-200 group">
                   Human Design
-                  <span className="block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform"></span>
-                </a>
-              </nav>
-            ) : (
-              // Links for the default page
-              <nav className="flex flex-wrap justify-center space-x-6">
-                <a href="#why" className="text-body font-helvetica text-charcoal hover:text-sagebright-green transition-colors duration-200 group">
-                  Why <span className="text-sagebright-green">sagebright</span>
-                  <span className="block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform"></span>
-                </a>
-                <a href="#how" className="text-body font-helvetica text-charcoal hover:text-sagebright-green transition-colors duration-200 group">
-                  How <span className="text-sagebright-green">sagebright</span> Works
-                  <span className="block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform"></span>
-                </a>
-                <a href="#who" className="text-body font-helvetica text-charcoal hover:text-sagebright-green transition-colors duration-200 group">
-                  Who We Help
                   <span className="block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform"></span>
                 </a>
               </nav>
