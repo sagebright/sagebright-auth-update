@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { ThumbsUp, ThumbsDown, Search, MessageCircle, CircleDot, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Avatar } from '@/components/ui/avatar';
@@ -174,12 +173,24 @@ const AskSage = () => {
                 {sidebarOpen ? <ChevronRight className="mr-1" /> : <ChevronLeft className="mr-1" />}
                 {sidebarOpen ? "Hide" : "Resources"}
               </Button>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="sm" className="md:hidden">
-                  <ChevronLeft className="mr-1" />
-                  Resources
-                </Button>
-              </SheetTrigger>
+              
+              {/* Wrapped the SheetTrigger with Sheet component */}
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="outline" size="sm" className="md:hidden">
+                    <ChevronLeft className="mr-1" />
+                    Resources
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="w-full sm:max-w-md">
+                  <SheetHeader>
+                    <SheetTitle>Resources & History</SheetTitle>
+                  </SheetHeader>
+                  <div className="py-4">
+                    <ResourcesSidebar />
+                  </div>
+                </SheetContent>
+              </Sheet>
             </div>
           </div>
         </div>
@@ -341,17 +352,7 @@ const AskSage = () => {
           </DialogContent>
         </Dialog>
         
-        {/* Mobile Sheet for Resources Sidebar */}
-        <Sheet>
-          <SheetContent side="left" className="w-full sm:max-w-md">
-            <SheetHeader>
-              <SheetTitle>Resources & History</SheetTitle>
-            </SheetHeader>
-            <div className="py-4">
-              <ResourcesSidebar />
-            </div>
-          </SheetContent>
-        </Sheet>
+        {/* Removed the extra Sheet component here, as it was causing the issue */}
       </div>
     </DashboardLayout>
   );
