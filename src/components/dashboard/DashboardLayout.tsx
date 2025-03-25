@@ -25,7 +25,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               <img 
                 src="/lovable-uploads/sb_logo_type.svg" 
                 alt="Sagebright" 
-                className="h-12 w-auto" 
+                className="h-16 w-auto" 
               />
             </div>
           </SidebarHeader>
