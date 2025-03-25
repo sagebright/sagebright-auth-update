@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { MessageCircle, Search, CircleDot } from 'lucide-react';
+import { MessageCircle, Search, CircleDot, ArrowUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -67,12 +67,12 @@ export const ChatInputBar: React.FC<ChatInputBarProps> = ({
           </TabsList>
           
           <TabsContent value="chat" className="flex flex-col space-y-4 mt-0">
-            <div className="flex space-x-2">
+            <div className="relative">
               <Textarea
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 placeholder="What's on your mind?"
-                className="flex-1 min-h-[80px] resize-none"
+                className="flex-1 min-h-[80px] resize-none pr-14"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
@@ -81,13 +81,27 @@ export const ChatInputBar: React.FC<ChatInputBarProps> = ({
                 }}
                 disabled={isLoading}
               />
-              <Button 
-                onClick={handleSendMessage}
-                className="bg-sagebright-green hover:bg-sagebright-green/90 self-start"
-                disabled={isLoading || !inputValue.trim()}
-              >
-                Send
-              </Button>
+              <div className="absolute bottom-3 right-3">
+                <button
+                  onClick={handleSendMessage}
+                  className={`rounded-full p-2 flex items-center justify-center transition-all ${
+                    inputValue.trim() && !isLoading
+                      ? "bg-sagebright-green hover:bg-sagebright-green/90" 
+                      : "bg-gray-200 cursor-not-allowed"
+                  }`}
+                  disabled={!inputValue.trim() || isLoading}
+                  aria-label="Send message"
+                >
+                  <ArrowUp 
+                    size={18} 
+                    className={`${
+                      inputValue.trim() && !isLoading 
+                        ? "text-white" 
+                        : "text-gray-400"
+                    }`} 
+                  />
+                </button>
+              </div>
             </div>
             
             {/* Suggested Questions section */}
