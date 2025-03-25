@@ -45,8 +45,10 @@ const AlternateNavbar = () => {
     } border-b border-gray-100`}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
-          <Logo variant="full" />
-          <nav className="hidden md:flex items-center space-x-8">
+          <div className="flex-shrink-0">
+            <Logo variant="full" />
+          </div>
+          <nav className="hidden md:flex items-center space-x-8 ml-8">
             <a 
               href="#employees" 
               className={`text-body font-helvetica text-charcoal hover:text-sagebright-green transition-colors duration-200 group ${isActive('#employees') ? 'font-medium text-sagebright-green' : ''}`}
