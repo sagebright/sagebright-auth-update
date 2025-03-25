@@ -39,16 +39,18 @@ const WhatAdminsGet = () => {
   return (
     <section className="py-20 bg-sagebright-green/5" id="admins">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="max-w-3xl mx-auto text-center mb-12">
-          <h2 className="text-headline font-dmSans font-bold mb-6">Clarity when it counts. Privacy where it matters.</h2>
-          <p className="text-body font-sans text-gray-600 mb-12">
-            You see how onboarding is landing — what's working across teams, where people may be hesitating, and where they might need more clarity. Sage protects privacy by default, and only surfaces trends or flags when it could improve someone's experience.
-          </p>
-        </div>
-        
-        {/* Screenshot Section - Full Width */}
-        <div className="mb-16 max-w-4xl mx-auto">
-          <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-100 transition-transform duration-500 hover:shadow-card-hover">
+        {/* Side-by-side layout for headline and screenshot */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 mb-16">
+          {/* Left column - Text content */}
+          <div className="flex flex-col justify-center md:order-2">
+            <h2 className="text-headline font-dmSans font-bold mb-6">Clarity when it counts. Privacy where it matters.</h2>
+            <p className="text-body font-sans text-gray-600">
+              You see how onboarding is landing — what's working across teams, where people may be hesitating, and where they might need more clarity. Sage protects privacy by default, and only surfaces trends or flags when it could improve someone's experience.
+            </p>
+          </div>
+          
+          {/* Right column - Screenshot (appears on left for WhatAdminsGet) */}
+          <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-100 transition-transform duration-500 hover:shadow-card-hover md:order-1">
             <AspectRatio ratio={16/9}>
               <img 
                 ref={imageRef}
@@ -64,7 +66,7 @@ const WhatAdminsGet = () => {
           </div>
         </div>
         
-        {/* Cards Section - Grid */}
+        {/* Cards Section - Grid below */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow duration-300">
             <div className="bg-sagebright-coral/10 w-12 h-12 flex items-center justify-center rounded-full mb-4">

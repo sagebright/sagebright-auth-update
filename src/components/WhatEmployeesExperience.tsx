@@ -37,15 +37,17 @@ const WhatEmployeesExperience = () => {
   return (
     <section className="py-20 bg-white" id="employees">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="max-w-3xl mx-auto text-center mb-12">
-          <h2 className="text-headline font-dmSans font-bold mb-6">Onboarding that feels like a conversation — not a checklist.</h2>
-          <p className="text-body font-sans text-gray-600 mb-12">
-            Sage acts like a helpful teammate who never gets tired of answering questions. It's always available, always personal, and always grounded in your company's unique values, tone, and expertise.
-          </p>
-        </div>
-        
-        {/* Screenshot Section - Full Width */}
-        <div className="mb-16 max-w-4xl mx-auto">
+        {/* Side-by-side layout for headline and screenshot */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 mb-16">
+          {/* Left column - Text content */}
+          <div className="flex flex-col justify-center">
+            <h2 className="text-headline font-dmSans font-bold mb-6">Onboarding that feels like a conversation — not a checklist.</h2>
+            <p className="text-body font-sans text-gray-600">
+              Sage acts like a helpful teammate who never gets tired of answering questions. It's always available, always personal, and always grounded in your company's unique values, tone, and expertise.
+            </p>
+          </div>
+          
+          {/* Right column - Screenshot */}
           <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-100 transition-transform duration-500 hover:shadow-card-hover">
             <AspectRatio ratio={4/3}>
               <img 
@@ -64,7 +66,7 @@ const WhatEmployeesExperience = () => {
           </div>
         </div>
         
-        {/* Cards Section - Grid */}
+        {/* Cards Section - Grid below */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
           <div className="bg-white rounded-xl p-8 shadow-card hover:shadow-card-hover transition-shadow duration-300">
             <div className="bg-sagebright-green/10 w-14 h-14 flex items-center justify-center rounded-full mb-6">
