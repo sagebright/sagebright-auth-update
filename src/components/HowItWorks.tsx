@@ -6,7 +6,9 @@ const HowItWorks = () => {
     <section className="py-20 bg-white" id="how">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto text-center mb-16">
-          <h2 className="text-headline font-dmSans font-bold mb-6 whitespace-nowrap md:whitespace-normal">We listen. We shape Sage. You set the pace.</h2>
+          <h2 className="text-headline font-dmSans font-bold mb-6">
+            <span className="whitespace-normal md:whitespace-nowrap">We listen. We shape Sage. You set the pace.</span>
+          </h2>
           <p className="text-body font-sans text-gray-600">
             You don't have to change how you onboard. We work with your existing HR systems and materials, then bring everything to life through Sage. Here's how it works:
           </p>
