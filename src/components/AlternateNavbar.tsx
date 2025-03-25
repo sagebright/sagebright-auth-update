@@ -39,6 +39,10 @@ const AlternateNavbar = () => {
     return location.hash === path;
   };
 
+  const isActivePage = (path: string) => {
+    return location.pathname === path;
+  };
+
   return (
     <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
       scrolled ? 'bg-white shadow-sm' : 'bg-white/90 backdrop-blur-sm'
@@ -61,6 +65,13 @@ const AlternateNavbar = () => {
               For HR & Admins
               <span className={`block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform ${isActive('#admins') ? 'scale-x-100' : ''}`}></span>
             </a>
+            <Link 
+              to="/ask-sage" 
+              className={`text-body font-helvetica text-charcoal hover:text-sagebright-green transition-colors duration-200 group ${isActivePage('/ask-sage') ? 'font-medium text-sagebright-green' : ''}`}
+            >
+              Ask Sage
+              <span className={`block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform ${isActivePage('/ask-sage') ? 'scale-x-100' : ''}`}></span>
+            </Link>
             <a 
               href="#how" 
               className={`text-body font-helvetica text-charcoal hover:text-sagebright-green transition-colors duration-200 group ${isActive('#how') ? 'font-medium text-sagebright-green' : ''}`}

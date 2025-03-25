@@ -3,14 +3,14 @@ import React from 'react';
 import Logo from './Logo';
 import { Linkedin } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import { useLocation } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
   const location = useLocation();
   
-  // Check if we're on the alternate page
-  const isAlternatePage = location.pathname.includes('alternate');
+  // Check if we're on the alternate page or ask-sage page
+  const isAlternatePage = location.pathname.includes('alternate') || location.pathname.includes('ask-sage');
   
   return (
     <footer className="bg-white border-t border-gray-100 py-12">
@@ -25,7 +25,7 @@ const Footer = () => {
           
           <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-8">
             {isAlternatePage ? (
-              // Links for the alternate page
+              // Links for the alternate page and ask-sage page
               <nav className="flex flex-wrap justify-center space-x-6">
                 <a href="#employees" className="text-body font-helvetica text-charcoal hover:text-sagebright-green transition-colors duration-200 group">
                   For Employees
@@ -35,6 +35,10 @@ const Footer = () => {
                   For HR & Admins
                   <span className="block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform"></span>
                 </a>
+                <Link to="/ask-sage" className="text-body font-helvetica text-charcoal hover:text-sagebright-green transition-colors duration-200 group">
+                  Ask Sage
+                  <span className="block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform"></span>
+                </Link>
                 <a href="#how" className="text-body font-helvetica text-charcoal hover:text-sagebright-green transition-colors duration-200 group">
                   How It Works
                   <span className="block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform"></span>
