@@ -1,7 +1,7 @@
 
 import React from 'react';
-import Navbar from '@/components/AlternateNavbar';
-import AlternateHeroSection from '@/components/AlternateHeroSection';
+import Navbar from '@/components/Navbar';
+import HeroSection from '@/components/HeroSection';
 import WhatEmployeesExperience from '@/components/WhatEmployeesExperience';
 import WhatAdminsGet from '@/components/WhatAdminsGet';
 import HowItWorks from '@/components/HowItWorks';
@@ -14,7 +14,7 @@ const Index = () => {
     <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-grow">
-        <AlternateHeroSection />
+        <HeroSection />
         <WhatEmployeesExperience />
         <WhatAdminsGet />
         <HowItWorks />

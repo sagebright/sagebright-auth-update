@@ -2,7 +2,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
-import Logo from './Logo';
 
 const HeroSection = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -20,13 +19,17 @@ const HeroSection = () => {
   }, []);
 
   return (
-    <section className="pt-24 pb-16 bg-gradient-to-br from-white to-sagebright-accent/10 overflow-hidden" id="hero" ref={sectionRef}>
+    <section className="pt-28 lg:pt-32 pb-16 bg-gradient-to-br from-white to-sagebright-accent/10 overflow-hidden" id="hero" ref={sectionRef}>
+      {/* Top Left Blob - Increased opacity */}
+      <div className="absolute top-0 left-0 w-64 h-64 bg-bittersweet/40 rounded-full filter blur-3xl -translate-x-1/3 -translate-y-1/3"></div>
+      
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto text-center">
           <div className="mb-6 animate-fade-in p-text-spacing">
-            <h1 className="text-headline-lg font-dmSans font-bold leading-tight mb-4">
-              <span className="block text-sagebright-green">Onboarding AI Mentors</span>
-              <span className="block text-sagebright-coral">That Feel Like Part of Your Team</span>
+            <h1 className="text-4xl sm:text-headline-lg font-dmSans font-bold leading-tight mb-4">
+              {/* Responsive headline with line breaks at appropriate places */}
+              <span className="block text-sagebright-green">Personal AI That Feels</span>
+              <span className="block text-bittersweet">Like Part of Your Team</span>
             </h1>
             <p className="text-body font-sans p-text-spacing animate-fade-in [animation-delay:200ms] opacity-0">
               Sagebright gives every new hire a guide who understands your company, culture, and tools — and helps them get what they need to thrive. It's onboarding that feels personal, intuitive, and built for humans.
