@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -71,10 +71,7 @@ export default function Login() {
       subheading="Sign in to your account"
       footer={
         <p className="text-sm text-gray-600 font-roboto">
-          Don't have an account?{" "}
-          <Link to="/auth/signup" className="font-medium text-sagebright-green hover:underline">
-            Sign up
-          </Link>
+          New user accounts can only be created by an administrator.
         </p>
       }
     >
@@ -144,12 +141,12 @@ export default function Login() {
                 )}
               />
               <div className="text-right">
-                <Link 
-                  to="/auth/forgot-password" 
+                <a 
+                  href="mailto:support@sagebright.com" 
                   className="text-sm font-medium text-sagebright-green hover:underline"
                 >
                   Forgot password?
-                </Link>
+                </a>
               </div>
               <Button 
                 type="submit" 

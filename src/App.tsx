@@ -12,7 +12,6 @@ import AskSage from "./pages/AskSage";
 import ContactUs from "./pages/ContactUs";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/auth/Login";
-import Signup from "./pages/auth/Signup";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -27,18 +26,26 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <Routes>
+            {/* Public Routes */}
             <Route path="/" element={<Index />} />
-            <Route path="/index-v1" element={<IndexV1 />} />
             <Route path="/contact-us" element={<ContactUs />} />
             
             {/* Auth Routes */}
             <Route path="/auth">
               <Route path="login" element={<Login />} />
-              <Route path="signup" element={<Signup />} />
               <Route path="forgot-password" element={<ForgotPassword />} />
             </Route>
             
             {/* Protected Routes */}
+            <Route 
+              path="/index-v1" 
+              element={
+                <ProtectedRoute>
+                  <IndexV1 />
+                </ProtectedRoute>
+              } 
+            />
+            
             <Route 
               path="/user-dashboard" 
               element={
