@@ -19,15 +19,17 @@ const HeroSection = () => {
   }, []);
 
   return (
-    <section className="pt-28 lg:pt-32 pb-16 bg-gradient-to-br from-white to-sagebright-accent/10 overflow-hidden" id="hero" ref={sectionRef}>
-      {/* Top Left Blob - Increased opacity */}
-      <div className="absolute top-0 left-0 w-64 h-64 bg-bittersweet/40 rounded-full filter blur-3xl -translate-x-1/3 -translate-y-1/3"></div>
+    <section className="pt-28 lg:pt-32 pb-16 relative overflow-hidden bg-gradient-to-br from-white to-sagebright-accent/5" id="hero" ref={sectionRef}>
+      {/* Top Left Blob */}
+      <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-[#FDE1D3]/40 rounded-full filter blur-[80px] -translate-x-1/2 -translate-y-1/3 z-0"></div>
       
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Bottom Right Blob */}
+      <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-[#F2FCE2]/50 rounded-full filter blur-[80px] translate-x-1/4 translate-y-1/4 z-0"></div>
+      
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="max-w-3xl mx-auto text-center">
           <div className="mb-6 animate-fade-in p-text-spacing">
             <h1 className="text-4xl sm:text-headline-lg font-dmSans font-bold leading-tight mb-4">
-              {/* Responsive headline with line breaks at appropriate places */}
               <span className="block text-sagebright-green">Personal AI That Feels</span>
               <span className="block text-bittersweet">Like Part of Your Team</span>
             </h1>
