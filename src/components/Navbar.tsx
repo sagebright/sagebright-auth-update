@@ -15,6 +15,8 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const { user } = useAuth();
   const location = useLocation();
+  
+  const isContactPage = location.pathname === '/contact-us';
 
   const handleScroll = useCallback(() => {
     const isScrolled = window.scrollY > 20;
@@ -57,34 +59,69 @@ const Navbar = () => {
           
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-6 ml-8">
-            <a 
-              href="#employees" 
-              className={`text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group ${isActive('#employees') ? 'font-medium text-sagebright-green' : ''}`}
-            >
-              Meet Sage
-              <span className={`block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200 ${isActive('#employees') ? 'scale-x-100' : ''}`}></span>
-            </a>
-            <a 
-              href="#admins" 
-              className={`text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group ${isActive('#admins') ? 'font-medium text-sagebright-green' : ''}`}
-            >
-              Built for Teams
-              <span className={`block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200 ${isActive('#admins') ? 'scale-x-100' : ''}`}></span>
-            </a>
-            <a 
-              href="#how" 
-              className={`text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group ${isActive('#how') ? 'font-medium text-sagebright-green' : ''}`}
-            >
-              From Intro to Impact
-              <span className={`block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200 ${isActive('#how') ? 'scale-x-100' : ''}`}></span>
-            </a>
-            <a 
-              href="#human" 
-              className={`text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group ${isActive('#human') ? 'font-medium text-sagebright-green' : ''}`}
-            >
-              Designed for People
-              <span className={`block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200 ${isActive('#human') ? 'scale-x-100' : ''}`}></span>
-            </a>
+            {isContactPage ? (
+              <>
+                <Link 
+                  to="/#employees" 
+                  className="text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group"
+                >
+                  Meet Sage
+                  <span className="block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200"></span>
+                </Link>
+                <Link 
+                  to="/#admins" 
+                  className="text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group"
+                >
+                  Built for Teams
+                  <span className="block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200"></span>
+                </Link>
+                <Link 
+                  to="/#how" 
+                  className="text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group"
+                >
+                  From Intro to Impact
+                  <span className="block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200"></span>
+                </Link>
+                <Link 
+                  to="/#human" 
+                  className="text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group"
+                >
+                  Designed for People
+                  <span className="block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200"></span>
+                </Link>
+              </>
+            ) : (
+              <>
+                <a 
+                  href="#employees" 
+                  className={`text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group ${isActive('#employees') ? 'font-medium text-sagebright-green' : ''}`}
+                >
+                  Meet Sage
+                  <span className={`block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200 ${isActive('#employees') ? 'scale-x-100' : ''}`}></span>
+                </a>
+                <a 
+                  href="#admins" 
+                  className={`text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group ${isActive('#admins') ? 'font-medium text-sagebright-green' : ''}`}
+                >
+                  Built for Teams
+                  <span className={`block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200 ${isActive('#admins') ? 'scale-x-100' : ''}`}></span>
+                </a>
+                <a 
+                  href="#how" 
+                  className={`text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group ${isActive('#how') ? 'font-medium text-sagebright-green' : ''}`}
+                >
+                  From Intro to Impact
+                  <span className={`block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200 ${isActive('#how') ? 'scale-x-100' : ''}`}></span>
+                </a>
+                <a 
+                  href="#human" 
+                  className={`text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group ${isActive('#human') ? 'font-medium text-sagebright-green' : ''}`}
+                >
+                  Designed for People
+                  <span className={`block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200 ${isActive('#human') ? 'scale-x-100' : ''}`}></span>
+                </a>
+              </>
+            )}
             <Link 
               to="/contact-us" 
               className="text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group"
@@ -110,30 +147,61 @@ const Navbar = () => {
                 </SheetTrigger>
                 <SheetContent side="right" className="w-[80vw] sm:w-[350px] pt-12">
                   <div className="flex flex-col gap-6 py-4">
-                    <a 
-                      href="#employees" 
-                      className="text-lg font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 py-2"
-                    >
-                      Meet Sage
-                    </a>
-                    <a 
-                      href="#admins" 
-                      className="text-lg font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 py-2"
-                    >
-                      Built for Teams
-                    </a>
-                    <a 
-                      href="#how" 
-                      className="text-lg font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 py-2"
-                    >
-                      From Intro to Impact
-                    </a>
-                    <a 
-                      href="#human" 
-                      className="text-lg font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 py-2"
-                    >
-                      Designed for People
-                    </a>
+                    {isContactPage ? (
+                      <>
+                        <Link 
+                          to="/#employees" 
+                          className="text-lg font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 py-2"
+                        >
+                          Meet Sage
+                        </Link>
+                        <Link 
+                          to="/#admins" 
+                          className="text-lg font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 py-2"
+                        >
+                          Built for Teams
+                        </Link>
+                        <Link 
+                          to="/#how" 
+                          className="text-lg font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 py-2"
+                        >
+                          From Intro to Impact
+                        </Link>
+                        <Link 
+                          to="/#human" 
+                          className="text-lg font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 py-2"
+                        >
+                          Designed for People
+                        </Link>
+                      </>
+                    ) : (
+                      <>
+                        <a 
+                          href="#employees" 
+                          className="text-lg font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 py-2"
+                        >
+                          Meet Sage
+                        </a>
+                        <a 
+                          href="#admins" 
+                          className="text-lg font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 py-2"
+                        >
+                          Built for Teams
+                        </a>
+                        <a 
+                          href="#how" 
+                          className="text-lg font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 py-2"
+                        >
+                          From Intro to Impact
+                        </a>
+                        <a 
+                          href="#human" 
+                          className="text-lg font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 py-2"
+                        >
+                          Designed for People
+                        </a>
+                      </>
+                    )}
                     <Link 
                       to="/contact-us" 
                       className="text-lg font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 py-2"
