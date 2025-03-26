@@ -94,13 +94,13 @@ const Navbar = () => {
             </Link>
           </nav>
           
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center ml-6 md:ml-8">
             <Button asChild className="bg-sagebright-coral hover:bg-sagebright-coral/90 text-white text-cta font-dmSans rounded-md transition-transform duration-300 hover:scale-103 hover:brightness-105">
               <Link to="/auth/login">Request Access</Link>
             </Button>
             
             {/* Mobile Menu Button */}
-            <div className="md:hidden">
+            <div className="md:hidden ml-4">
               <Sheet>
                 <SheetTrigger asChild>
                   <Button variant="ghost" size="icon" className="h-10 w-10">
