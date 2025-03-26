@@ -4,6 +4,12 @@ import { Link, useLocation } from 'react-router-dom';
 import Logo from './Logo';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+} from '@/components/ui/sheet';
+import { Menu } from 'lucide-react';
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -48,6 +54,8 @@ const Navbar = () => {
           <div className="flex-shrink-0">
             <Logo variant="full" />
           </div>
+          
+          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-6 ml-8">
             <a 
               href="#why" 
@@ -78,10 +86,56 @@ const Navbar = () => {
               <span className="block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200"></span>
             </Link>
           </nav>
+          
           <div className="flex items-center space-x-4">
             <Button asChild className="bg-sagebright-coral hover:bg-sagebright-coral/90 text-white text-cta font-dmSans rounded-md transition-transform duration-300 hover:scale-103 hover:brightness-105">
-              <Link to="/auth/signup">Request Access</Link>
+              <Link to="/auth/login">Request Access</Link>
             </Button>
+            
+            {/* Mobile Menu Button */}
+            <div className="md:hidden">
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-10 w-10">
+                    <Menu className="h-6 w-6" />
+                    <span className="sr-only">Toggle menu</span>
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-[80vw] sm:w-[350px] pt-12">
+                  <div className="flex flex-col gap-6 py-4">
+                    <a 
+                      href="#why" 
+                      className="text-lg font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 py-2"
+                    >
+                      Why <span className="text-sagebright-green">sagebright</span>
+                    </a>
+                    <a 
+                      href="#how" 
+                      className="text-lg font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 py-2"
+                    >
+                      How <span className="text-sagebright-green">sagebright</span> Works
+                    </a>
+                    <a 
+                      href="#who" 
+                      className="text-lg font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 py-2"
+                    >
+                      Who We Help
+                    </a>
+                    <Link 
+                      to="/contact-us" 
+                      className="text-lg font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 py-2"
+                    >
+                      Contact Us
+                    </Link>
+                    <div className="pt-4">
+                      <Button asChild className="w-full bg-sagebright-coral hover:bg-sagebright-coral/90 text-white text-cta font-dmSans rounded-md">
+                        <Link to="/auth/login">Request Access</Link>
+                      </Button>
+                    </div>
+                  </div>
+                </SheetContent>
+              </Sheet>
+            </div>
           </div>
         </div>
       </div>
