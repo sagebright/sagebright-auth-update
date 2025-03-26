@@ -50,7 +50,7 @@ const AlternateNavbar = () => {
           <div className="flex-shrink-0">
             <Logo variant="full" size="lg" />
           </div>
-          <nav className="hidden md:flex items-center space-x-6 ml-8">
+          <nav className="flex justify-center flex-1 items-center">
             {isContactPage ? (
               // If on contact page, link to sections on index page
               <>
@@ -58,28 +58,28 @@ const AlternateNavbar = () => {
                   to="/#employees" 
                   className="text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group"
                 >
-                  For Employees
+                  Meet Sage
                   <span className="block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200"></span>
                 </Link>
                 <Link 
                   to="/#admins" 
-                  className="text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group"
+                  className="text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group mx-6"
                 >
-                  For HR & Admins
+                  Built for Teams
                   <span className="block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200"></span>
                 </Link>
                 <Link 
                   to="/#how" 
-                  className="text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group"
+                  className="text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group mx-6"
                 >
-                  How It Works
+                  From Intro to Impact
                   <span className="block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200"></span>
                 </Link>
                 <Link 
                   to="/#human" 
-                  className="text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group"
+                  className="text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group mx-6"
                 >
-                  Human Design
+                  Designed for People
                   <span className="block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200"></span>
                 </Link>
               </>
@@ -90,41 +90,41 @@ const AlternateNavbar = () => {
                   href="#employees" 
                   className={`text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group ${isActive('#employees') ? 'font-medium text-sagebright-green' : ''}`}
                 >
-                  For Employees
+                  Meet Sage
                   <span className={`block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200 ${isActive('#employees') ? 'scale-x-100' : ''}`}></span>
                 </a>
                 <a 
                   href="#admins" 
-                  className={`text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group ${isActive('#admins') ? 'font-medium text-sagebright-green' : ''}`}
+                  className={`text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group mx-6 ${isActive('#admins') ? 'font-medium text-sagebright-green' : ''}`}
                 >
-                  For HR & Admins
+                  Built for Teams
                   <span className={`block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200 ${isActive('#admins') ? 'scale-x-100' : ''}`}></span>
                 </a>
                 <a 
                   href="#how" 
-                  className={`text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group ${isActive('#how') ? 'font-medium text-sagebright-green' : ''}`}
+                  className={`text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group mx-6 ${isActive('#how') ? 'font-medium text-sagebright-green' : ''}`}
                 >
-                  How It Works
+                  From Intro to Impact
                   <span className={`block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200 ${isActive('#how') ? 'scale-x-100' : ''}`}></span>
                 </a>
                 <a 
                   href="#human" 
-                  className={`text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group ${isActive('#human') ? 'font-medium text-sagebright-green' : ''}`}
+                  className={`text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group mx-6 ${isActive('#human') ? 'font-medium text-sagebright-green' : ''}`}
                 >
-                  Human Design
+                  Designed for People
                   <span className={`block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200 ${isActive('#human') ? 'scale-x-100' : ''}`}></span>
                 </a>
               </>
             )}
             <Link 
               to="/contact-us" 
-              className="text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group"
+              className="text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group ml-6"
             >
               Contact Us
               <span className="block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200"></span>
             </Link>
           </nav>
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center">
             <Button asChild className="bg-sagebright-coral hover:bg-sagebright-coral/90 text-white text-cta font-dmSans rounded-md transition-transform duration-300 hover:scale-103 hover:brightness-105">
               <Link to="/auth/signup">Request Access</Link>
             </Button>

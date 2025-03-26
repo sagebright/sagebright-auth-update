@@ -18,9 +18,6 @@ const Footer = () => {
         <div className="flex flex-col md:flex-row justify-between items-center mb-8">
           <div className="mb-6 md:mb-0">
             <Logo variant="full" size="lg" />
-            <p className="text-gray-500 mt-2 font-helvetica text-body">
-              Personal AI That's Part of Your Team
-            </p>
           </div>
           
           <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-8">
@@ -48,19 +45,19 @@ const Footer = () => {
               // Links for the contact page (linking back to index sections)
               <nav className="flex flex-wrap justify-center space-x-6">
                 <Link to="/#employees" className="text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group">
-                  For Employees
+                  Meet Sage
                   <span className="block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200"></span>
                 </Link>
                 <Link to="/#admins" className="text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group">
-                  For HR & Admins
+                  Built for Teams
                   <span className="block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200"></span>
                 </Link>
                 <Link to="/#how" className="text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group">
-                  How It Works
+                  From Intro to Impact
                   <span className="block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200"></span>
                 </Link>
                 <Link to="/#human" className="text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group">
-                  Human Design
+                  Designed for People
                   <span className="block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200"></span>
                 </Link>
                 <Link to="/contact-us" className="text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group">
@@ -72,19 +69,19 @@ const Footer = () => {
               // Links for the main index page
               <nav className="flex flex-wrap justify-center space-x-6">
                 <a href="#employees" className="text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group">
-                  For Employees
+                  Meet Sage
                   <span className="block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200"></span>
                 </a>
                 <a href="#admins" className="text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group">
-                  For HR & Admins
+                  Built for Teams
                   <span className="block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200"></span>
                 </a>
                 <a href="#how" className="text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group">
-                  How It Works
+                  From Intro to Impact
                   <span className="block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200"></span>
                 </a>
                 <a href="#human" className="text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group">
-                  Human Design
+                  Designed for People
                   <span className="block h-0.5 bg-sagebright-green transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200"></span>
                 </a>
                 <Link to="/contact-us" className="text-base font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 group">
