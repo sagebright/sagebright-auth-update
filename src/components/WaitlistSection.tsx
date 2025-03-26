@@ -101,7 +101,7 @@ const WaitlistSection = () => {
               <div className="text-center mb-8 p-text-spacing">
                 <h2 className="text-headline font-dmSans font-bold mb-4">Request Early Access</h2>
                 <p className="text-body font-sans text-gray-600">
-                  Sagebright is in closed beta — and we're inviting a few thoughtful teams to help shape what's next. If you're building a better onboarding experience, we'd love to hear from you.
+                  We're currently inviting select teams to work with Sage. If you want to build a better onboarding experience, we'd love to hear from you.
                 </p>
               </div>
               
@@ -168,7 +168,7 @@ const WaitlistSection = () => {
                   </div>
                   <h3 className="text-subheading font-dmSans font-medium mb-2">Thank You!</h3>
                   <p className="text-body font-sans text-gray-600 mb-4">
-                    We've added you to our waitlist. We'll be in touch soon with more information about the beta program.
+                    We've added you to our early access list. We'll be in touch with info on introducing Sage to your team.
                   </p>
                   <p className="text-sm text-sagebright-green font-medium">
                     Check your inbox for a confirmation email from the Sagebright team.
