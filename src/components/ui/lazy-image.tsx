@@ -1,0 +1,67 @@
+
+import React, { useState, useRef, useEffect } from 'react';
+
+interface LazyImageProps {
+  src: string;
+  alt: string;
+  className?: string;
+  placeholderColor?: string;
+  aspectRatio?: string;
+}
+
+const LazyImage = ({
+  src,
+  alt,
+  className = '',
+  placeholderColor = '#f3f4f6',
+  aspectRatio = '16/9'
+}: LazyImageProps) => {
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [inView, setInView] = useState(false);
+  const imageRef = useRef<HTMLImageElement>(null);
+  
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setInView(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '200px' }
+    );
+    
+    if (imageRef.current) {
+      observer.observe(imageRef.current);
+    }
+    
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+  
+  return (
+    <div 
+      className="relative w-full overflow-hidden" 
+      style={{ aspectRatio, backgroundColor: placeholderColor }}
+    >
+      {/* Low-quality placeholder */}
+      <div 
+        className={`absolute inset-0 bg-gray-100 animate-pulse ${isLoaded ? 'opacity-0' : 'opacity-100'}`}
+        style={{ transition: 'opacity 0.3s ease' }}
+      />
+      
+      <img
+        ref={imageRef}
+        src={inView ? src : ''}
+        alt={alt}
+        loading="lazy"
+        decoding="async"
+        onLoad={() => setIsLoaded(true)}
+        className={`w-full h-full object-contain transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'} ${className}`}
+      />
+    </div>
+  );
+};
+
+export default LazyImage;

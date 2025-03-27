@@ -1,38 +1,9 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React from 'react';
 import { Target, Brain, MessageSquare } from 'lucide-react';
+import LazyImage from './ui/lazy-image';
 
 const WhatEmployeesExperience = () => {
-  const [imageLoaded, setImageLoaded] = useState(false);
-  const imageRef = useRef<HTMLImageElement>(null);
-
-  useEffect(() => {
-    // Implement Intersection Observer for lazy loading
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting && imageRef.current) {
-          // Replace the src attribute when the image is about to enter the viewport
-          imageRef.current.src = imageRef.current.dataset.src || '';
-          observer.unobserve(entry.target);
-        }
-      });
-    }, { rootMargin: '200px' });
-    
-    if (imageRef.current) {
-      observer.observe(imageRef.current);
-    }
-    
-    return () => {
-      if (imageRef.current) {
-        observer.unobserve(imageRef.current);
-      }
-    };
-  }, []);
-
-  const handleImageLoad = () => {
-    setImageLoaded(true);
-  };
-
   return (
     <section className="py-20 bg-white" id="employees">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -48,17 +19,12 @@ const WhatEmployeesExperience = () => {
           
           {/* Right column - Screenshot (60%) */}
           <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-100 transition-transform duration-500 hover:shadow-card-hover md:col-span-3">
-            <div className="w-full h-full">
-              <img 
-                ref={imageRef}
-                data-src="/lovable-uploads/dashboard-screenshot.webp" 
-                src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" 
-                alt="Sagebright AI dashboard showing personalized guidance" 
-                onLoad={handleImageLoad}
-                className={`w-full h-auto object-contain transition-opacity duration-500 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
-                loading="lazy"
-              />
-            </div>
+            <LazyImage 
+              src="/lovable-uploads/dashboard-screenshot.webp" 
+              alt="Sagebright AI dashboard showing personalized guidance"
+              aspectRatio="4/3" 
+              placeholderColor="#f8f9fa"
+            />
             
             {/* Decorative background */}
             <div className="absolute -z-10 -inset-4 bg-gradient-to-r from-sagebright-coral/5 to-sagebright-green/5 blur-2xl rounded-full"></div>

@@ -1,38 +1,10 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React from 'react';
 import { BarChart3, Lightbulb, Mic, Bell } from 'lucide-react';
 import { useIsMobile } from "@/hooks/use-mobile";
+import LazyImage from './ui/lazy-image';
 
 const WhatAdminsGet = () => {
-  const [imageLoaded, setImageLoaded] = useState(false);
-  const imageRef = useRef<HTMLImageElement>(null);
   const isMobile = useIsMobile();
-
-  useEffect(() => {
-    // Implement Intersection Observer for lazy loading
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting && imageRef.current) {
-          // Replace the src attribute when the image is about to enter the viewport
-          imageRef.current.src = imageRef.current.dataset.src || '';
-          observer.unobserve(entry.target);
-        }
-      });
-    }, { rootMargin: '200px' });
-    
-    if (imageRef.current) {
-      observer.observe(imageRef.current);
-    }
-    
-    return () => {
-      if (imageRef.current) {
-        observer.unobserve(imageRef.current);
-      }
-    };
-  }, []);
-
-  const handleImageLoad = () => {
-    setImageLoaded(true);
-  };
 
   return (
     <section className="py-20 bg-sagebright-green/5" id="admins">
@@ -49,17 +21,12 @@ const WhatAdminsGet = () => {
           
           {/* Right column - Screenshot (appears on left with 60% width) */}
           <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-100 transition-transform duration-500 hover:shadow-card-hover md:col-span-3 md:order-1">
-            <div className="w-full h-full">
-              <img 
-                ref={imageRef}
-                data-src="/lovable-uploads/hr-dashboard-screenshot.webp" 
-                src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" 
-                alt="HR Dashboard - Onboarding Analytics" 
-                onLoad={handleImageLoad}
-                className={`w-full h-auto object-contain transition-opacity duration-500 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
-                loading="lazy"
-              />
-            </div>
+            <LazyImage 
+              src="/lovable-uploads/hr-dashboard-screenshot.webp" 
+              alt="HR Dashboard - Onboarding Analytics"
+              aspectRatio="4/3"
+              placeholderColor="#f0f4f7"
+            />
             <div className="absolute -z-10 -inset-8 bg-gradient-to-r from-sagebright-coral/10 to-sagebright-green/10 blur-3xl rounded-full"></div>
           </div>
         </div>
