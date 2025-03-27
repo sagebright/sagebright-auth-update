@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BarChart3, Lightbulb, Mic, Bell } from 'lucide-react';
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -24,8 +25,9 @@ const WhatAdminsGet = () => {
             <LazyImage 
               src="/lovable-uploads/hr-dashboard-screenshot.webp" 
               alt="HR Dashboard - Onboarding Analytics"
-              aspectRatio="4/3"
+              aspectRatio="16/9"
               placeholderColor="#f0f4f7"
+              objectFit="cover"
             />
             <div className="absolute -z-10 -inset-8 bg-gradient-to-r from-sagebright-coral/10 to-sagebright-green/10 blur-3xl rounded-full"></div>
           </div>

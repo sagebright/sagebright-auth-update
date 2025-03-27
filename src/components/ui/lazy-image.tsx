@@ -7,6 +7,7 @@ interface LazyImageProps {
   className?: string;
   placeholderColor?: string;
   aspectRatio?: string;
+  objectFit?: 'contain' | 'cover' | 'fill' | 'none' | 'scale-down';
 }
 
 const LazyImage = ({
@@ -14,7 +15,8 @@ const LazyImage = ({
   alt,
   className = '',
   placeholderColor = '#f3f4f6',
-  aspectRatio = '16/9'
+  aspectRatio = '16/9',
+  objectFit = 'cover' // Changed default from 'contain' to 'cover'
 }: LazyImageProps) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [inView, setInView] = useState(false);
@@ -58,7 +60,8 @@ const LazyImage = ({
         loading="lazy"
         decoding="async"
         onLoad={() => setIsLoaded(true)}
-        className={`w-full h-full object-contain transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'} ${className}`}
+        className={`w-full h-full transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'} ${className}`}
+        style={{ objectFit }}
       />
     </div>
   );

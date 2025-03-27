@@ -22,8 +22,9 @@ const WhatEmployeesExperience = () => {
             <LazyImage 
               src="/lovable-uploads/dashboard-screenshot.webp" 
               alt="Sagebright AI dashboard showing personalized guidance"
-              aspectRatio="4/3" 
+              aspectRatio="16/9" 
               placeholderColor="#f8f9fa"
+              objectFit="cover"
             />
             
             {/* Decorative background */}

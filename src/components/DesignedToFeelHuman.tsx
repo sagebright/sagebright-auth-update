@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Compass, CircleUser, Handshake, FilePen } from 'lucide-react';
 import LazyImage from './ui/lazy-image';
@@ -21,8 +22,9 @@ const DesignedToFeelHuman = () => {
             <LazyImage 
               src="/lovable-uploads/ask-sage-screenshot.webp" 
               alt="Ask Sage Interface - AI Assistant for Onboarding"
-              aspectRatio="4/3"
+              aspectRatio="16/9"
               placeholderColor="#f0f7f4"
+              objectFit="cover"
             />
             
             {/* Decorative background */}
