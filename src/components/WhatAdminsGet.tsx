@@ -52,7 +52,7 @@ const WhatAdminsGet = () => {
             <div className="w-full h-full">
               <img 
                 ref={imageRef}
-                data-src="/lovable-uploads/hr-dashboard-screenshot.png" 
+                data-src="/lovable-uploads/hr-dashboard-screenshot.webp" 
                 src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" 
                 alt="HR Dashboard - Onboarding Analytics" 
                 onLoad={handleImageLoad}

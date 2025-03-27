@@ -50,7 +50,7 @@ const DesignedToFeelHuman = () => {
             <div className="w-full h-full">
               <img 
                 ref={imageRef}
-                data-src="/lovable-uploads/ask-sage-screenshot.png" 
+                data-src="/lovable-uploads/ask-sage-screenshot.webp" 
                 src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" 
                 alt="Ask Sage Interface - AI Assistant for Onboarding" 
                 onLoad={handleImageLoad}

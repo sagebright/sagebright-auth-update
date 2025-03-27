@@ -51,7 +51,7 @@ const WhatEmployeesExperience = () => {
             <div className="w-full h-full">
               <img 
                 ref={imageRef}
-                data-src="/lovable-uploads/dashboard-screenshot.png" 
+                data-src="/lovable-uploads/dashboard-screenshot.webp" 
                 src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" 
                 alt="Sagebright AI dashboard showing personalized guidance" 
                 onLoad={handleImageLoad}
