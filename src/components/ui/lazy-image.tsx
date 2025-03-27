@@ -20,6 +20,8 @@ const LazyImage = ({
 }: LazyImageProps) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [inView, setInView] = useState(false);
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  const containerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
   
   useEffect(() => {
@@ -33,8 +35,8 @@ const LazyImage = ({
       { rootMargin: '200px' }
     );
     
-    if (imageRef.current) {
-      observer.observe(imageRef.current);
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
     }
     
     return () => {
@@ -42,8 +44,29 @@ const LazyImage = ({
     };
   }, []);
   
+  useEffect(() => {
+    const updateDimensions = () => {
+      if (containerRef.current) {
+        const { width, height } = containerRef.current.getBoundingClientRect();
+        setDimensions({ width, height });
+        console.log(`Container dimensions for ${alt}: ${width}px × ${height}px`);
+      }
+    };
+    
+    // Initial measurement
+    updateDimensions();
+    
+    // Listen for resize events
+    window.addEventListener('resize', updateDimensions);
+    
+    return () => {
+      window.removeEventListener('resize', updateDimensions);
+    };
+  }, [alt, isLoaded]);
+  
   return (
     <div 
+      ref={containerRef}
       className="relative w-full overflow-hidden" 
       style={{ aspectRatio, backgroundColor: placeholderColor }}
     >
@@ -63,6 +86,11 @@ const LazyImage = ({
         className={`w-full h-full transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'} ${className}`}
         style={{ objectFit }}
       />
+      
+      {/* Dimensions overlay for development (remove in production) */}
+      <div className="absolute bottom-0 right-0 bg-black/70 text-white text-xs px-2 py-1 m-2 rounded">
+        {Math.round(dimensions.width)} × {Math.round(dimensions.height)}
+      </div>
     </div>
   );
 };

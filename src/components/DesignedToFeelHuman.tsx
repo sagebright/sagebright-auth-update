@@ -24,7 +24,7 @@ const DesignedToFeelHuman = () => {
               alt="Ask Sage Interface - AI Assistant for Onboarding"
               aspectRatio="16/9"
               placeholderColor="#f0f7f4"
-              objectFit="cover"
+              objectFit="contain"
             />
             
             {/* Decorative background */}

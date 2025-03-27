@@ -24,7 +24,7 @@ const WhatEmployeesExperience = () => {
               alt="Sagebright AI dashboard showing personalized guidance"
               aspectRatio="16/9" 
               placeholderColor="#f8f9fa"
-              objectFit="cover"
+              objectFit="contain"
             />
             
             {/* Decorative background */}
