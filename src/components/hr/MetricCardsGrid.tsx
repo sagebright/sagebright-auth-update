@@ -5,14 +5,14 @@ import { CheckCircle, Clock, UserCheck, Book, ExternalLink } from 'lucide-react'
 
 const MetricCardsGrid = () => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
       {/* Card 1: Onboarding Completion Rate */}
       <Card className="bg-white overflow-hidden hover:shadow-md transition-shadow duration-200 flex flex-col h-full">
         <div className="h-1 bg-sagebright-green w-full"></div>
         <CardHeader className="pb-2">
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-start">
             <CardTitle className="text-lg font-helvetica text-charcoal">Onboarding Completion Rate</CardTitle>
-            <CheckCircle className="h-5 w-5 text-sagebright-green flex-shrink-0" />
+            <CheckCircle className="h-5 w-5 text-sagebright-green flex-shrink-0 mt-1" />
           </div>
         </CardHeader>
         <CardContent className="flex-grow flex flex-col">
@@ -33,9 +33,9 @@ const MetricCardsGrid = () => {
       <Card className="bg-white overflow-hidden hover:shadow-md transition-shadow duration-200 flex flex-col h-full">
         <div className="h-1 bg-sunglow w-full"></div>
         <CardHeader className="pb-2">
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-start">
             <CardTitle className="text-lg font-helvetica text-charcoal">Milestone Reach Rate</CardTitle>
-            <Clock className="h-5 w-5 text-sunglow flex-shrink-0" />
+            <Clock className="h-5 w-5 text-sunglow flex-shrink-0 mt-1" />
           </div>
         </CardHeader>
         <CardContent className="flex-grow flex flex-col">
@@ -61,9 +61,9 @@ const MetricCardsGrid = () => {
       <Card className="bg-white overflow-hidden hover:shadow-md transition-shadow duration-200 flex flex-col h-full">
         <div className="h-1 bg-sagebright-green w-full"></div>
         <CardHeader className="pb-2">
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-start">
             <CardTitle className="text-lg font-helvetica text-charcoal">Time to Productivity</CardTitle>
-            <UserCheck className="h-5 w-5 text-sagebright-green flex-shrink-0" />
+            <UserCheck className="h-5 w-5 text-sagebright-green flex-shrink-0 mt-1" />
           </div>
         </CardHeader>
         <CardContent className="flex-grow flex flex-col">
@@ -84,9 +84,9 @@ const MetricCardsGrid = () => {
       <Card className="bg-white overflow-hidden hover:shadow-md transition-shadow duration-200 flex flex-col h-full">
         <div className="h-1 bg-sagebright-green w-full"></div>
         <CardHeader className="pb-2">
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-start">
             <CardTitle className="text-lg font-helvetica text-charcoal">New Hire Retention</CardTitle>
-            <Book className="h-5 w-5 text-sagebright-green flex-shrink-0" />
+            <Book className="h-5 w-5 text-sagebright-green flex-shrink-0 mt-1" />
           </div>
         </CardHeader>
         <CardContent className="flex-grow flex flex-col">
