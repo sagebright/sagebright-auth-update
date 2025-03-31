@@ -15,12 +15,12 @@ const Footer = () => {
   return (
     <footer className="bg-white border-t border-gray-100 py-12">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row justify-between items-center mb-8">
-          <div className="mb-6 md:mb-0">
+        <div className="flex flex-col items-center mb-8">
+          <div className="mb-6">
             <Logo variant="full" size="lg" />
           </div>
           
-          <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-8">
+          <div className="flex flex-col items-center space-y-4">
             {isIndexV1Page ? (
               // Links for the index-v1 page
               <nav className="flex flex-wrap justify-center space-x-6">
