@@ -15,8 +15,8 @@ const Logo = ({
 }: LogoProps) => {
   
   const sizeClasses = {
-    sm: 'h-6',
-    md: 'h-8',
+    sm: 'h-8',  // Increased from h-6 to h-8 for consistency
+    md: 'h-12', // Increased from h-8 to h-12 for consistency
     lg: 'h-12',
     xl: 'h-16'
   };

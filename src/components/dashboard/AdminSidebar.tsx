@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { 
@@ -23,7 +22,7 @@ export default function AdminSidebar() {
           <img 
             src="/lovable-uploads/sb_logo_type.png" 
             alt="Sagebright" 
-            className="h-12 w-auto"
+            className="h-12 w-auto" 
             style={{ imageRendering: 'auto' }}
           />
         </div>
