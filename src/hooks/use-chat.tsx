@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Message } from '@/components/ask-sage/ChatMessage';
 import { buildSageContext } from '@/lib/knowledge';
 import { callOpenAI } from '@/lib/api';
+import { useAuth } from "@/contexts/AuthContext";
 
 
 // Updated suggested questions order to prioritize the two required questions
@@ -24,7 +25,7 @@ export const useChat = () => {
       setMessages([
         {
           id: '1',
-          content: "Welcome back, Adam! You're doing the work — I'm just here to help make it smoother. What do you want to explore next?",
+          content: "Welcome back! You're doing the work — I'm just here to help make it smoother. What do you want to explore next?",
           sender: 'sage',
           timestamp: new Date(),
         }
@@ -46,11 +47,14 @@ export const useChat = () => {
   const handleSendMessage = async (content: string) => {
     if (!content.trim()) return;
   
+    const { profile } = useAuth();
+
     const userMessage: Message = {
       id: Date.now().toString(),
       content,
       sender: 'user',
       timestamp: new Date(),
+      avatar_url: profile?.avatar_url,
     };
   
     setMessages(prev => [...prev, userMessage]);
