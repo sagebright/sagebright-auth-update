@@ -13,10 +13,11 @@ import { useChat } from '@/hooks/use-chat';
 import { useState } from 'react';
 import { buildSageContext } from "@/lib/knowledge";
 import { callOpenAI } from "@/lib/api";
-
+import { useAuth } from '@/contexts/AuthContext';
 
 const AskSage = () => {
   // TEMP hardcoded demo user context
+  const { profile } = useAuth();
   const userId = "69d925ed-ced1-4d6e-a88a-3de3f6dc2c76"; // This can match your seed data
   const [demoMessages, setDemoMessages] = useState<any[]>([]);
   const orgId = "lumon";        // Shared org context for now
@@ -36,7 +37,7 @@ const AskSage = () => {
       sender: "user",
       content: question,
       timestamp: new Date(),
-      avatar_url: "https://api.dicebear.com/6.x/micah/svg?seed=Randy",
+      avatar_url: profile?.avatar_url || "",
     };
   
     setDemoMessages((prev) => [...prev, userMessage]);
@@ -62,6 +63,7 @@ const AskSage = () => {
         sender: "sage",
         content: "Sage couldn't respond. Try again.",
         timestamp: new Date(),
+        avatar_url: "/lovable-uploads/sage_avatar.png",
       };
       setDemoMessages((prev) => [...prev, errorMsg]);
     }
@@ -97,7 +99,6 @@ const AskSage = () => {
               <div className="max-w-3xl mx-auto space-y-4">
                 {demoMessages.length > 0 ? (
                   demoMessages.map((message) => (
-
                     <ChatMessage 
                       key={message.id} 
                       message={message} 

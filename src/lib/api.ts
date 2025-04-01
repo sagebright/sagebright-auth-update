@@ -1,3 +1,4 @@
+
 // src/lib/api.ts
 
 export async function callOpenAI({
@@ -42,4 +43,3 @@ export async function callOpenAI({
   
     return data.choices?.[0]?.message?.content ?? "No response from Sage.";
   }
-  

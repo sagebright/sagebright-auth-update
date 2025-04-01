@@ -69,6 +69,36 @@ export type Database = {
         }
         Relationships: []
       }
+      org_knowledge: {
+        Row: {
+          content: string | null
+          created_at: string | null
+          id: string
+          org_id: string
+          summary: string | null
+          title: string | null
+          visibility: string | null
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          org_id: string
+          summary?: string | null
+          title?: string | null
+          visibility?: string | null
+        }
+        Update: {
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          org_id?: string
+          summary?: string | null
+          title?: string | null
+          visibility?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -76,6 +106,10 @@ export type Database = {
           email: string | null
           full_name: string | null
           id: string
+          interests: string[] | null
+          org_id: string | null
+          role: string | null
+          team: string | null
           updated_at: string
         }
         Insert: {
@@ -84,6 +118,10 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id: string
+          interests?: string[] | null
+          org_id?: string | null
+          role?: string | null
+          team?: string | null
           updated_at?: string
         }
         Update: {
@@ -92,6 +130,10 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
+          interests?: string[] | null
+          org_id?: string | null
+          role?: string | null
+          team?: string | null
           updated_at?: string
         }
         Relationships: []
