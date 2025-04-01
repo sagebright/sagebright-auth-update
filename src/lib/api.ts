@@ -7,6 +7,7 @@ export async function callOpenAI({
     question: string;
     context: string;
   }): Promise<string> {
+    console.log("🔑 VITE_OPENAI_KEY:", import.meta.env.VITE_OPENAI_KEY?.slice(0, 8));
     const systemPrompt = `
     You are Sage, the friendly onboarding assistant for Lumon Industries.
 
