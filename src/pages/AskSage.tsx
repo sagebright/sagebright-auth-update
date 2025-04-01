@@ -11,8 +11,15 @@ import { TypingIndicator } from '@/components/ask-sage/TypingIndicator';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useChat } from '@/hooks/use-chat';
 import { useState } from 'react';
+import { buildSageContext } from "@/lib/knowledge";
+import { callOpenAI } from "@/lib/api";
+
 
 const AskSage = () => {
+  // TEMP hardcoded demo user context
+  const userId = "69d925ed-ced1-4d6e-a88a-3de3f6dc2c76"; // This can match your seed data
+  const [demoMessages, setDemoMessages] = useState<any[]>([]);
+  const orgId = "lumon";        // Shared org context for now
   const { 
     messages, 
     suggestedQuestions, 
@@ -22,6 +29,43 @@ const AskSage = () => {
     handleFeedback,
     isLoading
   } = useChat();
+  // Replace this only inside AskSage for now
+  const sendMessageToSage = async (question: string) => {
+    const userMessage = {
+      id: `user-${Date.now()}`,
+      sender: "user",
+      content: question,
+      timestamp: new Date(),
+      avatar_url: "https://api.dicebear.com/6.x/micah/svg?seed=Randy",
+    };
+  
+    setDemoMessages((prev) => [...prev, userMessage]);
+  
+    try {
+      const context = await buildSageContext(userId, orgId);
+      console.log("🧠 Sage Context:\n", context);
+      const reply = await callOpenAI({ question, context });
+  
+      const sageMessage = {
+        id: `sage-${Date.now()}`,
+        sender: "sage",
+        content: reply,
+        timestamp: new Date(),
+        avatar_url: "/lovable-uploads/sage_avatar.png",
+      };
+  
+      setDemoMessages((prev) => [...prev, sageMessage]);
+    } catch (err) {
+      console.error("Sage had trouble:", err);
+      const errorMsg = {
+        id: `error-${Date.now()}`,
+        sender: "sage",
+        content: "Sage couldn't respond. Try again.",
+        timestamp: new Date(),
+      };
+      setDemoMessages((prev) => [...prev, errorMsg]);
+    }
+  };  
   
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -51,8 +95,9 @@ const AskSage = () => {
             {/* Main Chat Area */}
             <div className="flex-1 overflow-y-auto p-4">
               <div className="max-w-3xl mx-auto space-y-4">
-                {messages.length > 0 ? (
-                  messages.map((message) => (
+                {demoMessages.length > 0 ? (
+                  demoMessages.map((message) => (
+
                     <ChatMessage 
                       key={message.id} 
                       message={message} 
@@ -74,7 +119,7 @@ const AskSage = () => {
             
             {/* Input Bar (Sticky at Bottom) */}
             <ChatInputBar
-              onSendMessage={handleSendMessage}
+              onSendMessage={sendMessageToSage}
               onReflectionSubmit={handleReflectionSubmit}
               isLoading={isLoading}
               suggestedQuestions={suggestedQuestions}

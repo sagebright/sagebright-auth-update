@@ -210,18 +210,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const value = {
-    session,
-    user,
-    profile,
-    loading,
-    signUp,
-    signIn,
-    signInWithGoogle,
-    signOut,
-    resetPassword,
-    updateProfile,
-  };
+  // TEMP: Mocked demo user for local dev
+const value = {
+  session: { user: { id: "69d925ed-ced1-4d6e-a88a-3de3f6dc2c76", email: "randy@lumon.com" } } as Session,
+  user: { id: "69d925ed-ced1-4d6e-a88a-3de3f6dc2c76", email: "randy@lumon.com" } as User,
+  profile: {
+    id: "69d925ed-ced1-4d6e-a88a-3de3f6dc2c76",
+    full_name: "Randy",
+    role: "Engineer",
+    team: "Data Refinement",
+  },
+  loading: false,
+  signUp: async () => {},
+  signIn: async () => {},
+  signInWithGoogle: async () => {},
+  signOut: async () => {},
+  resetPassword: async () => {},
+  updateProfile: async () => {},
+};
+
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
