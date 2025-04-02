@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Message } from '@/components/ask-sage/ChatMessage';
 import { buildSageContext } from '@/lib/knowledge';
@@ -18,6 +19,7 @@ export const useChat = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [showReflection, setShowReflection] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const { profile } = useAuth();
 
   // Add initial greeting from Sage if empty chat
   useEffect(() => {
@@ -46,9 +48,6 @@ export const useChat = () => {
 
   const handleSendMessage = async (content: string) => {
     if (!content.trim()) return;
-  
-    const { profile } = useAuth();
-    console.log("🧔 Avatar check:", profile?.avatar_url);
     
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -70,7 +69,7 @@ export const useChat = () => {
         content: reply,
         sender: 'sage',
         timestamp: new Date(),
-        avatar_url: "/images/sage_avatar.png", // optional
+        avatar_url: "/lovable-uploads/sage_avatar.png", // optional
       };
   
       setMessages(prev => [...prev, sageMessage]);
