@@ -19,7 +19,7 @@ export const TypingIndicator: React.FC = () => {
               <span className="dot w-2 h-2 bg-white rounded-full opacity-75 animate-pulse"></span>
               <span className="dot w-2 h-2 bg-white rounded-full opacity-75 animate-pulse delay-150"></span>
               <span className="dot w-2 h-2 bg-white rounded-full opacity-75 animate-pulse delay-300"></span>
-            </div>
+            </span>
           </div>
         </div>
       </div>
