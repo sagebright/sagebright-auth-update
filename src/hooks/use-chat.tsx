@@ -48,7 +48,8 @@ export const useChat = () => {
     if (!content.trim()) return;
   
     const { profile } = useAuth();
-
+    console.log("🧔 Avatar check:", profile?.avatar_url);
+    
     const userMessage: Message = {
       id: Date.now().toString(),
       content,
