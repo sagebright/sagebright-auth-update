@@ -4,6 +4,10 @@ import { Message } from '@/components/ask-sage/ChatMessage';
 import { buildSageContext } from '@/lib/knowledge';
 import { callOpenAI } from '@/lib/api';
 import { useAuth } from "@/contexts/AuthContext";
+import { useLocation } from 'react-router-dom'  // if you're using React Router
+import { getVoiceFromUrl } from '@/lib/utils'
+
+
 
 
 // Updated suggested questions order to prioritize the two required questions
@@ -62,11 +66,12 @@ export const useChat = () => {
   
     try {
       const context = await buildSageContext("69d925ed-ced1-4d6e-a88a-3de3f6dc2c76", "lumon"); // or however you're injecting user/org ID
-      const reply = await callOpenAI({ question: content, context });
+      const voice = getVoiceFromUrl()
+      const answer = await callOpenAI({ question: content, context, voice });
   
       const sageMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: reply,
+        content: answer,
         sender: 'sage',
         timestamp: new Date(),
         avatar_url: "/lovable-uploads/sage_avatar.png", // optional

@@ -14,6 +14,8 @@ import { useState } from 'react';
 import { buildSageContext } from "@/lib/knowledge";
 import { callOpenAI } from "@/lib/api";
 import { useAuth } from '@/contexts/AuthContext';
+import { getVoiceFromUrl } from '@/lib/utils'
+
 
 const AskSage = () => {
   // TEMP hardcoded demo user context
@@ -47,12 +49,14 @@ const AskSage = () => {
     try {
       const context = await buildSageContext(userId, orgId);
       console.log("🧠 Sage Context:\n", context);
-      const reply = await callOpenAI({ question, context });
+      const voice = getVoiceFromUrl()
+      const answer = await callOpenAI({ question, context, voice })
+
   
       const sageMessage = {
         id: `sage-${Date.now()}`,
         sender: "sage",
-        content: reply,
+        content: answer,
         timestamp: new Date(),
         avatar_url: "/lovable-uploads/sage_avatar.png",
       };
