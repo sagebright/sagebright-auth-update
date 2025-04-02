@@ -21,6 +21,7 @@ const AskSage = () => {
   const userId = "69d925ed-ced1-4d6e-a88a-3de3f6dc2c76"; // This can match your seed data
   const [demoMessages, setDemoMessages] = useState<any[]>([]);
   const orgId = "lumon";        // Shared org context for now
+  const [isTyping, setIsTyping] = useState(false);
   const { 
     messages, 
     suggestedQuestions, 
@@ -41,6 +42,7 @@ const AskSage = () => {
     };
   
     setDemoMessages((prev) => [...prev, userMessage]);
+    setIsTyping(true);
   
     try {
       const context = await buildSageContext(userId, orgId);
@@ -66,6 +68,8 @@ const AskSage = () => {
         avatar_url: "/lovable-uploads/sage_avatar.png",
       };
       setDemoMessages((prev) => [...prev, errorMsg]);
+    } finally {
+      setIsTyping(false);
     }
   };  
   
@@ -78,7 +82,7 @@ const AskSage = () => {
     if (chatEndRef.current) {
       chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [messages, isLoading]);
+  }, [demoMessages, isTyping]);
 
   const handleReflectionSubmit = (data: ReflectionData) => {
     console.log('Reflection submitted:', data);
@@ -112,7 +116,7 @@ const AskSage = () => {
                 )}
                 
                 {/* Show typing indicator when loading */}
-                {isLoading && <TypingIndicator />}
+                {isTyping && <TypingIndicator />}
                 
                 <div ref={chatEndRef} />
               </div>
@@ -122,7 +126,7 @@ const AskSage = () => {
             <ChatInputBar
               onSendMessage={sendMessageToSage}
               onReflectionSubmit={handleReflectionSubmit}
-              isLoading={isLoading}
+              isLoading={isTyping}
               suggestedQuestions={suggestedQuestions}
               onSelectQuestion={handleSendMessage}
             />
