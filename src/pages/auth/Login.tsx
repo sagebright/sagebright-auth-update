@@ -34,7 +34,7 @@ export default function Login() {
   const [isLoading, setIsLoading] = React.useState(false);
   const [showPassword, setShowPassword] = React.useState(false);
   
-  const from = (location.state as any)?.from?.pathname || "/dashboard";
+  const from = localStorage.getItem("redirectAfterLogin") || "/dashboard";
   
   const form = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
@@ -48,6 +48,7 @@ export default function Login() {
     setIsLoading(true);
     try {
       await signIn(data.email, data.password);
+      localStorage.removeItem("redirectAfterLogin");
       navigate(from, { replace: true });
     } catch (error) {
       // Error is handled in the auth context

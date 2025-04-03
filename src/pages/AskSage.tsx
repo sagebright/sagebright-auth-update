@@ -14,51 +14,12 @@ import { buildSageContext } from "@/lib/knowledge";
 import { callOpenAI } from "@/lib/api";
 import { getVoiceFromUrl } from '@/lib/utils';
 import { supabase } from '@/lib/supabaseClient';
+import { useRequireAuth } from '@/hooks/useRequireAuth';
 
-export function AuthDebug() {
-  const [user, setUser] = useState<any>(null);
-
-  useEffect(() => {
-    const checkUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-    };
-
-    checkUser();
-  }, []);
-
-  return (
-    <div style={{ padding: '1rem', background: '#f0f0f0' }}>
-      <strong>Auth Debug:</strong>
-      <pre>{JSON.stringify(user, null, 2)}</pre>
-    </div>
-  );
-}
 
 const AskSage = () => {
   const navigate = useNavigate();
-
-  const [authChecked, setAuthChecked] = useState(false);
-  const [user, setUser] = useState<any>(null);
-  const [userId, setUserId] = useState<string | null>(null);
-  const [orgId, setOrgId] = useState<string | null>(null);
-
-  useEffect(() => {
-    const checkUser = async () => {
-      const { data: { user }, error } = await supabase.auth.getUser();
-
-      if (error || !user) {
-        navigate('/login');
-      } else {
-        setUser(user);
-        setUserId(user.id);
-        setOrgId(user.user_metadata?.org_id || "lumon");
-        setAuthChecked(true);
-      }
-    };
-
-    checkUser();
-  }, [navigate]);
+  const { user, userId, orgId, loading: authLoading } = useRequireAuth(navigate);
 
   const [demoMessages, setDemoMessages] = useState<any[]>([]);
   const [isTyping, setIsTyping] = useState(false);
@@ -129,14 +90,14 @@ const AskSage = () => {
     setShowReflection(false);
   };
 
-  if (!authChecked) {
+  if (authLoading) {
     return <div>Checking authentication...</div>;
   }
 
   return (
     <DashboardLayout>
       <div className="flex-1 flex flex-col h-full bg-gray-50">
-        <AuthDebug />
+        
         <ChatHeader sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
         <div className="flex flex-1 overflow-hidden">
