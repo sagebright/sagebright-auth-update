@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { ChatHeader } from '@/components/ask-sage/ChatHeader';
@@ -11,65 +12,62 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useChat } from '@/hooks/use-chat';
 import { buildSageContext } from "@/lib/knowledge";
 import { callOpenAI } from "@/lib/api";
-import { useAuth } from '@/contexts/AuthContext';
-import { getVoiceFromUrl } from '@/lib/utils'
-import { supabase } from '@/lib/supabaseClient'
+import { getVoiceFromUrl } from '@/lib/utils';
+import { supabase } from '@/lib/supabaseClient';
 
-// ✅ DEBUG COMPONENT (at top level)
 export function AuthDebug() {
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
     const checkUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      setUser(user)
-    }
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+    };
 
-    checkUser()
-  }, [])
+    checkUser();
+  }, []);
 
   return (
     <div style={{ padding: '1rem', background: '#f0f0f0' }}>
       <strong>Auth Debug:</strong>
       <pre>{JSON.stringify(user, null, 2)}</pre>
     </div>
-  )
+  );
 }
 
 const AskSage = () => {
-const [user, setUser] = useState<any>(null);
-const [userId, setUserId] = useState<string | null>(null);
-const [orgId, setOrgId] = useState<string | null>(null);
+  const navigate = useNavigate();
 
-useEffect(() => {
-  const getUserInfo = async () => {
-    const { data: { user }, error } = await supabase.auth.getUser();
+  const [authChecked, setAuthChecked] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [orgId, setOrgId] = useState<string | null>(null);
 
-    if (error || !user) {
-      console.error("User not found:", error);
-      return;
-    }
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { user }, error } = await supabase.auth.getUser();
 
-    setUser(user);
-    setUserId(user.id);
-    setOrgId(user.user_metadata?.org_id || "lumon");
-  };
+      if (error || !user) {
+        navigate('/login');
+      } else {
+        setUser(user);
+        setUserId(user.id);
+        setOrgId(user.user_metadata?.org_id || "lumon");
+        setAuthChecked(true);
+      }
+    };
 
-  getUserInfo();
-}, []);
-
-
+    checkUser();
+  }, [navigate]);
 
   const [demoMessages, setDemoMessages] = useState<any[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const {
-    messages,
     suggestedQuestions,
     showReflection,
     setShowReflection,
     handleSendMessage,
-    handleFeedback,
-    isLoading
+    handleFeedback
   } = useChat();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -83,6 +81,8 @@ useEffect(() => {
   }, [demoMessages, isTyping]);
 
   const sendMessageToSage = async (question: string) => {
+    if (!userId || !orgId) return;
+
     const userMessage = {
       id: `user-${Date.now()}`,
       sender: "user",
@@ -97,8 +97,8 @@ useEffect(() => {
     try {
       const context = await buildSageContext(userId, orgId);
       console.log("🧠 Sage Context:\n", context);
-      const voice = getVoiceFromUrl()
-      const answer = await callOpenAI({ question, context, voice })
+      const voice = getVoiceFromUrl();
+      const answer = await callOpenAI({ question, context, voice });
 
       const sageMessage = {
         id: `sage-${Date.now()}`,
@@ -129,13 +129,14 @@ useEffect(() => {
     setShowReflection(false);
   };
 
+  if (!authChecked) {
+    return <div>Checking authentication...</div>;
+  }
+
   return (
     <DashboardLayout>
       <div className="flex-1 flex flex-col h-full bg-gray-50">
-
-        {/* ✅ This renders the auth debug box at the top */}
         <AuthDebug />
-
         <ChatHeader sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
         <div className="flex flex-1 overflow-hidden">
