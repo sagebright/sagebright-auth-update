@@ -31,15 +31,14 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/contact-us" element={<ContactUs />} />
             
-            {/* Auth Routes */}
-            <Route path="/auth">
-              <Route path="login" element={<Login />} />
-              <Route path="signup" element={<Signup />} />
-              <Route path="forgot-password" element={<ForgotPassword />} />
-              <Route path="callback" element={<Navigate to="/user-dashboard" replace />} />
-            </Route>
+            {/* Auth Routes - NOT wrapped in ProtectedRoute */}
+            <Route path="/auth/login" element={<Login />} />
+            <Route path="/auth/signup" element={<Signup />} />
+            <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+            <Route path="/auth/callback" element={<Navigate to="/user-dashboard" replace />} />
+            <Route path="/auth" element={<Navigate to="/auth/login" replace />} />
             
-            {/* Protected Routes - All other routes require authentication */}
+            {/* Protected Routes - All require authentication */}
             <Route 
               path="/index-v1" 
               element={
@@ -85,9 +84,6 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
-            
-            {/* Redirects */}
-            <Route path="/auth" element={<Navigate to="/auth/login" replace />} />
             
             {/* 404 Route */}
             <Route path="*" element={<NotFound />} />
