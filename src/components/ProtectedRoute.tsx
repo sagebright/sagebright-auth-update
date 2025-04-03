@@ -1,16 +1,20 @@
 
 import React from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { Navigate } from 'react-router-dom';
+import { useRequireAuth } from '@/hooks/useRequireAuth';
+import { useNavigate } from 'react-router-dom';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { user, loading } = useAuth();
-  const location = useLocation();
+  const navigate = useNavigate();
+  const { loading, user } = useRequireAuth(navigate);
 
+  // The useRequireAuth hook handles redirecting to login if there's no user
+  // We just need to show loading state and render children when authenticated
+  
   if (loading) {
     // Show loading spinner while authentication state is being determined
     return (
@@ -21,12 +25,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     );
   }
 
-  // If not logged in, redirect to login page, saving the current location for redirect after login
-  if (!user) {
-    return <Navigate to="/auth/login" state={{ from: location }} replace />;
-  }
-
-  // User is authenticated, render the protected route
+  // If there's a user, render the protected content
+  // Note: useRequireAuth already redirects if no user
   return <>{children}</>;
 };
 

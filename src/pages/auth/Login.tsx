@@ -34,7 +34,7 @@ export default function Login() {
   const [isLoading, setIsLoading] = React.useState(false);
   const [showPassword, setShowPassword] = React.useState(false);
   
-  const from = localStorage.getItem("redirectAfterLogin") || "/dashboard";
+  const redirectPath = localStorage.getItem("redirectAfterLogin") || "/user-dashboard";
   
   const form = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
@@ -48,8 +48,9 @@ export default function Login() {
     setIsLoading(true);
     try {
       await signIn(data.email, data.password);
+      const redirectTo = localStorage.getItem("redirectAfterLogin") || "/user-dashboard";
       localStorage.removeItem("redirectAfterLogin");
-      navigate(from, { replace: true });
+      navigate(redirectTo, { replace: true });
     } catch (error) {
       // Error is handled in the auth context
     } finally {
@@ -60,6 +61,7 @@ export default function Login() {
   const handleGoogleSignIn = async () => {
     try {
       await signInWithGoogle();
+      // Note: The redirect will be handled by the AuthContext after successful Google sign-in
     } catch (error) {
       // Error is handled in the auth context
     }

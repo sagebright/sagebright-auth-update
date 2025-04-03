@@ -36,6 +36,7 @@ const App = () => (
               <Route path="login" element={<Login />} />
               <Route path="signup" element={<Signup />} />
               <Route path="forgot-password" element={<ForgotPassword />} />
+              <Route path="callback" element={<Navigate to="/user-dashboard" replace />} />
             </Route>
             
             {/* Protected Routes - All other routes require authentication */}

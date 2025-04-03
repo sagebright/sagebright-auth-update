@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -13,9 +14,7 @@ import { useChat } from '@/hooks/use-chat';
 import { buildSageContext } from "@/lib/knowledge";
 import { callOpenAI } from "@/lib/api";
 import { getVoiceFromUrl } from '@/lib/utils';
-import { supabase } from '@/lib/supabaseClient';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
-
 
 const AskSage = () => {
   const navigate = useNavigate();

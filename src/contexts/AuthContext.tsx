@@ -33,8 +33,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setSession(session);
         setUser(session?.user ?? null);
         
-        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-          loadUserProfile(session?.user?.id);
+        if (event === 'SIGNED_IN') {
+          if (session?.user) {
+            loadUserProfile(session.user.id);
+            
+            // Handle redirect after sign-in (especially for OAuth providers)
+            const redirectTo = localStorage.getItem("redirectAfterLogin") || "/user-dashboard";
+            localStorage.removeItem("redirectAfterLogin");
+            navigate(redirectTo, { replace: true });
+          }
+        } else if (event === 'TOKEN_REFRESHED') {
+          if (session?.user) {
+            loadUserProfile(session.user.id);
+          }
         } else if (event === 'SIGNED_OUT') {
           setProfile(null);
         }
@@ -54,7 +65,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [navigate]);
 
   const loadUserProfile = async (userId: string | undefined) => {
     if (!userId) return;
@@ -131,7 +142,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/dashboard`,
+          redirectTo: `${window.location.origin}/auth/callback`,
         }
       });
       
