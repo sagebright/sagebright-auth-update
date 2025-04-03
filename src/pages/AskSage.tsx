@@ -16,6 +16,27 @@ import { callOpenAI } from "@/lib/api";
 import { useAuth } from '@/contexts/AuthContext';
 import { getVoiceFromUrl } from '@/lib/utils'
 
+import { supabase } from '@/lib/supabaseClient'
+
+export function AuthDebug() {
+  const [user, setUser] = useState<any>(null)
+
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      setUser(user)
+    }
+
+    checkUser()
+  }, [])
+
+  return (
+    <div style={{ padding: '1rem', background: '#f0f0f0' }}>
+      <strong>Auth Debug:</strong>
+      <pre>{JSON.stringify(user, null, 2)}</pre>
+    </div>
+  )
+}
 
 const AskSage = () => {
   // TEMP hardcoded demo user context
