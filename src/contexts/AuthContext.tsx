@@ -28,7 +28,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { toast } = useToast();
 
   useEffect(() => {
-    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
@@ -42,7 +41,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     );
 
-    // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -152,7 +150,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
-      navigate('/');
+      navigate('/auth/login');
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -209,24 +207,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Make sure we're using the mocked auth for now (per user's original code)
-const value = {
-  session: { user: { id: "69d925ed-ced1-4d6e-a88a-3de3f6dc2c76", email: "randy@lumon.com" } } as Session,
-  user: { id: "69d925ed-ced1-4d6e-a88a-3de3f6dc2c76", email: "randy@lumon.com" } as User,
-  profile: {
-    id: "69d925ed-ced1-4d6e-a88a-3de3f6dc2c76",
-    full_name: "Randy",
-    role: "Engineer",
-    team: "Data Refinement",
-  },
-  loading: false,
-  signUp: async (email: string, password: string, fullName: string) => {},
-  signIn: async (email: string, password: string) => {},
-  signInWithGoogle: async () => {},
-  signOut: async () => {},
-  resetPassword: async (email: string) => {},
-  updateProfile: async (data: any) => {},
-};
+  const value = {
+    session: { user: { id: "69d925ed-ced1-4d6e-a88a-3de3f6dc2c76", email: "randy@lumon.com" } } as Session,
+    user: { id: "69d925ed-ced1-4d6e-a88a-3de3f6dc2c76", email: "randy@lumon.com" } as User,
+    profile: {
+      id: "69d925ed-ced1-4d6e-a88a-3de3f6dc2c76",
+      full_name: "Randy",
+      role: "Engineer",
+      team: "Data Refinement",
+    },
+    loading: false,
+    signUp: async (email: string, password: string, fullName: string) => {},
+    signIn: async (email: string, password: string) => {},
+    signInWithGoogle: async () => {},
+    signOut,
+    resetPassword: async (email: string) => {},
+    updateProfile: async (data: any) => {},
+  };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
