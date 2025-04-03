@@ -10,6 +10,13 @@ export function useRequireAuth(navigate: NavigateFunction) {
   const location = useLocation();
 
   useEffect(() => {
+    console.log("🔐 useRequireAuth running on:", location.pathname);
+
+    // Skip auth check on public routes
+    if (location.pathname.startsWith("/auth")) {
+      setLoading(false);
+      return;
+    }
     const checkAuth = async () => {
         const {
             data: { session },
