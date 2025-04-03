@@ -1,6 +1,7 @@
+
 import { supabase } from './supabaseClient'
 
-export async function insertOrgContext(data) {
+export async function insertOrgContext(data: any) {
   const { data: result, error } = await supabase
     .from('org_context')
     .insert([data])
