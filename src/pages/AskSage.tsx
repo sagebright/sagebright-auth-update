@@ -1,5 +1,4 @@
-
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { ChatHeader } from '@/components/ask-sage/ChatHeader';
@@ -10,14 +9,13 @@ import { ResourcesSidebar } from '@/components/ask-sage/ResourcesSidebar';
 import { TypingIndicator } from '@/components/ask-sage/TypingIndicator';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useChat } from '@/hooks/use-chat';
-import { useState } from 'react';
 import { buildSageContext } from "@/lib/knowledge";
 import { callOpenAI } from "@/lib/api";
 import { useAuth } from '@/contexts/AuthContext';
 import { getVoiceFromUrl } from '@/lib/utils'
-
 import { supabase } from '@/lib/supabaseClient'
 
+// ✅ DEBUG COMPONENT (at top level)
 export function AuthDebug() {
   const [user, setUser] = useState<any>(null)
 
@@ -39,49 +37,69 @@ export function AuthDebug() {
 }
 
 const AskSage = () => {
-  // TEMP hardcoded demo user context
-  const { profile } = useAuth();
-  const userId = "69d925ed-ced1-4d6e-a88a-3de3f6dc2c76"; // This can match your seed data
+const [user, setUser] = useState<any>(null);
+const [userId, setUserId] = useState<string | null>(null);
+const [orgId, setOrgId] = useState<string | null>(null);
+
+useEffect(() => {
+  const getUserInfo = async () => {
+    const { data: { user }, error } = await supabase.auth.getUser();
+
+    if (error || !user) {
+      console.error("User not found:", error);
+      return;
+    }
+
+    setUser(user);
+    setUserId(user.id);
+    setOrgId(user.user_metadata?.org_id || "lumon");
+  };
+
+  getUserInfo();
+}, []);
+
+
+
   const [demoMessages, setDemoMessages] = useState<any[]>([]);
-  const orgId = "lumon";        // Shared org context for now
   const [isTyping, setIsTyping] = useState(false);
-  const { 
-    messages, 
-    suggestedQuestions, 
-    showReflection, 
-    setShowReflection, 
-    handleSendMessage, 
+  const {
+    messages,
+    suggestedQuestions,
+    showReflection,
+    setShowReflection,
+    handleSendMessage,
     handleFeedback,
     isLoading
   } = useChat();
-  const AskSage = () => {
-    return (
-      <div>
-        <AuthDebug />
-        <h1>Ask Sage</h1>
-      </div>
-    )
-  }
-  // Replace this only inside AskSage for now
+
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
+
+  useEffect(() => {
+    if (chatEndRef.current) {
+      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [demoMessages, isTyping]);
+
   const sendMessageToSage = async (question: string) => {
     const userMessage = {
       id: `user-${Date.now()}`,
       sender: "user",
       content: question,
       timestamp: new Date(),
-      avatar_url: profile?.avatar_url || "",
+      avatar_url: user?.user_metadata?.avatar_url || "",
     };
-  
+
     setDemoMessages((prev) => [...prev, userMessage]);
     setIsTyping(true);
-  
+
     try {
       const context = await buildSageContext(userId, orgId);
       console.log("🧠 Sage Context:\n", context);
       const voice = getVoiceFromUrl()
       const answer = await callOpenAI({ question, context, voice })
 
-  
       const sageMessage = {
         id: `sage-${Date.now()}`,
         sender: "sage",
@@ -89,7 +107,7 @@ const AskSage = () => {
         timestamp: new Date(),
         avatar_url: "/lovable-uploads/sage_avatar.png",
       };
-  
+
       setDemoMessages((prev) => [...prev, sageMessage]);
     } catch (err) {
       console.error("Sage had trouble:", err);
@@ -104,18 +122,7 @@ const AskSage = () => {
     } finally {
       setIsTyping(false);
     }
-  };  
-  
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const chatEndRef = useRef<HTMLDivElement>(null);
-  const isMobile = useIsMobile();
-
-  // Scroll to bottom of chat when messages update or loading state changes
-  useEffect(() => {
-    if (chatEndRef.current) {
-      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [demoMessages, isTyping]);
+  };
 
   const handleReflectionSubmit = (data: ReflectionData) => {
     console.log('Reflection submitted:', data);
@@ -125,20 +132,21 @@ const AskSage = () => {
   return (
     <DashboardLayout>
       <div className="flex-1 flex flex-col h-full bg-gray-50">
-        {/* Top Greeting Card (optional sticky) */}
+
+        {/* ✅ This renders the auth debug box at the top */}
+        <AuthDebug />
+
         <ChatHeader sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
-        
+
         <div className="flex flex-1 overflow-hidden">
-          {/* Main Content */}
           <div className="flex-1 flex flex-col min-w-0 h-full">
-            {/* Main Chat Area */}
             <div className="flex-1 overflow-y-auto p-4">
               <div className="max-w-3xl mx-auto space-y-4">
                 {demoMessages.length > 0 ? (
                   demoMessages.map((message) => (
-                    <ChatMessage 
-                      key={message.id} 
-                      message={message} 
+                    <ChatMessage
+                      key={message.id}
+                      message={message}
                       onFeedback={handleFeedback}
                     />
                   ))
@@ -147,15 +155,13 @@ const AskSage = () => {
                     <p>Start a conversation with Sage</p>
                   </div>
                 )}
-                
-                {/* Show typing indicator when loading */}
+
                 {isTyping && <TypingIndicator />}
-                
+
                 <div ref={chatEndRef} />
               </div>
             </div>
-            
-            {/* Input Bar (Sticky at Bottom) */}
+
             <ChatInputBar
               onSendMessage={sendMessageToSage}
               onReflectionSubmit={handleReflectionSubmit}
@@ -164,16 +170,14 @@ const AskSage = () => {
               onSelectQuestion={handleSendMessage}
             />
           </div>
-          
-          {/* Sidebar (Desktop) */}
+
           {sidebarOpen && (
             <div className="hidden md:flex flex-col w-80 border-l border-gray-200 bg-white p-4 overflow-y-auto">
               <ResourcesSidebar />
             </div>
           )}
         </div>
-        
-        {/* Reflection Modal */}
+
         <Dialog open={showReflection} onOpenChange={setShowReflection}>
           <DialogContent className={isMobile ? "w-full h-[90vh] rounded-t-lg p-4 max-w-full pt-6" : ""}>
             <DialogHeader>
@@ -182,7 +186,7 @@ const AskSage = () => {
                 Taking a moment to reflect can help your onboarding journey.
               </DialogDescription>
             </DialogHeader>
-            <ReflectionForm 
+            <ReflectionForm
               onSubmit={handleReflectionSubmit}
               onCancel={() => setShowReflection(false)}
             />
