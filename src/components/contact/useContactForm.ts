@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from '@/lib/supabaseClient';
 import { contactFormSchema, ContactFormValues } from "./schema";
 
 interface UseContactFormProps {

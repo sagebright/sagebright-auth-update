@@ -7,17 +7,20 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error("❌ Missing Supabase environment variables. Check VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env.");
 }
 
-let supabaseInstance: ReturnType<typeof createClient> | null = null;
+// Use a global singleton pattern (especially important in dev with HMR)
+const globalAny = globalThis as any;
 
-export const supabase = (() => {
-  if (!supabaseInstance) {
-    supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
-      auth: {
-        autoRefreshToken: true,
-        persistSession: true,
-        detectSessionInUrl: true,
-      },
-    });
-  }
-  return supabaseInstance;
-})();
+if (!globalAny.__supabase) {
+  // Temp fix for supaBase bullshit in auth
+  console.log("🧠 Initializing Supabase client at", new Date().toISOString());
+
+  globalAny.__supabase = createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: true,
+    },
+  });
+}
+
+export const supabase = globalAny.__supabase;

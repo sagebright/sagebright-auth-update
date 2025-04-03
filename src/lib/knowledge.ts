@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from '@/lib/supabaseClient';
 
 // TEMP: Until we auto-generate types from Supabase
 type Profile = {

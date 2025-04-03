@@ -1,0 +1,33 @@
+## 🧠 Supabase Client Setup (READ THIS OR SUFFER)
+
+This app uses **a singleton Supabase client** stored in `src/lib/supabaseClient.ts`.
+
+### Why this matters:
+- Supabase’s GoTrueClient **throws warnings** (and can behave weirdly) if multiple instances are created in the same browser context.
+- Hot module reloading during dev will often trigger this unless we **guard with a global singleton**.
+- Some legacy files (like `src/integrations/supabase/client.ts`) **must not** create their own `createClient(...)` instances.
+
+### ✅ How It Works
+We use a global `globalThis.__supabase` instance to ensure Supabase is only initialized once — even across HMR or duplicate imports.
+
+```ts
+// src/lib/supabaseClient.ts
+if (!globalThis.__supabase) {
+  globalThis.__supabase = createClient(...);
+}
+export const supabase = globalThis.__supabase;
+```
+
+### 🚫 Don't Do This
+- ❌ Don’t call `createClient(...)` in other files
+- ❌ Don’t use hardcoded URLs or keys
+- ❌ Don’t import from `@supabase/supabase-js` directly outside of `supabaseClient.ts`
+
+### ✅ Do This Instead
+- ✅ Always `import { supabase } from '@/lib/supabaseClient'`
+- ✅ Restart your dev server after `.env` changes
+- ✅ Clear LocalStorage/SessionStorage if auth starts acting weird
+
+---
+
+This pattern is dev-safe, prod-safe, and won’t trigger the "Multiple GoTrueClient instances detected" warning ever again.
