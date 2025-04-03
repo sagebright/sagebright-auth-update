@@ -54,6 +54,14 @@ const AskSage = () => {
     handleFeedback,
     isLoading
   } = useChat();
+  const AskSage = () => {
+    return (
+      <div>
+        <AuthDebug />
+        <h1>Ask Sage</h1>
+      </div>
+    )
+  }
   // Replace this only inside AskSage for now
   const sendMessageToSage = async (question: string) => {
     const userMessage = {
