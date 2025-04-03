@@ -69,6 +69,74 @@ export type Database = {
         }
         Relationships: []
       }
+      org_context: {
+        Row: {
+          created_at: string | null
+          culture: string | null
+          departments: string | null
+          executives: Json | null
+          glossary: Json | null
+          history: string | null
+          id: string
+          known_pain_points: Json | null
+          leadership_style: string | null
+          mission: string | null
+          name: string
+          onboarding_processes: string | null
+          org_id: string | null
+          org_kpis: string | null
+          policies: Json | null
+          tools_and_systems: string | null
+          values: Json | null
+        }
+        Insert: {
+          created_at?: string | null
+          culture?: string | null
+          departments?: string | null
+          executives?: Json | null
+          glossary?: Json | null
+          history?: string | null
+          id?: string
+          known_pain_points?: Json | null
+          leadership_style?: string | null
+          mission?: string | null
+          name: string
+          onboarding_processes?: string | null
+          org_id?: string | null
+          org_kpis?: string | null
+          policies?: Json | null
+          tools_and_systems?: string | null
+          values?: Json | null
+        }
+        Update: {
+          created_at?: string | null
+          culture?: string | null
+          departments?: string | null
+          executives?: Json | null
+          glossary?: Json | null
+          history?: string | null
+          id?: string
+          known_pain_points?: Json | null
+          leadership_style?: string | null
+          mission?: string | null
+          name?: string
+          onboarding_processes?: string | null
+          org_id?: string | null
+          org_kpis?: string | null
+          policies?: Json | null
+          tools_and_systems?: string | null
+          values?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_context_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       org_knowledge: {
         Row: {
           content: string | null
@@ -96,6 +164,24 @@ export type Database = {
           summary?: string | null
           title?: string | null
           visibility?: string | null
+        }
+        Relationships: []
+      }
+      orgs: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
         }
         Relationships: []
       }
@@ -135,6 +221,99 @@ export type Database = {
           role?: string | null
           team?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      user_context: {
+        Row: {
+          created_at: string | null
+          department: string | null
+          feedback_given: Json | null
+          goals: Json | null
+          id: string
+          introvert_extrovert: string | null
+          learning_style: string | null
+          location: string | null
+          manager_name: string | null
+          org_id: string | null
+          personality_notes: string | null
+          questions_asked: Json | null
+          role: string | null
+          start_date: string | null
+          timezone: string | null
+          user_id: string | null
+          working_hours: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          department?: string | null
+          feedback_given?: Json | null
+          goals?: Json | null
+          id?: string
+          introvert_extrovert?: string | null
+          learning_style?: string | null
+          location?: string | null
+          manager_name?: string | null
+          org_id?: string | null
+          personality_notes?: string | null
+          questions_asked?: Json | null
+          role?: string | null
+          start_date?: string | null
+          timezone?: string | null
+          user_id?: string | null
+          working_hours?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          department?: string | null
+          feedback_given?: Json | null
+          goals?: Json | null
+          id?: string
+          introvert_extrovert?: string | null
+          learning_style?: string | null
+          location?: string | null
+          manager_name?: string | null
+          org_id?: string | null
+          personality_notes?: string | null
+          questions_asked?: Json | null
+          role?: string | null
+          start_date?: string | null
+          timezone?: string | null
+          user_id?: string | null
+          working_hours?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_context_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_context_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      users: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id?: string
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
         }
         Relationships: []
       }

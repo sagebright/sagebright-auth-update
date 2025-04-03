@@ -12,6 +12,7 @@ import AskSage from "./pages/AskSage";
 import ContactUs from "./pages/ContactUs";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/auth/Login";
+import Signup from "./pages/auth/Signup";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -33,10 +34,11 @@ const App = () => (
             {/* Auth Routes */}
             <Route path="/auth">
               <Route path="login" element={<Login />} />
+              <Route path="signup" element={<Signup />} />
               <Route path="forgot-password" element={<ForgotPassword />} />
             </Route>
             
-            {/* Protected Routes */}
+            {/* Protected Routes - All other routes require authentication */}
             <Route 
               path="/index-v1" 
               element={
@@ -58,7 +60,11 @@ const App = () => (
             {/* Redirect old dashboard route to new user-dashboard route */}
             <Route
               path="/dashboard"
-              element={<Navigate to="/user-dashboard" replace />}
+              element={
+                <ProtectedRoute>
+                  <Navigate to="/user-dashboard" replace />
+                </ProtectedRoute>
+              }
             />
             
             <Route
