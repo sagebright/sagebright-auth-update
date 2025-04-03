@@ -36,7 +36,6 @@ const App = () => (
             <Route path="/auth/signup" element={<Signup />} />
             <Route path="/auth/forgot-password" element={<ForgotPassword />} />
             <Route path="/auth/callback" element={<Navigate to="/user-dashboard" replace />} />
-            <Route path="/auth" element={<Navigate to="/auth/login" replace />} />
             
             {/* Protected Routes - All require authentication */}
             <Route 
