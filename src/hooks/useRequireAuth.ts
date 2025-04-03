@@ -11,12 +11,22 @@ export function useRequireAuth(navigate: NavigateFunction) {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const { data: { user }, error } = await supabase.auth.getUser();
+        const {
+            data: { session },
+            error: sessionError,
+          } = await supabase.auth.getSession();
+          
+          const {
+            data: { user },
+            error: userError,
+          } = await supabase.auth.getUser();
+          
 
-      if (error || !user) {
-        localStorage.setItem("redirectAfterLogin", location.pathname);
-        navigate('/auth/login', { replace: true });
-      } else {
+          if (sessionError || userError || !session || !user) {
+            localStorage.setItem("redirectAfterLogin", location.pathname);
+            navigate('/auth/login', { replace: true });
+          }
+           else {
         setUser(user);
         setUserId(user.id);
         setOrgId(user.user_metadata?.org_id || 'lumon');
