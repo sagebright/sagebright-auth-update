@@ -17,23 +17,18 @@ export function useRequireAuth(navigate: NavigateFunction) {
       setLoading(false);
       return;
     }
-    const checkAuth = async () => {
-        const {
-            data: { session },
-            error: sessionError,
-          } = await supabase.auth.getSession();
-          
-          const {
-            data: { user },
-            error: userError,
-          } = await supabase.auth.getUser();
-          
 
-          if (sessionError || userError || !session || !user) {
-            localStorage.setItem("redirectAfterLogin", location.pathname);
-            navigate('/auth/login', { replace: true });
-          }
-           else {
+    const checkAuth = async () => {
+      const { data: { user }, error } = await supabase.auth.getUser();
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+      console.log("🧑‍💻 Supabase user returned:", user);
+      console.log("📦 Supabase session returned:", session);
+
+      if (error || sessionError || !user || !session) {
+        localStorage.setItem("redirectAfterLogin", location.pathname);
+        navigate('/auth/login', { replace: true });
+      } else {
         setUser(user);
         setUserId(user.id);
         setOrgId(user.user_metadata?.org_id || 'lumon');
