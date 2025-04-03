@@ -1,9 +1,10 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowRight, Check } from 'lucide-react';
-import { supabase } from "@/lib/supabaseClient";
+import { supabase } from "@/integrations/supabase/client";
 
 const WaitlistSection = () => {
   const [email, setEmail] = useState('');
@@ -37,6 +38,7 @@ const WaitlistSection = () => {
     setIsSubmitting(true);
     
     try {
+      // 1. Insert the signup data into the Beta Signups table
       const { error } = await supabase
         .from('Beta Signups')
         .insert([
@@ -52,6 +54,7 @@ const WaitlistSection = () => {
         throw error;
       }
       
+      // 2. Send confirmation email using our edge function
       const emailResponse = await fetch('/api/send-waitlist-confirmation', {
         method: 'POST',
         headers: {
