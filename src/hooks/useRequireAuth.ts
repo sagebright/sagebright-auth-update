@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useLocation, NavigateFunction } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
@@ -14,7 +13,7 @@ export function useRequireAuth(navigate: NavigateFunction) {
   useEffect(() => {
     console.log("🔐 useRequireAuth running on:", location.pathname);
 
-    // Skip auth check on public routes
+    // Skip auth check on public routes or if we're already on an auth route
     if (location.pathname.startsWith("/auth")) {
       setLoading(false);
       return;
@@ -31,14 +30,17 @@ export function useRequireAuth(navigate: NavigateFunction) {
         console.log("📦 Supabase session returned:", session);
 
         if (error || sessionError || !user || !session) {
-          // Only store path for redirect if we're actually redirecting due to auth
-          // Include the full URL with search params
-          const fullPath = location.pathname + location.search;
-          localStorage.setItem("redirectAfterLogin", fullPath);
-          
-          if (isMounted) {
-            navigate('/auth/login', { replace: true });
-            setIsAuthenticated(false);
+          // Only redirect to login if we're not already on an auth route
+          if (!location.pathname.startsWith("/auth")) {
+            // Store the full URL with search params for redirect after login
+            const fullPath = location.pathname + location.search;
+            console.log("📝 Storing redirect path:", fullPath);
+            localStorage.setItem("redirectAfterLogin", fullPath);
+            
+            if (isMounted) {
+              navigate('/auth/login', { replace: true });
+              setIsAuthenticated(false);
+            }
           }
         } else if (isMounted) {
           const extractedOrgId = user.user_metadata?.org_id;
@@ -64,17 +66,47 @@ export function useRequireAuth(navigate: NavigateFunction) {
       }
     };
 
-    // Use a timer to ensure we don't repeatedly check auth in rapid succession
-    // And only trigger once per auth change, not on every URL parameter change
+    // Use a debounced approach to prevent frequent checks
+    // Only check auth once when the component mounts or pathname changes (not search params)
     const timer = setTimeout(() => {
       checkAuth();
     }, 100);
 
+    // Set up listener for auth state changes to keep auth state in sync
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        console.log("🔄 Auth state changed:", event);
+        
+        if (event === 'SIGNED_IN' && isMounted) {
+          // When user signs in, redirect to stored path
+          const redirectPath = localStorage.getItem("redirectAfterLogin");
+          if (redirectPath) {
+            console.log("🚀 Redirecting to:", redirectPath);
+            navigate(redirectPath, { replace: true });
+            localStorage.removeItem("redirectAfterLogin");
+          }
+          
+          if (session?.user) {
+            setUser(session.user);
+            setUserId(session.user.id);
+            setOrgId(session.user.user_metadata?.org_id || null);
+            setIsAuthenticated(true);
+          }
+        } else if (event === 'SIGNED_OUT' && isMounted) {
+          setUser(null);
+          setUserId(null);
+          setOrgId(null);
+          setIsAuthenticated(false);
+        }
+      }
+    );
+
     return () => {
       isMounted = false;
       clearTimeout(timer);
+      subscription.unsubscribe();
     };
-  }, [navigate, location.pathname]); // Only depend on pathname, not full location object
+  }, [navigate, location.pathname]); // Only depend on pathname, not full location object or search params
 
   return { user, userId, orgId, loading, isAuthenticated };
 }

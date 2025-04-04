@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
 import { useNavigate } from 'react-router-dom';
 
@@ -15,6 +15,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   // Keep track of last authenticated location to prevent unwanted redirects
   useEffect(() => {
     if (isAuthenticated && !loading) {
+      // Store full path including search params
       sessionStorage.setItem('lastAuthenticatedPath', location.pathname + location.search);
     }
   }, [isAuthenticated, loading, location.pathname, location.search]);
