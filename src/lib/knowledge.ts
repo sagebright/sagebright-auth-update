@@ -13,7 +13,7 @@ type OrgDoc = {
   content?: string;
 };
 
-export async function buildSageContext(userId: string, orgId: string): Promise<string> {
+export async function buildLegacySageContextString(userId: string, orgId: string): Promise<string> {
   // 🔍 1. Get user profile
   const { data: profileData, error: profileError } = await supabase
     .from("profiles")

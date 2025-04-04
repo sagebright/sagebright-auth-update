@@ -82,6 +82,7 @@ function generateSystemPrompt(
     if (user.introvert_extrovert) prompt += `- Social Style: ${user.introvert_extrovert}\n`;
     if (user.personality_notes) prompt += `- Personality Notes: ${user.personality_notes}\n`;
   }
+  console.log("🧠 Final system prompt:\n", prompt);
 
   return prompt;
 }

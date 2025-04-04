@@ -1,3 +1,5 @@
+// src/contexts/AuthContext.tsx
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Session, User } from '@supabase/supabase-js';
@@ -7,6 +9,8 @@ import { useToast } from '@/hooks/use-toast';
 interface AuthContextType {
   session: Session | null;
   user: User | null;
+  userId: string | null;
+  orgId: string | null;
   profile: any | null;
   loading: boolean;
   signUp: (email: string, password: string, fullName: string) => Promise<void>;
@@ -22,6 +26,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [orgId, setOrgId] = useState<string | null>(null);
   const [profile, setProfile] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -32,22 +38,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
-        
-        if (event === 'SIGNED_IN') {
-          if (session?.user) {
-            loadUserProfile(session.user.id);
-            
-            // Handle redirect after sign-in (especially for OAuth providers)
-            const redirectTo = localStorage.getItem("redirectAfterLogin") || "/user-dashboard";
-            localStorage.removeItem("redirectAfterLogin");
-            navigate(redirectTo, { replace: true });
-          }
-        } else if (event === 'TOKEN_REFRESHED') {
-          if (session?.user) {
-            loadUserProfile(session.user.id);
-          }
+        setUserId(session?.user?.id ?? null);
+        setOrgId(session?.user?.user_metadata?.org_id ?? null);
+
+        if (event === 'SIGNED_IN' && session?.user) {
+          loadUserProfile(session.user.id);
+          const redirectTo = localStorage.getItem("redirectAfterLogin") || "/user-dashboard";
+          localStorage.removeItem("redirectAfterLogin");
+          navigate(redirectTo, { replace: true });
+        } else if (event === 'TOKEN_REFRESHED' && session?.user) {
+          loadUserProfile(session.user.id);
         } else if (event === 'SIGNED_OUT') {
           setProfile(null);
+          setUserId(null);
+          setOrgId(null);
         }
       }
     );
@@ -55,10 +59,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      
+      setUserId(session?.user?.id ?? null);
+      setOrgId(session?.user?.user_metadata?.org_id ?? null);
+
       if (session?.user) {
         loadUserProfile(session.user.id);
       }
+
       setLoading(false);
     });
 
@@ -69,18 +76,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const loadUserProfile = async (userId: string | undefined) => {
     if (!userId) return;
-    
+
     try {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single();
-        
-      if (error) {
-        throw error;
-      }
-      
+
+      if (error) throw error;
+
       setProfile(data);
     } catch (error: any) {
       console.error('Error loading user profile:', error.message);
@@ -98,14 +103,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           },
         },
       });
-      
+
       if (error) throw error;
-      
+
       toast({
         title: "Account created",
         description: "Please check your email to confirm your account."
       });
-      
+
       navigate('/auth/login');
     } catch (error: any) {
       toast({
@@ -123,12 +128,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         email,
         password,
       });
-  
-      console.log("🧠 signIn result - data:", data);
-      console.log("🧠 signIn result - error:", error);
-  
+
       if (error) throw error;
-  
+
       return data;
     } catch (error: any) {
       toast({
@@ -139,8 +141,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       throw error;
     }
   };
-  
-  
 
   const signInWithGoogle = async () => {
     try {
@@ -150,7 +150,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           redirectTo: `${window.location.origin}/auth/callback`,
         }
       });
-      
+
       if (error) throw error;
     } catch (error: any) {
       toast({
@@ -181,9 +181,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/auth/update-password`,
       });
-      
+
       if (error) throw error;
-      
+
       toast({
         title: "Password reset email sent",
         description: "Check your email for a password reset link"
@@ -204,11 +204,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .from('profiles')
         .update(data)
         .eq('id', user?.id);
-        
+
       if (error) throw error;
-      
+
       setProfile({ ...profile, ...data });
-      
+
       toast({
         title: "Profile updated",
         description: "Your profile has been successfully updated"
@@ -226,6 +226,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const value: AuthContextType = {
     session,
     user,
+    userId,
+    orgId,
     profile,
     loading,
     signUp,
@@ -233,9 +235,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signInWithGoogle,
     signOut,
     resetPassword,
-    updateProfile
+    updateProfile,
   };
-  
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

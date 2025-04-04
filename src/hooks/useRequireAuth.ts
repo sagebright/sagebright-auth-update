@@ -29,9 +29,15 @@ export function useRequireAuth(navigate: NavigateFunction) {
         localStorage.setItem("redirectAfterLogin", location.pathname);
         navigate('/auth/login', { replace: true });
       } else {
+        const extractedOrgId = user.user_metadata?.org_id;
+
+        if (!extractedOrgId) {
+          console.warn("⚠️ No org_id found in user metadata for user:", user.id);
+        }
+
         setUser(user);
         setUserId(user.id);
-        setOrgId(user.user_metadata?.org_id || 'lumon');
+        setOrgId(extractedOrgId || null);
       }
 
       setLoading(false);

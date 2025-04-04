@@ -9,17 +9,18 @@ import { supabase } from '@/lib/supabaseClient';
  * @returns Object containing org-level configuration for Sage
  */
 export async function fetchOrgContext(orgId: string) {
+  console.log("🔍 Fetching org context for orgId:", orgId);
   const { data, error } = await supabase
     .from('org_context')
     .select('*')
-    .eq('org_id', orgId)
+    .eq('id', orgId)
     .single();
 
   if (error || !data) {
     console.error('❌ Failed to fetch org_context for org:', orgId, error);
     return null;
   }
-
+  console.log("📦 Org context found:", data);
   return {
     orgId: orgId,
     name: data.name,

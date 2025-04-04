@@ -11,7 +11,7 @@ import { ResourcesSidebar } from '@/components/ask-sage/ResourcesSidebar';
 import { TypingIndicator } from '@/components/ask-sage/TypingIndicator';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useChat } from '@/hooks/use-chat';
-import { buildSageContext } from "@/lib/knowledge";
+import { buildSageContext } from "@/lib/buildSageContext";
 import { callOpenAI } from "@/lib/api";
 import { getVoiceFromUrl } from '@/lib/utils';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
@@ -55,10 +55,10 @@ const AskSage = () => {
     setIsTyping(true);
 
     try {
-      const context = await buildSageContext(userId, orgId);
+      const { context } = await buildSageContext(userId, orgId);
       console.log("🧠 Sage Context:\n", context);
       const voice = getVoiceFromUrl();
-      const answer = await callOpenAI({ question, context, voice });
+      const answer = await callOpenAI({ question, context, voice });    
 
       const sageMessage = {
         id: `sage-${Date.now()}`,

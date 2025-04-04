@@ -1,14 +1,9 @@
-
 import { useState, useEffect } from 'react';
 import { Message } from '@/components/ask-sage/ChatMessage';
-import { buildSageContext } from '@/lib/knowledge';
+import { buildSageContext } from '@/lib/buildSageContext';
 import { callOpenAI } from '@/lib/api';
 import { useAuth } from "@/contexts/AuthContext";
-import { useLocation } from 'react-router-dom'  // if you're using React Router
-import { getVoiceFromUrl } from '@/lib/utils'
-
-
-
+import { getVoiceFromUrl } from '@/lib/utils';
 
 // Updated suggested questions order to prioritize the two required questions
 const SUGGESTED_QUESTIONS = [
@@ -23,7 +18,7 @@ export const useChat = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [showReflection, setShowReflection] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { profile } = useAuth();
+  const { userId, orgId, profile } = useAuth();
 
   // Add initial greeting from Sage if empty chat
   useEffect(() => {
@@ -52,7 +47,7 @@ export const useChat = () => {
 
   const handleSendMessage = async (content: string) => {
     if (!content.trim()) return;
-    
+
     const userMessage: Message = {
       id: Date.now().toString(),
       content,
@@ -60,23 +55,23 @@ export const useChat = () => {
       timestamp: new Date(),
       avatar_url: profile?.avatar_url,
     };
-  
+
     setMessages(prev => [...prev, userMessage]);
     setIsLoading(true);
-  
+
     try {
-      const context = await buildSageContext("69d925ed-ced1-4d6e-a88a-3de3f6dc2c76", "lumon"); // or however you're injecting user/org ID
-      const voice = getVoiceFromUrl()
+      const { context } = await buildSageContext(userId, orgId);
+      const voice = getVoiceFromUrl();
       const answer = await callOpenAI({ question: content, context, voice });
-  
+
       const sageMessage: Message = {
         id: (Date.now() + 1).toString(),
         content: answer,
         sender: 'sage',
         timestamp: new Date(),
-        avatar_url: "/lovable-uploads/sage_avatar.png", // optional
+        avatar_url: "/lovable-uploads/sage_avatar.png",
       };
-  
+
       setMessages(prev => [...prev, sageMessage]);
     } catch (err) {
       const errorMessage: Message = {
@@ -85,12 +80,12 @@ export const useChat = () => {
         sender: 'sage',
         timestamp: new Date(),
       };
-  
+
       setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }
-  };  
+  };
 
   const handleFeedback = (messageId: string, feedback: 'like' | 'dislike') => {
     setMessages(messages.map(message => {
