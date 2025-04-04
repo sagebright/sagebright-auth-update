@@ -119,14 +119,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
-      
+  
+      console.log("🧠 signIn result - data:", data);
+      console.log("🧠 signIn result - error:", error);
+  
       if (error) throw error;
-      
-      navigate('/dashboard');
+  
+      return data;
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -136,6 +139,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       throw error;
     }
   };
+  
+  
 
   const signInWithGoogle = async () => {
     try {
@@ -218,23 +223,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const value = {
-    session: { user: { id: "69d925ed-ced1-4d6e-a88a-3de3f6dc2c76", email: "randy@lumon.com" } } as Session,
-    user: { id: "69d925ed-ced1-4d6e-a88a-3de3f6dc2c76", email: "randy@lumon.com" } as User,
-    profile: {
-      id: "69d925ed-ced1-4d6e-a88a-3de3f6dc2c76",
-      full_name: "Randy",
-      role: "Engineer",
-      team: "Data Refinement",
-    },
-    loading: false,
-    signUp: async (email: string, password: string, fullName: string) => {},
-    signIn: async (email: string, password: string) => {},
-    signInWithGoogle: async () => {},
+  const value: AuthContextType = {
+    session,
+    user,
+    profile,
+    loading,
+    signUp,
+    signIn,
+    signInWithGoogle,
     signOut,
-    resetPassword: async (email: string) => {},
-    updateProfile: async (data: any) => {},
+    resetPassword,
+    updateProfile
   };
+  
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

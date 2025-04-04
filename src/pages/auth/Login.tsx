@@ -47,16 +47,26 @@ export default function Login() {
   const onSubmit = async (data: LoginValues) => {
     setIsLoading(true);
     try {
-      await signIn(data.email, data.password);
+      console.log("🔑 Attempting login with:", data.email);
+      
+      const result = await signIn(data.email, data.password);
+      console.log("✅ Login result:", result);
+  
+      // ⏳ Give Supabase time to propagate session
+      await new Promise((resolve) => setTimeout(resolve, 500));
+  
       const redirectTo = localStorage.getItem("redirectAfterLogin") || "/user-dashboard";
       localStorage.removeItem("redirectAfterLogin");
+  
+      console.log("🚀 Navigating to:", redirectTo);
       navigate(redirectTo, { replace: true });
     } catch (error) {
-      // Error is handled in the auth context
+      console.error("❌ Login failed:", error);
     } finally {
       setIsLoading(false);
     }
   };
+  
 
   const handleGoogleSignIn = async () => {
     try {

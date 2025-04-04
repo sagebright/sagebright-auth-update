@@ -24,3 +24,7 @@ if (!globalAny.__supabase) {
 }
 
 export const supabase = globalAny.__supabase;
+// Dev-only: Expose supabase for debugging in the console
+if (typeof window !== "undefined") {
+  (window as any).supabase = supabase;
+}
