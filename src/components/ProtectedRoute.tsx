@@ -10,7 +10,7 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const navigate = useNavigate();
-  const { loading, user } = useRequireAuth(navigate);
+  const { loading, isAuthenticated } = useRequireAuth(navigate);
 
   // The useRequireAuth hook handles redirecting to login if there's no user
   // We just need to show loading state and render children when authenticated
@@ -25,8 +25,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     );
   }
 
-  // If there's a user, render the protected content
-  // Note: useRequireAuth already redirects if no user
+  // If authenticated, render the protected content
   return <>{children}</>;
 };
 

@@ -1,6 +1,6 @@
 
 import React, { useRef, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { ChatHeader } from '@/components/ask-sage/ChatHeader';
@@ -18,6 +18,7 @@ import { useRequireAuth } from '@/hooks/useRequireAuth';
 
 const AskSage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, userId, orgId, loading: authLoading } = useRequireAuth(navigate);
 
   const [demoMessages, setDemoMessages] = useState<any[]>([]);
@@ -29,6 +30,11 @@ const AskSage = () => {
     handleSendMessage,
     handleFeedback
   } = useChat();
+
+  // Preserve voice parameter from URL
+  const voiceParam = React.useMemo(() => {
+    return new URLSearchParams(location.search).get('voice') || 'default';
+  }, [location.search]);
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -57,8 +63,8 @@ const AskSage = () => {
     try {
       const { context } = await buildSageContext(userId, orgId);
       console.log("🧠 Sage Context:\n", context);
-      const voice = getVoiceFromUrl();
-      const answer = await callOpenAI({ question, context, voice });    
+      // Use the preserved voice parameter instead of getting it from URL each time
+      const answer = await callOpenAI({ question, context, voice: voiceParam });    
 
       const sageMessage = {
         id: `sage-${Date.now()}`,
