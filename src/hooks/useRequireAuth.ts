@@ -20,6 +20,8 @@ export function useRequireAuth(navigate: NavigateFunction) {
       return;
     }
 
+    let isMounted = true;
+    
     const checkAuth = async () => {
       try {
         const { data: { user }, error } = await supabase.auth.getUser();
@@ -30,10 +32,15 @@ export function useRequireAuth(navigate: NavigateFunction) {
 
         if (error || sessionError || !user || !session) {
           // Only store path for redirect if we're actually redirecting due to auth
-          localStorage.setItem("redirectAfterLogin", location.pathname + location.search);
-          navigate('/auth/login', { replace: true });
-          setIsAuthenticated(false);
-        } else {
+          // Include the full URL with search params
+          const fullPath = location.pathname + location.search;
+          localStorage.setItem("redirectAfterLogin", fullPath);
+          
+          if (isMounted) {
+            navigate('/auth/login', { replace: true });
+            setIsAuthenticated(false);
+          }
+        } else if (isMounted) {
           const extractedOrgId = user.user_metadata?.org_id;
 
           if (!extractedOrgId) {
@@ -47,26 +54,27 @@ export function useRequireAuth(navigate: NavigateFunction) {
         }
       } catch (error) {
         console.error("⚠️ Error checking auth:", error);
-        setIsAuthenticated(false);
+        if (isMounted) {
+          setIsAuthenticated(false);
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
-    let didCancel = false;
-
     // Use a timer to ensure we don't repeatedly check auth in rapid succession
+    // And only trigger once per auth change, not on every URL parameter change
     const timer = setTimeout(() => {
-      if (!didCancel) {
-        checkAuth();
-      }
+      checkAuth();
     }, 100);
 
     return () => {
-      didCancel = true;
+      isMounted = false;
       clearTimeout(timer);
     };
-  }, [navigate, location.pathname]); // Removed location from dependencies to prevent re-renders on query params
+  }, [navigate, location.pathname]); // Only depend on pathname, not full location object
 
   return { user, userId, orgId, loading, isAuthenticated };
 }

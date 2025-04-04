@@ -1,3 +1,4 @@
+
 // src/lib/api.ts
 
 import { voiceprints, sageFramework } from './voiceprints';
@@ -16,6 +17,7 @@ export async function callOpenAI({
   };
   voice?: string;
 }): Promise<string> {
+  console.log("🎤 Using voice:", voice);
   console.log("🔑 VITE_OPENAI_KEY:", import.meta.env.VITE_OPENAI_KEY?.slice(0, 8));
 
   const tone = voiceprints[voice] || voiceprints['default'];

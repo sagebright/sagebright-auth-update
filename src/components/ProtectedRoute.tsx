@@ -1,6 +1,5 @@
-
-import React from 'react';
-import { Navigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
 import { useNavigate } from 'react-router-dom';
 
@@ -10,10 +9,15 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { loading, isAuthenticated } = useRequireAuth(navigate);
-
-  // The useRequireAuth hook handles redirecting to login if there's no user
-  // We just need to show loading state and render children when authenticated
+  
+  // Keep track of last authenticated location to prevent unwanted redirects
+  useEffect(() => {
+    if (isAuthenticated && !loading) {
+      sessionStorage.setItem('lastAuthenticatedPath', location.pathname + location.search);
+    }
+  }, [isAuthenticated, loading, location.pathname, location.search]);
   
   if (loading) {
     // Show loading spinner while authentication state is being determined

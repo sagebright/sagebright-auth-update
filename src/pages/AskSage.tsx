@@ -1,6 +1,6 @@
 
 import React, { useRef, useEffect, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { ChatHeader } from '@/components/ask-sage/ChatHeader';
@@ -13,12 +13,12 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useChat } from '@/hooks/use-chat';
 import { buildSageContext } from "@/lib/buildSageContext";
 import { callOpenAI } from "@/lib/api";
-import { getVoiceFromUrl } from '@/lib/utils';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
 
 const AskSage = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const { user, userId, orgId, loading: authLoading } = useRequireAuth(navigate);
 
   const [demoMessages, setDemoMessages] = useState<any[]>([]);
@@ -31,10 +31,16 @@ const AskSage = () => {
     handleFeedback
   } = useChat();
 
-  // Preserve voice parameter from URL
+  // Get voice parameter from searchParams instead of location.search
   const voiceParam = React.useMemo(() => {
-    return new URLSearchParams(location.search).get('voice') || 'default';
-  }, [location.search]);
+    return searchParams.get('voice') || 'default';
+  }, [searchParams]);
+
+  // Log the current voice setting and search params to help with debugging
+  useEffect(() => {
+    console.log("🎤 Current voice setting:", voiceParam);
+    console.log("🔍 Search params:", Object.fromEntries(searchParams.entries()));
+  }, [voiceParam, searchParams]);
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -63,7 +69,7 @@ const AskSage = () => {
     try {
       const { context } = await buildSageContext(userId, orgId);
       console.log("🧠 Sage Context:\n", context);
-      // Use the preserved voice parameter instead of getting it from URL each time
+      // Use the preserved voice parameter from state
       const answer = await callOpenAI({ question, context, voice: voiceParam });    
 
       const sageMessage = {
@@ -96,7 +102,12 @@ const AskSage = () => {
   };
 
   if (authLoading) {
-    return <div>Checking authentication...</div>;
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="animate-spin h-8 w-8 border-4 border-sagebright-green border-t-transparent rounded-full"></div>
+        <span className="ml-2 text-sagebright-green">Checking authentication...</span>
+      </div>
+    );
   }
 
   return (
