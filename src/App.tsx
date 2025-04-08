@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -40,6 +41,15 @@ const queryClient = new QueryClient({
   },
 });
 
+// Component to wrap public pages that use Navbar and need useAuth
+const PublicAuthRoute = ({ element }) => {
+  return (
+    <AuthProvider>
+      {element}
+    </AuthProvider>
+  );
+};
+
 const App = () => {
   const orgContext = getOrgFromUrl();
   
@@ -49,12 +59,12 @@ const App = () => {
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <AuthProvider>
-            <PageErrorBoundary>
-              <Routes>
-                <Route 
-                  path="/" 
-                  element={
+          <PageErrorBoundary>
+            <Routes>
+              <Route 
+                path="/" 
+                element={
+                  <PublicAuthRoute element={
                     orgContext ? (
                       <ProtectedRoute>
                         <div className="flex h-screen items-center justify-center">
@@ -65,63 +75,74 @@ const App = () => {
                     ) : (
                       <Index />
                     )
-                  } 
-                />
-                
-                <Route path="/contact-us" element={<ContactUs />} />
-                
-                <Route path="/auth/login" element={<Login />} />
-                <Route path="/auth/signup" element={<Signup />} />
-                <Route path="/auth/forgot-password" element={<ForgotPassword />} />
-                <Route path="/auth/callback" element={<Navigate to="/user-dashboard" replace />} />
-                
-                <Route
-                  path="/user-dashboard"
-                  element={
+                  } />
+                } 
+              />
+              
+              <Route 
+                path="/contact-us" 
+                element={<PublicAuthRoute element={<ContactUs />} />} 
+              />
+              
+              <Route path="/auth/login" element={<Login />} />
+              <Route path="/auth/signup" element={<Signup />} />
+              <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+              <Route path="/auth/callback" element={<Navigate to="/user-dashboard" replace />} />
+              
+              <Route
+                path="/user-dashboard"
+                element={
+                  <AuthProvider>
                     <ProtectedRoute>
                       <Dashboard />
                     </ProtectedRoute>
-                  }
-                />
-                
-                <Route
-                  path="/dashboard"
-                  element={
+                  </AuthProvider>
+                }
+              />
+              
+              <Route
+                path="/dashboard"
+                element={
+                  <AuthProvider>
                     <ProtectedRoute>
                       <Navigate to="/user-dashboard" replace />
                     </ProtectedRoute>
-                  }
-                />
-                
-                <Route
-                  path="/hr-dashboard"
-                  element={
+                  </AuthProvider>
+                }
+              />
+              
+              <Route
+                path="/hr-dashboard"
+                element={
+                  <AuthProvider>
                     <ProtectedRoute requiredRole="admin">
                       <HRDashboard />
                     </ProtectedRoute>
-                  }
-                />
-                
-                <Route
-                  path="/ask-sage"
-                  element={
+                  </AuthProvider>
+                }
+              />
+              
+              <Route
+                path="/ask-sage"
+                element={
+                  <AuthProvider>
                     <ProtectedRoute>
                       <AskSage />
                     </ProtectedRoute>
-                  }
-                />
-                
-                <Route path="/design-system" element={<DesignSystem />} />
-                <Route path="/dev-debug" element={<DevDebugPage />} />
-                <Route path="/form-components-example" element={<FormComponentsExample />} />
-                <Route path="/error-handling-example" element={<ErrorHandlingExample />} />
-                <Route path="/skeleton-preview" element={<SkeletonPreview />} />
-                <Route path="/image-preview" element={<ImageComponentPreview />} />
-                
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </PageErrorBoundary>
-          </AuthProvider>
+                  </AuthProvider>
+                }
+              />
+              
+              <Route path="/design-system" element={<PublicAuthRoute element={<DesignSystem />} />} />
+              <Route path="/dev-debug" element={<PublicAuthRoute element={<DevDebugPage />} />} />
+              <Route path="/form-components-example" element={<PublicAuthRoute element={<FormComponentsExample />} />} />
+              <Route path="/error-handling-example" element={<PublicAuthRoute element={<ErrorHandlingExample />} />} />
+              <Route path="/skeleton-preview" element={<PublicAuthRoute element={<SkeletonPreview />} />} />
+              <Route path="/image-preview" element={<PublicAuthRoute element={<ImageComponentPreview />} />} />
+              
+              <Route path="*" element={<PublicAuthRoute element={<NotFound />} />} />
+            </Routes>
+          </PageErrorBoundary>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>

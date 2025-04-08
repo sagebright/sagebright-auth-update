@@ -133,7 +133,9 @@ const Navbar = () => {
           
           <div className="flex items-center ml-6 md:ml-8">
             <Button asChild className="bg-sagebright-coral hover:bg-sagebright-coral/90 text-white text-cta font-dmSans rounded-md transition-transform duration-300 hover:scale-103 hover:brightness-105">
-              <Link to="/auth/login">Request Access</Link>
+              <Link to={user ? "/user-dashboard" : "/auth/login"}>
+                {user ? "Dashboard" : "Request Access"}
+              </Link>
             </Button>
             
             {/* Mobile Menu Button */}
@@ -210,7 +212,9 @@ const Navbar = () => {
                     </Link>
                     <div className="pt-4">
                       <Button asChild className="w-full bg-sagebright-coral hover:bg-sagebright-coral/90 text-white text-cta font-dmSans rounded-md">
-                        <Link to="/auth/login">Request Access</Link>
+                        <Link to={user ? "/user-dashboard" : "/auth/login"}>
+                          {user ? "Dashboard" : "Request Access"}
+                        </Link>
                       </Button>
                     </div>
                   </div>
