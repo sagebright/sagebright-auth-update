@@ -11,6 +11,7 @@ export default function Dashboard() {
   return (
     <DashboardLayout>
       <div className="flex-1 space-y-8 p-4 md:p-8 pt-6 bg-gray-50/50">
+
         {/* Header with welcome message */}
         <DashboardHeader />
         

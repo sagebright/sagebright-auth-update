@@ -1,12 +1,23 @@
-
-import React from "react";
+import React, { useEffect, useState } from "react";
 import UserMenu from "./UserMenu";
 import { useAuth } from "@/contexts/AuthContext";
+import { getUsers } from "@/lib/backendApi"; // ✅ Your new API
 
 export default function DashboardHeader() {
-  const { profile } = useAuth();
-  
-  // Get current time of day
+  const { userId } = useAuth(); // 👈 We trust this to be set after login
+  const [fullName, setFullName] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!userId) return;
+
+    getUsers().then(users => {
+      const currentUser = users.find((u) => u.id === userId);
+      setFullName(currentUser?.full_name || null);
+    }).catch((err) => {
+      console.error("Error loading user data:", err);
+    });
+  }, [userId]);
+
   const getTimeOfDay = () => {
     const hour = new Date().getHours();
     if (hour < 12) return "morning";
@@ -14,8 +25,7 @@ export default function DashboardHeader() {
     return "evening";
   };
 
-  // Get first name from profile
-  const firstName = profile?.full_name ? profile.full_name.split(" ")[0] : "there";
+  const firstName = fullName ? fullName.split(" ")[0] : "there";
 
   return (
     <div className="flex flex-col space-y-2 md:flex-row md:items-center md:justify-between md:space-y-0">

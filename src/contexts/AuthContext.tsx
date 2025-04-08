@@ -4,6 +4,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabaseClient';
+import { getUsers } from '@/lib/backendApi'; // 👈 New backend-driven source
 import { useToast } from '@/hooks/use-toast';
 
 interface AuthContextType {
@@ -11,86 +12,78 @@ interface AuthContextType {
   user: User | null;
   userId: string | null;
   orgId: string | null;
-  profile: any | null;
+  currentUser: any | null;
   loading: boolean;
   signUp: (email: string, password: string, fullName: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
-  updateProfile: (data: any) => Promise<void>;
+  updateProfile: (data: any) => Promise<void>; // placeholder for future
+  accessToken: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [accessToken, setAccessToken] = useState<string | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [orgId, setOrgId] = useState<string | null>(null);
-  const [profile, setProfile] = useState<any | null>(null);
+  const [currentUser, setCurrentUser] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // Load user from backend once userId is known
+  useEffect(() => {
+    if (!userId) return;
+
+    getUsers()
+      .then(users => {
+        const match = users.find(u => u.id === userId);
+        setCurrentUser(match || null);
+        setOrgId(match?.org_id || null);
+      })
+      .catch(err => {
+        console.error('Error loading current user:', err);
+      });
+  }, [userId]);
+
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        console.log('🔥 session in getSession():', session);
         setSession(session);
         setUser(session?.user ?? null);
         setUserId(session?.user?.id ?? null);
-        setOrgId(session?.user?.user_metadata?.org_id ?? null);
 
         if (event === 'SIGNED_IN' && session?.user) {
-          loadUserProfile(session.user.id);
-          const redirectTo = localStorage.getItem("redirectAfterLogin") || "/user-dashboard";
-          localStorage.removeItem("redirectAfterLogin");
-          navigate(redirectTo, { replace: true });
-        } else if (event === 'TOKEN_REFRESHED' && session?.user) {
-          loadUserProfile(session.user.id);
-        } else if (event === 'SIGNED_OUT') {
-          setProfile(null);
-          setUserId(null);
-          setOrgId(null);
-        }
+          const redirectTo = localStorage.getItem("redirectAfterLogin");
+          if (redirectTo) {
+            localStorage.removeItem("redirectAfterLogin");
+            navigate(redirectTo, { replace: true });
+          }
+        }        
       }
     );
 
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('🔥 session in getSession():', session);
+
       setSession(session);
       setUser(session?.user ?? null);
       setUserId(session?.user?.id ?? null);
-      setOrgId(session?.user?.user_metadata?.org_id ?? null);
-
-      if (session?.user) {
-        loadUserProfile(session.user.id);
-      }
-
+      setAccessToken(session?.access_token ?? null); // ✅ The important part
       setLoading(false);
     });
+    
 
     return () => {
       subscription.unsubscribe();
     };
   }, [navigate]);
-
-  const loadUserProfile = async (userId: string | undefined) => {
-    if (!userId) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (error) throw error;
-
-      setProfile(data);
-    } catch (error: any) {
-      console.error('Error loading user profile:', error.message);
-    }
-  };
 
   const signUp = async (email: string, password: string, fullName: string) => {
     try {
@@ -199,28 +192,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const updateProfile = async (data: any) => {
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update(data)
-        .eq('id', user?.id);
-
-      if (error) throw error;
-
-      setProfile({ ...profile, ...data });
-
-      toast({
-        title: "Profile updated",
-        description: "Your profile has been successfully updated"
-      });
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error updating profile",
-        description: error.message
-      });
-      throw error;
-    }
+    console.warn("🔧 TODO: Replace with PATCH /api/users/:id");
+    // Will replace Supabase update with backend route later
   };
 
   const value: AuthContextType = {
@@ -228,7 +201,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     user,
     userId,
     orgId,
-    profile,
+    currentUser,
     loading,
     signUp,
     signIn,
@@ -236,6 +209,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signOut,
     resetPassword,
     updateProfile,
+    accessToken,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
