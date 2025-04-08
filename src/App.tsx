@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -20,15 +21,18 @@ import DesignSystem from "@/pages/DesignSystem";
 import FormComponentsExample from "@/pages/FormComponentsExample";
 import ErrorHandlingExample from "@/pages/ErrorHandlingExample";
 import { getOrgFromUrl } from "./lib/subdomainUtils";
+import { handleApiError } from "./lib/handleApiError";
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 1,
       refetchOnWindowFocus: false,
-      onError: (error) => {
+      onSettled: (data, error) => {
         // Global error handling for React Query
-        console.error('React Query error:', error);
+        if (error) {
+          console.error('React Query error:', error);
+        }
       },
     },
   },
