@@ -368,7 +368,7 @@ export function LoadingButton() {
                       </li>
                       <li className="flex gap-3">
                         <Check className="h-5 w-5 text-green-500 shrink-0" />
-                        <p className="text-sm">Use skeleton loaders for content that takes >300ms to load</p>
+                        <p className="text-sm">Use skeleton loaders for content that takes {'>'}300ms to load</p>
                       </li>
                       <li className="flex gap-3">
                         <Check className="h-5 w-5 text-green-500 shrink-0" />
