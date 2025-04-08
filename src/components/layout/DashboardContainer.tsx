@@ -2,8 +2,8 @@
 import React from 'react';
 import { cn } from "@/lib/utils";
 import { AppShell } from './AppShell';
-import { UserSidebar } from '@/components/dashboard/UserSidebar';
-import { AdminSidebar } from '@/components/dashboard/AdminSidebar';
+import UserSidebar from '@/components/dashboard/UserSidebar';
+import AdminSidebar from '@/components/dashboard/AdminSidebar';
 import { useLocation } from 'react-router-dom';
 
 interface DashboardContainerProps {
