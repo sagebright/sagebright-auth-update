@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
@@ -5,9 +6,15 @@ import { getOrgFromUrl, redirectToOrgUrl } from '@/lib/subdomainUtils';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
+  requiredRole?: string;
+  requiredPermission?: string;
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
+  children, 
+  requiredRole,
+  requiredPermission 
+}) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { loading, isAuthenticated, user, orgId } = useRequireAuth(navigate);
@@ -25,8 +32,23 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     
     if (isAuthenticated && !loading) {
       sessionStorage.setItem('lastAuthenticatedPath', location.pathname + location.search);
+      
+      // Check for required role or permission
+      if (requiredRole && user?.role !== requiredRole) {
+        navigate('/unauthorized', { replace: true });
+        return;
+      }
+      
+      if (requiredPermission && 
+          (!user?.permissions || !user.permissions.includes(requiredPermission))) {
+        navigate('/unauthorized', { replace: true });
+        return;
+      }
     }
-  }, [isAuthenticated, loading, location.pathname, location.search, orgId]);
+  }, [
+    isAuthenticated, loading, location.pathname, location.search, 
+    orgId, navigate, requiredRole, requiredPermission, user
+  ]);
   
   if (loading) {
     return (

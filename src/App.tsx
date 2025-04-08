@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -24,11 +25,13 @@ import { getOrgFromUrl } from "./lib/subdomainUtils";
 import { handleApiError } from "./lib/handleApiError";
 import ImageComponentPreview from "./pages/ImageComponentPreview";
 
+// Configure React Query client with consistent error handling
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 1,
       refetchOnWindowFocus: false,
+      staleTime: 5 * 60 * 1000, // 5 minutes
     },
     mutations: {
       onError: (error) => {
@@ -40,6 +43,7 @@ const queryClient = new QueryClient({
 });
 
 const App = () => {
+  // Get organization context from URL
   const orgContext = getOrgFromUrl();
   
   return (
@@ -51,26 +55,24 @@ const App = () => {
           <AuthProvider>
             <PageErrorBoundary>
               <Routes>
+                {/* Public routes */}
                 <Route path="/" element={<Index />} />
                 <Route path="/contact-us" element={<ContactUs />} />
-                <Route path="/design-system" element={<DesignSystem />} />
-                <Route path="/dev-debug" element={<DevDebugPage />} />
-                <Route path="/form-components-example" element={<FormComponentsExample />} />
-                <Route path="/error-handling-example" element={<ErrorHandlingExample />} />
-                <Route path="/skeleton-preview" element={<SkeletonPreview />} />
                 
+                {/* Auth routes */}
                 <Route path="/auth/login" element={<Login />} />
                 <Route path="/auth/signup" element={<Signup />} />
                 <Route path="/auth/forgot-password" element={<ForgotPassword />} />
                 <Route path="/auth/callback" element={<Navigate to="/user-dashboard" replace />} />
                 
-                <Route 
-                  path="/user-dashboard" 
+                {/* Protected routes with specific roles */}
+                <Route
+                  path="/user-dashboard"
                   element={
                     <ProtectedRoute>
                       <Dashboard />
                     </ProtectedRoute>
-                  } 
+                  }
                 />
                 
                 <Route
@@ -85,7 +87,7 @@ const App = () => {
                 <Route
                   path="/hr-dashboard"
                   element={
-                    <ProtectedRoute>
+                    <ProtectedRoute requiredRole="hr">
                       <HRDashboard />
                     </ProtectedRoute>
                   }
@@ -100,8 +102,15 @@ const App = () => {
                   }
                 />
                 
+                {/* Dev/demo routes */}
+                <Route path="/design-system" element={<DesignSystem />} />
+                <Route path="/dev-debug" element={<DevDebugPage />} />
+                <Route path="/form-components-example" element={<FormComponentsExample />} />
+                <Route path="/error-handling-example" element={<ErrorHandlingExample />} />
+                <Route path="/skeleton-preview" element={<SkeletonPreview />} />
                 <Route path="/image-preview" element={<ImageComponentPreview />} />
                 
+                {/* Catch all */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </PageErrorBoundary>
