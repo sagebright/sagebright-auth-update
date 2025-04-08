@@ -1,7 +1,6 @@
 
 import { useState, useCallback } from "react";
-import { useToast } from "@/hooks/use-toast";
-import { handleApiError } from "@/lib/handleApiError";
+import { handleApiError, showSuccess } from "@/lib/handleApiError";
 
 interface UseFormSubmitOptions<T, R> {
   onSubmit: (data: T) => Promise<R>;
@@ -19,7 +18,6 @@ export function useFormSubmit<T, R = any>({
   resetFormOnSuccess = true,
 }: UseFormSubmitOptions<T, R>) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { toast } = useToast();
 
   const handleSubmit = useCallback(
     async (data: T, formReset?: () => void) => {
@@ -27,11 +25,8 @@ export function useFormSubmit<T, R = any>({
       try {
         const result = await onSubmit(data);
         
-        toast({
-          title: "Success",
-          description: successMessage,
-          duration: 5000,
-        });
+        // Show success message
+        showSuccess(successMessage);
         
         if (resetFormOnSuccess && formReset) {
           formReset();
@@ -43,16 +38,10 @@ export function useFormSubmit<T, R = any>({
         
         return result;
       } catch (error) {
+        // Use our centralized error handling
         handleApiError(error, {
           context: "form submission",
           fallbackMessage: errorMessage
-        });
-        
-        toast({
-          title: "Error",
-          description: errorMessage,
-          variant: "destructive",
-          duration: 5000,
         });
         
         throw error;
@@ -60,7 +49,7 @@ export function useFormSubmit<T, R = any>({
         setIsSubmitting(false);
       }
     },
-    [onSubmit, onSuccess, successMessage, errorMessage, resetFormOnSuccess, toast]
+    [onSubmit, onSuccess, successMessage, errorMessage, resetFormOnSuccess]
   );
 
   return {
