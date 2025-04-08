@@ -1,3 +1,4 @@
+
 // src/contexts/AuthContext.tsx
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
@@ -6,6 +7,7 @@ import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabaseClient';
 import { getUsers } from '@/lib/backendApi'; // 👈 New backend-driven source
 import { useToast } from '@/hooks/use-toast';
+import { getOrgFromUrl, redirectToOrgUrl } from '@/lib/subdomainUtils';
 
 interface AuthContextType {
   session: Session | null;
@@ -54,28 +56,53 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        console.log('🔥 session in getSession():', session);
+        console.log('🔥 Auth state changed:', event);
         setSession(session);
         setUser(session?.user ?? null);
         setUserId(session?.user?.id ?? null);
-
+        
+        // Handle org-based routing on auth state change
         if (event === 'SIGNED_IN' && session?.user) {
-          const redirectTo = localStorage.getItem("redirectAfterLogin");
-          if (redirectTo) {
-            localStorage.removeItem("redirectAfterLogin");
-            navigate(redirectTo, { replace: true });
+          const userOrgId = session.user.user_metadata?.org_id;
+          if (userOrgId) {
+            const currentOrg = getOrgFromUrl();
+            if (!currentOrg || currentOrg !== userOrgId) {
+              console.log('🏢 Redirecting to org subdomain:', userOrgId);
+              // Store path for after subdomain redirect
+              sessionStorage.setItem('lastAuthenticatedPath', 
+                localStorage.getItem("redirectAfterLogin") || '/user-dashboard');
+              redirectToOrgUrl(userOrgId);
+            }
           }
-        }        
+        }
       }
     );
 
     supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('🔥 session in getSession():', session);
+      console.log('🔥 Session in getSession():', session);
 
       setSession(session);
       setUser(session?.user ?? null);
       setUserId(session?.user?.id ?? null);
-      setAccessToken(session?.access_token ?? null); // ✅ The important part
+      setAccessToken(session?.access_token ?? null);
+      
+      // Check for organization-based routing on initial load
+      if (session?.user) {
+        const userOrgId = session.user.user_metadata?.org_id;
+        if (userOrgId) {
+          const currentOrg = getOrgFromUrl();
+          if (!currentOrg || currentOrg !== userOrgId) {
+            // Only redirect if not on auth pages
+            if (!window.location.pathname.startsWith('/auth')) {
+              console.log('🏢 Redirecting to org subdomain on load:', userOrgId);
+              redirectToOrgUrl(userOrgId);
+              setLoading(false);
+              return;
+            }
+          }
+        }
+      }
+      
       setLoading(false);
     });
     
@@ -123,6 +150,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       if (error) throw error;
+      
+      // Check for organization context
+      const userOrgId = data.user?.user_metadata?.org_id;
+      if (userOrgId) {
+        const currentOrg = getOrgFromUrl();
+        if (!currentOrg || currentOrg !== userOrgId) {
+          console.log('🏢 Redirecting to org subdomain after sign in:', userOrgId);
+          // Store path for after subdomain redirect
+          const redirectPath = localStorage.getItem("redirectAfterLogin") || '/user-dashboard';
+          sessionStorage.setItem('lastAuthenticatedPath', redirectPath);
+          localStorage.removeItem("redirectAfterLogin");
+          redirectToOrgUrl(userOrgId);
+          return data;
+        }
+      }
 
       return data;
     } catch (error: any) {
@@ -159,6 +201,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
+      
+      // Redirect to root domain on signout if on a subdomain
+      const currentOrg = getOrgFromUrl();
+      if (currentOrg) {
+        window.location.href = window.location.protocol + '//' + 
+          window.location.hostname.split('.').slice(1).join('.');
+        return;
+      }
+      
       navigate('/auth/login');
     } catch (error: any) {
       toast({

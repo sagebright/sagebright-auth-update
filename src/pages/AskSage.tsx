@@ -1,37 +1,37 @@
 
-import React, { useRef, useEffect, useState } from 'react';
-import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import DashboardLayout from '@/components/dashboard/DashboardLayout';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useRequireAuth } from '@/hooks/useRequireAuth';
+import { DashboardContainer } from '@/components/layout/DashboardContainer';
+import { ConversationContainer } from '@/components/conversation/ConversationContainer';
 import { ChatHeader } from '@/components/ask-sage/ChatHeader';
-import { ChatMessage } from '@/components/ask-sage/ChatMessage';
-import { ChatInputBar } from '@/components/ask-sage/ChatInputBar';
-import { ReflectionForm, ReflectionData } from '@/components/ask-sage/ReflectionForm';
 import { ResourcesSidebar } from '@/components/ask-sage/ResourcesSidebar';
-import { TypingIndicator } from '@/components/ask-sage/TypingIndicator';
+import { ReflectionForm, ReflectionData } from '@/components/ask-sage/ReflectionForm';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useChat } from '@/hooks/use-chat';
 import { buildSageContext } from "@/lib/buildSageContext";
 import { callOpenAI } from "@/lib/api";
-import { useRequireAuth } from '@/hooks/useRequireAuth';
+import { ChatBubbleProps } from '@/components/conversation/ChatBubble';
 
 const AskSage = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const [searchParams] = useSearchParams();
   const { user, userId, orgId, loading: authLoading } = useRequireAuth(navigate);
 
-  const [demoMessages, setDemoMessages] = useState<any[]>([]);
+  const [messages, setMessages] = useState<Omit<ChatBubbleProps, "avatarFallback">[]>([]);
   const [isTyping, setIsTyping] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const isMobile = useIsMobile();
+  
   const {
     suggestedQuestions,
     showReflection,
     setShowReflection,
-    handleSendMessage,
     handleFeedback
   } = useChat();
 
-  // Get voice parameter from searchParams instead of location.search
+  // Get voice parameter from searchParams
   const voiceParam = React.useMemo(() => {
     return searchParams.get('voice') || 'default';
   }, [searchParams]);
@@ -42,28 +42,30 @@ const AskSage = () => {
     console.log("🔍 Search params:", Object.fromEntries(searchParams.entries()));
   }, [voiceParam, searchParams]);
 
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const chatEndRef = useRef<HTMLDivElement>(null);
-  const isMobile = useIsMobile();
-
+  // Add an initial greeting from Sage when the component mounts
   useEffect(() => {
-    if (chatEndRef.current) {
-      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    if (messages.length === 0) {
+      setMessages([{
+        sender: 'sage',
+        content: "Hi there! I'm Sage, your onboarding assistant. How can I help you today?",
+        timestamp: new Date(),
+        avatarUrl: '/lovable-uploads/sage_avatar.png',
+      }]);
     }
-  }, [demoMessages, isTyping]);
+  }, [messages.length]);
 
   const sendMessageToSage = async (question: string) => {
     if (!userId || !orgId) return;
 
     const userMessage = {
       id: `user-${Date.now()}`,
-      sender: "user",
+      sender: "user" as const,
       content: question,
       timestamp: new Date(),
-      avatar_url: user?.user_metadata?.avatar_url || "",
+      avatarUrl: user?.user_metadata?.avatar_url || "",
     };
 
-    setDemoMessages((prev) => [...prev, userMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     setIsTyping(true);
 
     try {
@@ -74,23 +76,23 @@ const AskSage = () => {
 
       const sageMessage = {
         id: `sage-${Date.now()}`,
-        sender: "sage",
+        sender: "sage" as const,
         content: answer,
         timestamp: new Date(),
-        avatar_url: "/lovable-uploads/sage_avatar.png",
+        avatarUrl: "/lovable-uploads/sage_avatar.png",
       };
 
-      setDemoMessages((prev) => [...prev, sageMessage]);
+      setMessages((prev) => [...prev, sageMessage]);
     } catch (err) {
       console.error("Sage had trouble:", err);
       const errorMsg = {
         id: `error-${Date.now()}`,
-        sender: "sage",
-        content: "Sage couldn't respond. Try again.",
+        sender: "sage" as const,
+        content: "I'm sorry, I couldn't process your request. Please try again.",
         timestamp: new Date(),
-        avatar_url: "/lovable-uploads/sage_avatar.png",
+        avatarUrl: "/lovable-uploads/sage_avatar.png",
       };
-      setDemoMessages((prev) => [...prev, errorMsg]);
+      setMessages((prev) => [...prev, errorMsg]);
     } finally {
       setIsTyping(false);
     }
@@ -104,58 +106,40 @@ const AskSage = () => {
   if (authLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <div className="animate-spin h-8 w-8 border-4 border-sagebright-green border-t-transparent rounded-full"></div>
-        <span className="ml-2 text-sagebright-green">Checking authentication...</span>
+        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+        <span className="ml-2 text-primary">Checking authentication...</span>
       </div>
     );
   }
 
   return (
-    <DashboardLayout>
-      <div className="flex-1 flex flex-col h-full bg-gray-50">
-        
+    <DashboardContainer showSagePanel={false}>
+      <div className="flex flex-col h-full -m-4 md:-m-8">
+        {/* Chat Header */}
         <ChatHeader sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
         <div className="flex flex-1 overflow-hidden">
+          {/* Main conversation area */}
           <div className="flex-1 flex flex-col min-w-0 h-full">
-            <div className="flex-1 overflow-y-auto p-4">
-              <div className="max-w-3xl mx-auto space-y-4">
-                {demoMessages.length > 0 ? (
-                  demoMessages.map((message) => (
-                    <ChatMessage
-                      key={message.id}
-                      message={message}
-                      onFeedback={handleFeedback}
-                    />
-                  ))
-                ) : (
-                  <div className="text-center text-gray-500 py-12">
-                    <p>Start a conversation with Sage</p>
-                  </div>
-                )}
-
-                {isTyping && <TypingIndicator />}
-
-                <div ref={chatEndRef} />
-              </div>
-            </div>
-
-            <ChatInputBar
+            <ConversationContainer
+              messages={messages}
               onSendMessage={sendMessageToSage}
-              onReflectionSubmit={handleReflectionSubmit}
-              isLoading={isTyping}
-              suggestedQuestions={suggestedQuestions}
-              onSelectQuestion={handleSendMessage}
+              isTyping={isTyping}
+              sageAvatarUrl="/lovable-uploads/sage_avatar.png"
+              userAvatarUrl={user?.user_metadata?.avatar_url}
+              className="h-full"
             />
           </div>
 
+          {/* Resources sidebar */}
           {sidebarOpen && (
-            <div className="hidden md:flex flex-col w-80 border-l border-gray-200 bg-white p-4 overflow-y-auto">
+            <div className="hidden md:flex flex-col w-80 border-l border-border bg-background p-4 overflow-y-auto">
               <ResourcesSidebar />
             </div>
           )}
         </div>
 
+        {/* Reflection dialog */}
         <Dialog open={showReflection} onOpenChange={setShowReflection}>
           <DialogContent className={isMobile ? "w-full h-[90vh] rounded-t-lg p-4 max-w-full pt-6" : ""}>
             <DialogHeader>
@@ -171,7 +155,7 @@ const AskSage = () => {
           </DialogContent>
         </Dialog>
       </div>
-    </DashboardLayout>
+    </DashboardContainer>
   );
 };
 

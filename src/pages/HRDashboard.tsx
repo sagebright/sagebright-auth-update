@@ -1,16 +1,6 @@
 
 import React from 'react';
-import { Card } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { Button } from '@/components/ui/button';
-import { Download, Send, ChevronDown, ChevronUp, UserPlus, Edit, ExternalLink } from 'lucide-react';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { 
-  ChartContainer, 
-  ChartTooltip, 
-  ChartTooltipContent 
-} from '@/components/ui/chart';
-import DashboardLayout from '@/components/dashboard/DashboardLayout';
+import { DashboardContainer } from '@/components/layout/DashboardContainer';
 
 // Import custom components for each dashboard section
 import SageGreetingHeader from '@/components/hr/SageGreetingHeader';
@@ -22,8 +12,8 @@ import SageFooter from '@/components/hr/SageFooter';
 
 const HRDashboard = () => {
   return (
-    <DashboardLayout>
-      <div className="flex-1 space-y-8 p-4 md:p-8 pt-6 bg-gray-50/50">
+    <DashboardContainer>
+      <div className="space-y-8">
         {/* Sage Greeting Header */}
         <SageGreetingHeader />
         
@@ -42,7 +32,7 @@ const HRDashboard = () => {
         {/* Sage Footer */}
         <SageFooter />
       </div>
-    </DashboardLayout>
+    </DashboardContainer>
   );
 };
 
