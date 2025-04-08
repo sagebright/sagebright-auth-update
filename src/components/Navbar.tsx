@@ -3,7 +3,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import Logo from './Logo';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/contexts/auth/AuthContext';
 import {
   Sheet,
   SheetContent,
@@ -13,7 +12,6 @@ import { Menu } from 'lucide-react';
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
-  const { user } = useAuth();
   const location = useLocation();
   
   const isContactPage = location.pathname === '/contact-us';
