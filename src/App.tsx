@@ -17,6 +17,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import TestUsersPage from '@/pages/dev-debug';
 import DevDebugPage from "@/pages/dev-debug";
+import DesignSystem from "@/pages/DesignSystem";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +32,7 @@ const App = () => (
             {/* Public Routes */}
             <Route path="/" element={<Index />} />
             <Route path="/contact-us" element={<ContactUs />} />
+            <Route path="/design-system" element={<DesignSystem />} />
             <Route path="/dev-debug" element={<DevDebugPage />} />
             
             {/* Auth Routes - NOT wrapped in ProtectedRoute */}
