@@ -7,7 +7,6 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/componen
 import { SubmitButton } from "@/components/form/SubmitButton";
 import { useLoading } from "@/hooks/use-loading";
 import { 
-  Skeleton, 
   SkeletonText, 
   SkeletonAvatar, 
   SkeletonCard, 
@@ -16,6 +15,7 @@ import {
   SkeletonDashboard,
   SkeletonForm
 } from "@/components/ui/skeleton-elements";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Send, Download, Check } from "lucide-react";
 
 export default function LoadingStatesExample() {
