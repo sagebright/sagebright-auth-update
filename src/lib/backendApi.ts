@@ -1,6 +1,6 @@
 import { supabase } from './supabaseClient';
 
-const API_BASE_URL = 'https://sagebright-backend-production.up.railway.app';
+const API_BASE_URL = 'https://sagebright-backend-production.up.railway.app/api';
 
 async function fetchWithAuth(path: string, options: RequestInit = {}) {
   const { data: { session } } = await supabase.auth.getSession();
