@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import UserMenu from "./UserMenu";
-import { useAuth } from "@/contexts/AuthContext";
-import { getUsers } from "@/lib/backendApi"; // ✅ Your new API
+import { useAuth } from "@/contexts/auth/AuthContext";
+import { getUsers } from "@/lib/backendApi";
 
 export default function DashboardHeader() {
   const { userId } = useAuth(); // 👈 We trust this to be set after login

@@ -13,7 +13,7 @@ import NotFound from "./pages/NotFound";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 import ForgotPassword from "./pages/auth/ForgotPassword";
-import { AuthProvider } from "./contexts/AuthContext";
+import { AuthProvider } from "./contexts/auth/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import DevDebugPage from "@/pages/dev-debug";
 import DesignSystem from "@/pages/DesignSystem";
