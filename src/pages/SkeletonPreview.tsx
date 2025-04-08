@@ -1,10 +1,17 @@
+
 import React from "react";
 import { 
-  SkeletonText, 
-  SkeletonAvatar, 
-  SkeletonCard,
+  SkeletonText 
+} from "@/components/ui/skeleton/SkeletonText";
+import {
+  SkeletonAvatar
+} from "@/components/ui/skeleton/SkeletonAvatar";
+import {
+  SkeletonCard
+} from "@/components/ui/skeleton/SkeletonCard";
+import {
   ContactFormSkeleton
-} from "@/components/ui/skeleton";
+} from "@/components/ui/skeleton/ContactFormSkeleton";
 
 const SkeletonPreview = () => {
   return (
