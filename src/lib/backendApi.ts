@@ -44,3 +44,9 @@ export async function getDepartments() {
   const res = await fetchWithAuth('/departments');
   return res.data;
 }
+export async function getRoadmaps() {
+  const res = await fetchWithAuth('/roadmaps');
+  return res.data;
+}
+
+
