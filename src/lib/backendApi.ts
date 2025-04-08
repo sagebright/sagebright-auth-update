@@ -20,9 +20,18 @@ async function fetchWithAuth(path: string, options: RequestInit = {}) {
   });
 
   if (!res.ok) {
-    const error = await res.json();
+    const text = await res.text();
+    let error;
+  
+    try {
+      error = JSON.parse(text);
+    } catch (e) {
+      throw new Error(`Non-JSON error: ${text.slice(0, 100)}`);
+    }
+  
     throw new Error(error.message || 'API request failed');
   }
+  
 
   return res.json();
 }
