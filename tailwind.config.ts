@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -32,30 +33,23 @@ export default {
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				
-				primary: '#2A9D90',      // Persian Green
-				secondary: '#88D8B0',    // Celadon
-				accent1: '#FF6E61',      // Bittersweet (coral)
-				accent2: '#FFCB5C',      // Sunglow (gold)
-				charcoal: '#274754',     // Charcoal color for text and dark elements
+				// Semantic brand colors
+				primary: 'hsl(var(--primary))',
+				'primary-foreground': 'hsl(var(--primary-foreground))',
 				
-				sagebright: {
-					green: '#2A9D90',     // Maps to primary
-					gold: '#FFCB5C',      // Maps to accent2
-					accent: '#88D8B0',    // Maps to secondary
-					navy: '#274754',      // Maps to charcoal
-					coral: '#FF6E61',     // Maps to accent1
-				},
-				bittersweet: '#FF6E61',   // Maps to accent1
-				sunglow: '#FFCB5C',       // Maps to accent2
+				secondary: 'hsl(var(--secondary))',
+				'secondary-foreground': 'hsl(var(--secondary-foreground))',
 				
-				primary: {
-					DEFAULT: 'hsl(var(--primary))',
-					foreground: 'hsl(var(--primary-foreground))'
-				},
-				secondary: {
-					DEFAULT: 'hsl(var(--secondary))',
-					foreground: 'hsl(var(--secondary-foreground))'
-				},
+				accent1: 'hsl(var(--accent1))',
+				'accent1-foreground': 'hsl(var(--accent1-foreground))',
+				
+				accent2: 'hsl(var(--accent2))',
+				'accent2-foreground': 'hsl(var(--accent2-foreground))',
+				
+				charcoal: 'hsl(var(--charcoal))',
+				'charcoal-foreground': 'hsl(var(--charcoal-foreground))',
+				
+				// UI semantics 
 				destructive: {
 					DEFAULT: 'hsl(var(--destructive))',
 					foreground: 'hsl(var(--destructive-foreground))'
@@ -76,6 +70,19 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
+				
+				// Legacy color mapping - for backward compatibility
+				sagebright: {
+					green: 'hsl(var(--primary))',     // Maps to primary
+					gold: 'hsl(var(--accent2))',      // Maps to accent2
+					accent: 'hsl(var(--secondary))',  // Maps to secondary
+					navy: 'hsl(var(--charcoal))',     // Maps to charcoal
+					coral: 'hsl(var(--accent1))',     // Maps to accent1
+				},
+				bittersweet: 'hsl(var(--accent1))',   // Maps to accent1 
+				sunglow: 'hsl(var(--accent2))',       // Maps to accent2
+				
+				// Sidebar specific colors
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
@@ -94,30 +101,37 @@ export default {
 				roboto: ['Roboto', 'Arial', 'sans-serif'],
 			},
 			fontSize: {
+				// Display typography
 				'display-lg': ['4rem', { lineHeight: '1.2', fontWeight: '700' }],    // 64px
 				'display': ['3.5rem', { lineHeight: '1.2', fontWeight: '700' }],     // 56px
 				'display-sm': ['3rem', { lineHeight: '1.2', fontWeight: '700' }],    // 48px
 				
+				// Heading typography
 				'heading-xl': ['2.5rem', { lineHeight: '1.3', fontWeight: '700' }],  // 40px
 				'heading': ['2rem', { lineHeight: '1.3', fontWeight: '600' }],       // 32px
 				'heading-sm': ['1.75rem', { lineHeight: '1.3', fontWeight: '600' }], // 28px
 				
+				// Subheading typography
 				'subheading': ['1.5rem', { lineHeight: '1.4', fontWeight: '500' }],  // 24px
 				'subheading-sm': ['1.25rem', { lineHeight: '1.4', fontWeight: '500' }], // 20px
 				
+				// Body text typography
 				'body-lg': ['1.25rem', { lineHeight: '1.5', fontWeight: '400' }],    // 20px
 				'body': ['1.125rem', { lineHeight: '1.5', fontWeight: '400' }],      // 18px
 				'body-sm': ['1rem', { lineHeight: '1.5', fontWeight: '400' }],       // 16px
 				'body-xs': ['0.875rem', { lineHeight: '1.5', fontWeight: '400' }],   // 14px
 				
+				// Utility typography
 				'caption': ['0.75rem', { lineHeight: '1.5', fontWeight: '400' }],    // 12px
 				'cta': ['1.125rem', { lineHeight: '1.3', fontWeight: '600' }],       // 18px button text
 				
+				// Legacy font-sizes (for backward compatibility)
 				'headline': ['2.5rem', { lineHeight: '1.3', fontWeight: '700' }],    // 40px
 				'headline-lg': ['3.5rem', { lineHeight: '1.3', fontWeight: '700' }], // 56px
 				'subheading-lg': ['2rem', { lineHeight: '1.3', fontWeight: '500' }], // 32px
 			},
 			spacing: {
+				// Core spacing scale (4px increments)
 				'0': '0',
 				'0.5': '0.125rem',   // 2px
 				'1': '0.25rem',      // 4px
@@ -152,12 +166,14 @@ export default {
 				'72': '18rem',       // 288px
 				'80': '20rem',       // 320px
 				'96': '24rem',       // 384px
+				
+				// Special spacing
 				'text-spacing': '0.8rem', // Legacy - special text spacing
 			},
 			borderRadius: {
-				lg: 'var(--radius)',
-				md: 'calc(var(--radius) - 2px)',
-				sm: 'calc(var(--radius) - 4px)',
+				'lg': 'var(--radius)',
+				'md': 'calc(var(--radius) - 2px)',
+				'sm': 'calc(var(--radius) - 4px)',
 				'2xl': '12px',  // Adding the 2xl border radius
 				'DEFAULT': '0.5rem', // 8px (standard radius)
 			},
@@ -175,20 +191,12 @@ export default {
 			},
 			keyframes: {
 				'accordion-down': {
-					from: {
-						height: '0'
-					},
-					to: {
-						height: 'var(--radix-accordion-content-height)'
-					}
+					from: { height: '0' },
+					to: { height: 'var(--radix-accordion-content-height)' }
 				},
 				'accordion-up': {
-					from: {
-						height: 'var(--radix-accordion-content-height)'
-					},
-					to: {
-						height: '0'
-					}
+					from: { height: 'var(--radix-accordion-content-height)' },
+					to: { height: '0' }
 				},
 				'fade-in': {
 					'0%': {
