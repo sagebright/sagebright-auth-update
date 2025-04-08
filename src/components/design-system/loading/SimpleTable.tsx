@@ -16,14 +16,14 @@ export const TableBody = (props: React.HTMLAttributes<HTMLTableSectionElement>) 
   <tbody {...props} />
 );
 
-export const TR = (props: React.HTMLAttributes<HTMLTableRowElement>) => (
-  <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted" {...props} />
+export const TR = ({ className, ...props }: React.HTMLAttributes<HTMLTableRowElement>) => (
+  <tr className={cn("border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted", className)} {...props} />
 );
 
-export const TH = (props: React.ThHTMLAttributes<HTMLTableCellElement>) => (
-  <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground" {...props} />
+export const TH = ({ className, ...props }: React.ThHTMLAttributes<HTMLTableCellElement>) => (
+  <th className={cn("h-12 px-4 text-left align-middle font-medium text-muted-foreground", className)} {...props} />
 );
 
-export const TD = (props: React.TdHTMLAttributes<HTMLTableCellElement>) => (
-  <td className="p-4 align-middle [&:has([role=checkbox])]:pr-0" {...props} />
+export const TD = ({ className, ...props }: React.TdHTMLAttributes<HTMLTableCellElement>) => (
+  <td className={cn("p-4 align-middle [&:has([role=checkbox])]:pr-0", className)} {...props} />
 );

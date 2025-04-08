@@ -6,6 +6,7 @@ interface ApiErrorOptions {
   fallbackMessage?: string;
   showToast?: boolean;
   variant?: "default" | "destructive";
+  duration?: number;
 }
 
 /**
@@ -21,7 +22,8 @@ export function handleApiError(
     context = "",
     fallbackMessage = "Something went wrong. Please try again.",
     showToast = true,
-    variant = "destructive"
+    variant = "destructive",
+    duration = 5000
   } = options;
   
   // Log the error with context for debugging
@@ -36,6 +38,7 @@ export function handleApiError(
       title: "Error",
       description: errorMessage,
       variant,
+      duration,
     });
   }
 }
