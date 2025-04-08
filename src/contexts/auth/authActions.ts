@@ -1,6 +1,6 @@
 
 import { supabase } from '@/lib/supabaseClient';
-import { getOrgFromUrl, redirectToOrgUrl } from '@/lib/subdomainUtils';
+import { getOrgFromUrl, redirectToOrgUrl, getOrgById } from '@/lib/subdomainUtils';
 
 export async function signUp(
   email: string, 
@@ -44,15 +44,21 @@ export async function signIn(
     // Check for organization context
     const userOrgId = data.user?.user_metadata?.org_id;
     if (userOrgId) {
-      const currentOrg = getOrgFromUrl();
-      if (!currentOrg || currentOrg !== userOrgId) {
-        console.log('🏢 Redirecting to org subdomain after sign in:', userOrgId);
-        // Store path for after subdomain redirect
-        const redirectPath = localStorage.getItem("redirectAfterLogin") || '/user-dashboard';
-        sessionStorage.setItem('lastAuthenticatedPath', redirectPath);
-        localStorage.removeItem("redirectAfterLogin");
-        redirectToOrgUrl(userOrgId);
-        return data;
+      // Get org details including slug
+      const orgDetails = await getOrgById(userOrgId);
+      const orgSlug = orgDetails?.slug;
+      
+      if (orgSlug) {
+        const currentOrgSlug = getOrgFromUrl();
+        if (!currentOrgSlug || currentOrgSlug !== orgSlug) {
+          console.log('🏢 Redirecting to org subdomain after sign in:', orgSlug);
+          // Store path for after subdomain redirect
+          const redirectPath = localStorage.getItem("redirectAfterLogin") || '/user-dashboard';
+          sessionStorage.setItem('lastAuthenticatedPath', redirectPath);
+          localStorage.removeItem("redirectAfterLogin");
+          redirectToOrgUrl(orgSlug);
+          return data;
+        }
       }
     }
 
@@ -85,8 +91,8 @@ export async function signOut(onError: (error: any) => void) {
     if (error) throw error;
     
     // Redirect to root domain on signout if on a subdomain
-    const currentOrg = getOrgFromUrl();
-    if (currentOrg) {
+    const currentOrgSlug = getOrgFromUrl();
+    if (currentOrgSlug) {
       window.location.href = window.location.protocol + '//' + 
         window.location.hostname.split('.').slice(1).join('.');
       return;

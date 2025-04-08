@@ -3,6 +3,8 @@
  * Utility functions for handling subdomain-based routing and organization context
  */
 
+import { supabase } from '@/lib/supabaseClient';
+
 /**
  * Extracts the subdomain from the current hostname
  */
@@ -28,7 +30,7 @@ export function getSubdomain(hostname: string): string | null {
 }
 
 /**
- * Gets the organization identifier from the current URL
+ * Gets the organization identifier (slug) from the current URL
  * Uses subdomain in production or query param for development
  */
 export function getOrgFromUrl(): string | null {
@@ -43,13 +45,13 @@ export function getOrgFromUrl(): string | null {
 }
 
 /**
- * Constructs the organization URL for a specific org ID
+ * Constructs the organization URL for a specific org slug
  */
-export function getOrgUrl(orgId: string): string {
+export function getOrgUrl(orgSlug: string): string {
   if (window.location.hostname === 'localhost') {
     // For local development, use query param
     const url = new URL(window.location.href);
-    url.searchParams.set('org', orgId);
+    url.searchParams.set('org', orgSlug);
     return url.toString();
   }
   
@@ -59,13 +61,51 @@ export function getOrgUrl(orgId: string): string {
     ? domainParts.slice(1).join('.') 
     : domainParts.join('.');
     
-  return window.location.protocol + '//' + orgId + '.' + rootDomain;
+  return window.location.protocol + '//' + orgSlug + '.' + rootDomain;
 }
 
 /**
- * Redirects to the organization-specific URL
+ * Redirects to the organization-specific URL using org slug
  */
-export function redirectToOrgUrl(orgId: string): void {
-  const orgUrl = getOrgUrl(orgId);
+export function redirectToOrgUrl(orgSlug: string): void {
+  const orgUrl = getOrgUrl(orgSlug);
   window.location.href = orgUrl;
+}
+
+/**
+ * Fetch organization details by slug
+ */
+export async function getOrgBySlug(slug: string) {
+  try {
+    const { data, error } = await supabase
+      .from('orgs')
+      .select('*')
+      .eq('slug', slug)
+      .single();
+      
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Error fetching org by slug:', error);
+    return null;
+  }
+}
+
+/**
+ * Fetch organization details by ID
+ */
+export async function getOrgById(orgId: string) {
+  try {
+    const { data, error } = await supabase
+      .from('orgs')
+      .select('*')
+      .eq('id', orgId)
+      .single();
+      
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Error fetching org by ID:', error);
+    return null;
+  }
 }

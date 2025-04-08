@@ -17,16 +17,27 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { loading, isAuthenticated, user, orgId } = useRequireAuth(navigate);
+  const { loading, isAuthenticated, user, orgId, orgSlug } = useRequireAuth(navigate);
   
   useEffect(() => {
-    if (isAuthenticated && !loading && orgId) {
-      const currentOrg = getOrgFromUrl();
+    if (isAuthenticated && !loading && orgSlug) {
+      const currentOrgSlug = getOrgFromUrl();
       
-      if ((!currentOrg || currentOrg !== orgId) && orgId) {
+      if ((!currentOrgSlug || currentOrgSlug !== orgSlug) && orgSlug) {
         sessionStorage.setItem('lastAuthenticatedPath', location.pathname + location.search);
-        redirectToOrgUrl(orgId);
+        redirectToOrgUrl(orgSlug);
         return;
+      }
+
+      // Handle root path redirection based on role
+      if (location.pathname === '/') {
+        if (user?.role === 'admin') {
+          navigate('/hr-dashboard', { replace: true });
+          return;
+        } else {
+          navigate('/user-dashboard', { replace: true });
+          return;
+        }
       }
     }
     
@@ -47,7 +58,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     }
   }, [
     isAuthenticated, loading, location.pathname, location.search, 
-    orgId, navigate, requiredRole, requiredPermission, user
+    orgId, orgSlug, navigate, requiredRole, requiredPermission, user
   ]);
   
   if (loading) {

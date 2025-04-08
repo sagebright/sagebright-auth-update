@@ -2,12 +2,13 @@
 import { useEffect, useState } from 'react';
 import { useLocation, NavigateFunction } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
-import { getOrgFromUrl, redirectToOrgUrl } from '@/lib/subdomainUtils';
+import { getOrgFromUrl, redirectToOrgUrl, getOrgById } from '@/lib/subdomainUtils';
 
 export function useRequireAuth(navigate: NavigateFunction) {
   const [user, setUser] = useState<any>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [orgId, setOrgId] = useState<string | null>(null);
+  const [orgSlug, setOrgSlug] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const location = useLocation();
@@ -50,21 +51,36 @@ export function useRequireAuth(navigate: NavigateFunction) {
           if (!extractedOrgId) {
             console.warn("⚠️ No org_id found in user metadata for user:", user.id);
           } else {
-            // Check if we need to redirect to the org subdomain
-            const currentOrg = getOrgFromUrl();
-            if ((!currentOrg || currentOrg !== extractedOrgId) && 
-                !location.pathname.startsWith("/auth")) {
-              console.log("🔄 Redirecting to org subdomain:", extractedOrgId);
-              // Store path for after subdomain redirect
-              sessionStorage.setItem('lastAuthenticatedPath', location.pathname + location.search);
-              redirectToOrgUrl(extractedOrgId);
-              return;
+            // Get org details including slug
+            const orgDetails = await getOrgById(extractedOrgId);
+            const orgSlug = orgDetails?.slug;
+            
+            if (orgSlug) {
+              // Check if we need to redirect to the org subdomain
+              const currentOrgSlug = getOrgFromUrl();
+              if ((!currentOrgSlug || currentOrgSlug !== orgSlug) && 
+                  !location.pathname.startsWith("/auth")) {
+                console.log("🔄 Redirecting to org subdomain:", orgSlug);
+                // Store path for after subdomain redirect
+                sessionStorage.setItem('lastAuthenticatedPath', location.pathname + location.search);
+                redirectToOrgUrl(orgSlug);
+                return;
+              }
+            } else {
+              console.warn("⚠️ No slug found for org ID:", extractedOrgId);
             }
           }
 
           setUser(user);
           setUserId(user.id);
           setOrgId(extractedOrgId || null);
+          
+          // Get and set the org slug if we have an org ID
+          if (extractedOrgId) {
+            const orgDetails = await getOrgById(extractedOrgId);
+            setOrgSlug(orgDetails?.slug || null);
+          }
+          
           setIsAuthenticated(true);
         }
       } catch (error) {
@@ -87,21 +103,27 @@ export function useRequireAuth(navigate: NavigateFunction) {
 
     // Set up listener for auth state changes to keep auth state in sync
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         console.log("🔄 Auth state changed:", event);
         
         if (event === 'SIGNED_IN' && isMounted) {
           // Handle org subdomain routing
           const orgFromMetadata = session?.user?.user_metadata?.org_id;
           if (orgFromMetadata) {
-            const currentOrg = getOrgFromUrl();
-            if (!currentOrg || currentOrg !== orgFromMetadata) {
-              console.log("🔄 Redirecting to org subdomain after login:", orgFromMetadata);
-              // Store path for after subdomain redirect
-              sessionStorage.setItem('lastAuthenticatedPath', 
-                localStorage.getItem("redirectAfterLogin") || '/user-dashboard');
-              redirectToOrgUrl(orgFromMetadata);
-              return;
+            // Get org details including slug
+            const orgDetails = await getOrgById(orgFromMetadata);
+            const orgSlug = orgDetails?.slug;
+            
+            if (orgSlug) {
+              const currentOrgSlug = getOrgFromUrl();
+              if (!currentOrgSlug || currentOrgSlug !== orgSlug) {
+                console.log("🔄 Redirecting to org subdomain after login:", orgSlug);
+                // Store path for after subdomain redirect
+                sessionStorage.setItem('lastAuthenticatedPath', 
+                  localStorage.getItem("redirectAfterLogin") || '/user-dashboard');
+                redirectToOrgUrl(orgSlug);
+                return;
+              }
             }
           }
 
@@ -117,12 +139,20 @@ export function useRequireAuth(navigate: NavigateFunction) {
             setUser(session.user);
             setUserId(session.user.id);
             setOrgId(session.user.user_metadata?.org_id || null);
+            
+            // Get and set the org slug if we have an org ID
+            if (session.user.user_metadata?.org_id) {
+              const orgDetails = await getOrgById(session.user.user_metadata.org_id);
+              setOrgSlug(orgDetails?.slug || null);
+            }
+            
             setIsAuthenticated(true);
           }
         } else if (event === 'SIGNED_OUT' && isMounted) {
           setUser(null);
           setUserId(null);
           setOrgId(null);
+          setOrgSlug(null);
           setIsAuthenticated(false);
           
           // Redirect to root domain on signout
@@ -141,5 +171,5 @@ export function useRequireAuth(navigate: NavigateFunction) {
     };
   }, [navigate, location.pathname]); // Only depend on pathname, not full location object or search params
 
-  return { user, userId, orgId, loading, isAuthenticated };
+  return { user, userId, orgId, orgSlug, loading, isAuthenticated };
 }

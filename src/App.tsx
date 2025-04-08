@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -25,7 +24,6 @@ import { getOrgFromUrl } from "./lib/subdomainUtils";
 import { handleApiError } from "./lib/handleApiError";
 import ImageComponentPreview from "./pages/ImageComponentPreview";
 
-// Configure React Query client with consistent error handling
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -43,7 +41,6 @@ const queryClient = new QueryClient({
 });
 
 const App = () => {
-  // Get organization context from URL
   const orgContext = getOrgFromUrl();
   
   return (
@@ -55,17 +52,29 @@ const App = () => {
           <AuthProvider>
             <PageErrorBoundary>
               <Routes>
-                {/* Public routes */}
-                <Route path="/" element={<Index />} />
+                <Route 
+                  path="/" 
+                  element={
+                    orgContext ? (
+                      <ProtectedRoute>
+                        <div className="flex h-screen items-center justify-center">
+                          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+                          <span className="ml-2 text-primary">Redirecting...</span>
+                        </div>
+                      </ProtectedRoute>
+                    ) : (
+                      <Index />
+                    )
+                  } 
+                />
+                
                 <Route path="/contact-us" element={<ContactUs />} />
                 
-                {/* Auth routes */}
                 <Route path="/auth/login" element={<Login />} />
                 <Route path="/auth/signup" element={<Signup />} />
                 <Route path="/auth/forgot-password" element={<ForgotPassword />} />
                 <Route path="/auth/callback" element={<Navigate to="/user-dashboard" replace />} />
                 
-                {/* Protected routes with specific roles */}
                 <Route
                   path="/user-dashboard"
                   element={
@@ -87,7 +96,7 @@ const App = () => {
                 <Route
                   path="/hr-dashboard"
                   element={
-                    <ProtectedRoute requiredRole="hr">
+                    <ProtectedRoute requiredRole="admin">
                       <HRDashboard />
                     </ProtectedRoute>
                   }
@@ -102,7 +111,6 @@ const App = () => {
                   }
                 />
                 
-                {/* Dev/demo routes */}
                 <Route path="/design-system" element={<DesignSystem />} />
                 <Route path="/dev-debug" element={<DevDebugPage />} />
                 <Route path="/form-components-example" element={<FormComponentsExample />} />
@@ -110,7 +118,6 @@ const App = () => {
                 <Route path="/skeleton-preview" element={<SkeletonPreview />} />
                 <Route path="/image-preview" element={<ImageComponentPreview />} />
                 
-                {/* Catch all */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </PageErrorBoundary>
