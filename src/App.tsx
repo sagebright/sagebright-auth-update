@@ -17,6 +17,7 @@ import { AuthProvider } from "./contexts/auth/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import DevDebugPage from "@/pages/dev-debug";
 import DesignSystem from "@/pages/DesignSystem";
+import FormComponentsExample from "@/pages/FormComponentsExample";
 import { getOrgFromUrl } from "./lib/subdomainUtils";
 
 const queryClient = new QueryClient();
@@ -38,6 +39,7 @@ const App = () => {
               <Route path="/contact-us" element={<ContactUs />} />
               <Route path="/design-system" element={<DesignSystem />} />
               <Route path="/dev-debug" element={<DevDebugPage />} />
+              <Route path="/form-components-example" element={<FormComponentsExample />} />
               
               {/* Auth Routes - NOT wrapped in ProtectedRoute */}
               <Route path="/auth/login" element={<Login />} />

@@ -43,7 +43,10 @@ export function useFormSubmit<T, R = any>({
         
         return result;
       } catch (error) {
-        handleApiError(error, "form submission");
+        handleApiError(error, {
+          context: "form submission",
+          fallbackMessage: errorMessage
+        });
         
         toast({
           title: "Error",

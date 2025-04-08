@@ -1,7 +1,7 @@
 
 import React from "react";
 import { ExampleForm } from "@/components/form";
-import AppLayout from "@/components/layout/AppShell";
+import { AppShell } from "@/components/layout/AppShell";
 import { useToast } from "@/hooks/use-toast";
 
 const FormComponentsExample = () => {
@@ -20,7 +20,7 @@ const FormComponentsExample = () => {
   };
 
   return (
-    <AppLayout>
+    <AppShell>
       <div className="container mx-auto py-10">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-charcoal mb-2">Form Components Example</h1>
@@ -33,7 +33,7 @@ const FormComponentsExample = () => {
           <ExampleForm onComplete={handleFormComplete} />
         </div>
       </div>
-    </AppLayout>
+    </AppShell>
   );
 };
 
