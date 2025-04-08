@@ -3,8 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { getUsers } from '@/lib/backendApi';
 import { getDepartments } from '@/lib/backendApi';
-import { useAuth } from '@/contexts/AuthContext';
-
+import { useAuth } from '@/contexts/auth/AuthContext';
 
 export default function DevDebugPage() {
   const { userId, currentUser } = useAuth();

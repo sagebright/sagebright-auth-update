@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Message } from '@/components/ask-sage/ChatMessage';
 import { buildSageContext } from '@/lib/buildSageContext';
 import { callOpenAI } from '@/lib/api';
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/auth/AuthContext";
 import { getVoiceFromUrl } from '@/lib/utils';
 
 // Updated suggested questions order to prioritize the two required questions

@@ -9,7 +9,7 @@ import {
   Calendar, Users, Settings, LogOut 
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/auth/AuthContext";
 
 export default function UserSidebar() {
   const { signOut } = useAuth();
