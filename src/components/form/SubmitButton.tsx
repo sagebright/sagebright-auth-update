@@ -9,6 +9,7 @@ interface SubmitButtonProps {
   icon?: LucideIcon;
   className?: string;
   variant?: "default" | "outline" | "secondary" | "destructive" | "ghost" | "link";
+  loadingText?: string;
 }
 
 export const SubmitButton: React.FC<SubmitButtonProps> = ({
@@ -17,6 +18,7 @@ export const SubmitButton: React.FC<SubmitButtonProps> = ({
   icon: Icon,
   className = "",
   variant = "default",
+  loadingText = "Submitting...",
 }) => {
   return (
     <Button
@@ -24,18 +26,11 @@ export const SubmitButton: React.FC<SubmitButtonProps> = ({
       className={`bg-sagebright-green hover:bg-sagebright-green/90 text-white font-helvetica ${className}`}
       disabled={isSubmitting}
       variant={variant}
+      loading={isSubmitting}
+      loadingText={loadingText}
     >
-      {isSubmitting ? (
-        <div className="flex items-center">
-          <div className="animate-spin mr-2 h-4 w-4 border-2 border-t-transparent border-white rounded-full"></div>
-          <span>Submitting...</span>
-        </div>
-      ) : (
-        <div className="flex items-center">
-          {Icon && <Icon className="mr-2 h-4 w-4" />}
-          {children}
-        </div>
-      )}
+      {!isSubmitting && Icon && <Icon className="mr-2 h-4 w-4" />}
+      {children}
     </Button>
   );
 };

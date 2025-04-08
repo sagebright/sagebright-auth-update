@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -38,7 +37,6 @@ const WaitlistSection = () => {
     setIsSubmitting(true);
     
     try {
-      // 1. Insert the signup data into the Beta Signups table
       const { error } = await supabase
         .from('Beta Signups')
         .insert([
@@ -54,7 +52,6 @@ const WaitlistSection = () => {
         throw error;
       }
       
-      // 2. Send confirmation email using our edge function
       const emailResponse = await fetch('/api/send-waitlist-confirmation', {
         method: 'POST',
         headers: {
@@ -144,15 +141,10 @@ const WaitlistSection = () => {
                     <Button 
                       type="submit" 
                       className="bg-sagebright-coral hover:bg-sagebright-coral/90 text-white py-6 px-8 text-cta font-dmSans"
-                      disabled={isSubmitting}
+                      loading={isSubmitting}
+                      loadingText="Submitting..."
                     >
-                      {isSubmitting ? (
-                        "Submitting..."
-                      ) : (
-                        <>
-                          Request access <ArrowRight className="ml-2 h-5 w-5" />
-                        </>
-                      )}
+                      Request access <ArrowRight className="ml-2 h-5 w-5" />
                     </Button>
                   </div>
                   <p className="text-sm text-gray-500 text-center font-sans">

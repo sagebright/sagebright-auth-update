@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 interface ReflectionFormProps {
   onSubmit: (data: ReflectionData) => void;
   onCancel: () => void;
+  isSubmitting?: boolean;
 }
 
 export interface ReflectionData {
@@ -14,7 +15,7 @@ export interface ReflectionData {
   shareWithManager: boolean;
 }
 
-export const ReflectionForm: React.FC<ReflectionFormProps> = ({ onSubmit, onCancel }) => {
+export const ReflectionForm: React.FC<ReflectionFormProps> = ({ onSubmit, onCancel, isSubmitting = false }) => {
   const [wellResponse, setWellResponse] = useState('');
   const [unclearResponse, setUnclearResponse] = useState('');
   const [shareWithManager, setShareWithManager] = useState(false);
@@ -69,12 +70,18 @@ export const ReflectionForm: React.FC<ReflectionFormProps> = ({ onSubmit, onCanc
       </div>
       
       <div className="flex justify-end space-x-2 pt-2">
-        <Button variant="outline" onClick={onCancel}>
+        <Button 
+          variant="outline" 
+          onClick={onCancel} 
+          disabled={isSubmitting}
+        >
           Cancel
         </Button>
         <Button 
           onClick={handleSubmit}
           className="bg-sagebright-gold hover:bg-sagebright-gold/90 text-charcoal"
+          loading={isSubmitting}
+          loadingText="Saving..."
         >
           Save Reflection
         </Button>
