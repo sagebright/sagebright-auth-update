@@ -50,13 +50,13 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, loading = false, loadingText, children, disabled, ...props }, ref) => {
     const isDisabled = disabled || loading
     
-    // If asChild is true, we need to use Slot, but we need to handle the loading state differently
+    // If asChild is true, we need to use Slot and pass the content properly
     if (asChild) {
       return (
         <Slot
-          className={cn(buttonVariants({ variant, size, className }))}
+          className={cn(buttonVariants({ variant, size, className }), 
+            isDisabled ? "pointer-events-none opacity-50" : "")}
           ref={ref}
-          disabled={isDisabled}
           {...props}
         >
           {children}
