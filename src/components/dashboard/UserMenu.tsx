@@ -14,11 +14,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { LogOut, Settings, User } from "lucide-react";
 
 export default function UserMenu() {
-  const { user, profile, signOut } = useAuth();
+  const { user, currentUser, signOut } = useAuth();
 
   const getInitials = () => {
-    if (profile?.full_name) {
-      return profile.full_name
+    if (currentUser?.full_name) {
+      return currentUser.full_name
         .split(" ")
         .map((n: string) => n[0])
         .join("")
@@ -28,14 +28,14 @@ export default function UserMenu() {
     return user?.email?.charAt(0).toUpperCase() || "U";
   };
 
-  const displayName = profile?.full_name || user?.email || "User";
+  const displayName = currentUser?.full_name || user?.email || "User";
   
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button className="flex items-center gap-2 rounded-full p-1 transition-colors hover:bg-gray-100 focus:outline-none">
           <Avatar className="h-8 w-8 border border-gray-200">
-            <AvatarImage src={profile?.avatar_url || ""} alt={displayName} />
+            <AvatarImage src={currentUser?.avatar_url || ""} alt={displayName} />
             <AvatarFallback className="bg-sagebright-navy text-white">
               {getInitials()}
             </AvatarFallback>
