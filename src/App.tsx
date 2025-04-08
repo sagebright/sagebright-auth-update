@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -20,6 +19,7 @@ import DevDebugPage from "@/pages/dev-debug";
 import DesignSystem from "@/pages/DesignSystem";
 import FormComponentsExample from "@/pages/FormComponentsExample";
 import ErrorHandlingExample from "@/pages/ErrorHandlingExample";
+import LoadingStatesExample from "@/pages/LoadingStatesExample";
 import { getOrgFromUrl } from "./lib/subdomainUtils";
 import { handleApiError } from "./lib/handleApiError";
 
@@ -58,6 +58,7 @@ const App = () => {
                 <Route path="/dev-debug" element={<DevDebugPage />} />
                 <Route path="/form-components-example" element={<FormComponentsExample />} />
                 <Route path="/error-handling-example" element={<ErrorHandlingExample />} />
+                <Route path="/loading-states-example" element={<LoadingStatesExample />} />
                 
                 {/* Auth Routes - NOT wrapped in ProtectedRoute */}
                 <Route path="/auth/login" element={<Login />} />
