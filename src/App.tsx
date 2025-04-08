@@ -28,11 +28,11 @@ const queryClient = new QueryClient({
     queries: {
       retry: 1,
       refetchOnWindowFocus: false,
-      onSettled: (data, error) => {
-        // Global error handling for React Query
-        if (error) {
-          console.error('React Query error:', error);
-        }
+    },
+    mutations: {
+      onError: (error) => {
+        console.error('React Query mutation error:', error);
+        handleApiError(error, { context: 'global mutation', showToast: true });
       },
     },
   },
