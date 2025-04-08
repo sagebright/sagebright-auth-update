@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -20,6 +19,7 @@ import DevDebugPage from "@/pages/dev-debug";
 import DesignSystem from "@/pages/DesignSystem";
 import FormComponentsExample from "@/pages/FormComponentsExample";
 import ErrorHandlingExample from "@/pages/ErrorHandlingExample";
+import SkeletonPreview from "@/pages/SkeletonPreview";
 import { getOrgFromUrl } from "./lib/subdomainUtils";
 import { handleApiError } from "./lib/handleApiError";
 
@@ -39,7 +39,6 @@ const queryClient = new QueryClient({
 });
 
 const App = () => {
-  // Check for organization context from URL
   const orgContext = getOrgFromUrl();
   
   return (
@@ -51,21 +50,19 @@ const App = () => {
           <AuthProvider>
             <PageErrorBoundary>
               <Routes>
-                {/* Public Routes - Always accessible */}
                 <Route path="/" element={<Index />} />
                 <Route path="/contact-us" element={<ContactUs />} />
                 <Route path="/design-system" element={<DesignSystem />} />
                 <Route path="/dev-debug" element={<DevDebugPage />} />
                 <Route path="/form-components-example" element={<FormComponentsExample />} />
                 <Route path="/error-handling-example" element={<ErrorHandlingExample />} />
+                <Route path="/skeleton-preview" element={<SkeletonPreview />} />
                 
-                {/* Auth Routes - NOT wrapped in ProtectedRoute */}
                 <Route path="/auth/login" element={<Login />} />
                 <Route path="/auth/signup" element={<Signup />} />
                 <Route path="/auth/forgot-password" element={<ForgotPassword />} />
                 <Route path="/auth/callback" element={<Navigate to="/user-dashboard" replace />} />
                 
-                {/* Protected Routes - All require authentication */}
                 <Route 
                   path="/user-dashboard" 
                   element={
@@ -75,7 +72,6 @@ const App = () => {
                   } 
                 />
                 
-                {/* Redirect old dashboard route to new user-dashboard route */}
                 <Route
                   path="/dashboard"
                   element={
@@ -103,7 +99,6 @@ const App = () => {
                   }
                 />
                 
-                {/* 404 Route */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </PageErrorBoundary>
