@@ -22,6 +22,7 @@ import ErrorHandlingExample from "@/pages/ErrorHandlingExample";
 import SkeletonPreview from "@/pages/SkeletonPreview";
 import { getOrgFromUrl } from "./lib/subdomainUtils";
 import { handleApiError } from "./lib/handleApiError";
+import ImageComponentPreview from "./pages/ImageComponentPreview";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -98,6 +99,8 @@ const App = () => {
                     </ProtectedRoute>
                   }
                 />
+                
+                <Route path="/image-preview" element={<ImageComponentPreview />} />
                 
                 <Route path="*" element={<NotFound />} />
               </Routes>
