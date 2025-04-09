@@ -15,7 +15,8 @@ export function useRequireAuth(navigate: NavigateFunction) {
       loading: auth.loading, 
       isAuthenticated: auth.isAuthenticated, 
       user: !!auth.user, 
-      orgSlug: auth.orgSlug 
+      orgSlug: auth.orgSlug,
+      role: auth.user?.user_metadata?.role || 'unknown'
     });
 
     // Skip auth check on public routes or if we're already on an auth route
@@ -49,6 +50,10 @@ export function useRequireAuth(navigate: NavigateFunction) {
       return;
     }
 
+    // Make sure we have the user's role from user_metadata
+    const userRole = auth.user?.user_metadata?.role || 'user';
+    console.log("👤 User role from metadata:", userRole);
+
     // We now have a fully authenticated user with org context
     console.log("✅ User authenticated with org context:", auth.orgSlug);
 
@@ -58,8 +63,8 @@ export function useRequireAuth(navigate: NavigateFunction) {
       console.log("🏢 Redirecting to correct org subdomain:", auth.orgSlug);
       
       // Store path for after subdomain redirect
-      const userRole = auth.user?.user_metadata?.role || 'user';
       const targetPath = userRole === 'admin' ? '/hr-dashboard' : '/user-dashboard';
+      console.log("🎯 Target path based on role:", targetPath);
       sessionStorage.setItem('lastAuthenticatedPath', targetPath);
       
       setRedirecting(true);
@@ -69,7 +74,6 @@ export function useRequireAuth(navigate: NavigateFunction) {
 
     // Handle root path redirection based on role
     if (location.pathname === '/') {
-      const userRole = auth.user?.user_metadata?.role || 'user';
       const targetPath = userRole === 'admin' ? '/hr-dashboard' : '/user-dashboard';
       
       console.log("🏠 Redirecting from root to role-based dashboard:", targetPath);

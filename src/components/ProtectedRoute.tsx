@@ -39,7 +39,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
     // Handle root path redirection based on role
     if (location.pathname === '/') {
+      // Get role from user_metadata
       const userRole = user?.user_metadata?.role || 'user';
+      console.log("👤 ProtectedRoute user role:", userRole);
+      
       const targetPath = userRole === 'admin' ? '/hr-dashboard' : '/user-dashboard';
       console.log("🏠 Redirecting from root to role-based dashboard:", targetPath);
       navigate(targetPath, { replace: true });
@@ -47,10 +50,15 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     }
     
     // Check for required role or permission
-    if (requiredRole && user?.user_metadata?.role !== requiredRole) {
-      console.log("🚫 User lacks required role:", requiredRole);
-      navigate('/unauthorized', { replace: true });
-      return;
+    if (requiredRole) {
+      const userRole = user?.user_metadata?.role || 'user';
+      console.log("🔒 Checking required role:", requiredRole, "User has:", userRole);
+      
+      if (userRole !== requiredRole) {
+        console.log("🚫 User lacks required role:", requiredRole);
+        navigate('/unauthorized', { replace: true });
+        return;
+      }
     }
     
     if (requiredPermission && 

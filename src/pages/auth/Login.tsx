@@ -21,8 +21,13 @@ export default function Login() {
     // If user is already authenticated, redirect them appropriately
     if (user) {
       console.log("✅ User already authenticated, redirecting to dashboard");
+      console.log("👤 User role from metadata:", user.user_metadata?.role);
+      
+      // Check the role specifically from user_metadata
       const role = user.user_metadata?.role || 'user';
       const targetPath = role === 'admin' ? '/hr-dashboard' : '/user-dashboard';
+      
+      console.log("🎯 Redirecting to:", targetPath, "based on role:", role);
       
       // Add a small delay to ensure state is fully updated
       const redirectTimer = setTimeout(() => {
