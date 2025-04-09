@@ -3,3 +3,6 @@ project_id = "uonxhnmvrtuszgjubvaa"
 
 [functions.sync-user-role]
 verify_jwt = true
+
+[functions.auto-sync-user-role]
+verify_jwt = true

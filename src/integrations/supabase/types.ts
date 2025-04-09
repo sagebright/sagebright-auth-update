@@ -259,6 +259,33 @@ export type Database = {
           },
         ]
       }
+      role_sync_log: {
+        Row: {
+          changed_by: string | null
+          created_at: string
+          id: string
+          new_role: string
+          old_role: string | null
+          user_id: string
+        }
+        Insert: {
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          new_role: string
+          old_role?: string | null
+          user_id: string
+        }
+        Update: {
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          new_role?: string
+          old_role?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_context: {
         Row: {
           created_at: string | null
