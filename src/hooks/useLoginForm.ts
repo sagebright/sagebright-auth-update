@@ -37,7 +37,7 @@ export function useLoginForm() {
       console.log("✅ Login result:", result);
       
       // Sync user role after successful login
-      if (result?.user?.id) {
+      if (result && result.user && result.user.id) {
         try {
           await syncUserRole(result.user.id);
           console.log("✅ User role synchronized");
