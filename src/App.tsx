@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -82,9 +83,31 @@ const App = () => {
                 element={<PublicAuthRoute element={<ContactUs />} />} 
               />
               
-              <Route path="/auth/login" element={<Login />} />
-              <Route path="/auth/signup" element={<Signup />} />
-              <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+              {/* Wrap all auth routes with AuthProvider */}
+              <Route 
+                path="/auth/login" 
+                element={
+                  <AuthProvider>
+                    <Login />
+                  </AuthProvider>
+                } 
+              />
+              <Route 
+                path="/auth/signup" 
+                element={
+                  <AuthProvider>
+                    <Signup />
+                  </AuthProvider>
+                } 
+              />
+              <Route 
+                path="/auth/forgot-password" 
+                element={
+                  <AuthProvider>
+                    <ForgotPassword />
+                  </AuthProvider>
+                } 
+              />
               <Route path="/auth/callback" element={<Navigate to="/user-dashboard" replace />} />
               
               <Route
