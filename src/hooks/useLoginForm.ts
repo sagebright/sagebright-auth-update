@@ -4,7 +4,6 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuth } from "@/contexts/auth/AuthContext";
-import { syncUserRole } from "@/lib/syncUserRole";
 
 // Define the login form validation schema
 export const loginSchema = z.object({
@@ -36,17 +35,8 @@ export function useLoginForm() {
       await signIn(data.email, data.password);
       console.log("✅ Login successful");
       
-      // After successful login, trigger role sync
-      // The user ID will be available in the session after login
-      // We'll let AuthContext handle the user session management
-      try {
-        console.log("🔄 Role sync will be handled by the authentication flow");
-        // Role sync happens in the authActions.ts signIn function
-      } catch (syncError) {
-        console.error("⚠️ Role sync after login failed, but login was successful:", syncError);
-        // We don't want to block the login if role sync fails
-        // User experience is prioritized here
-      }
+      // Role sync happens in the authActions.ts signIn function
+      // No need to manually call it here
       
       // Redirect will be handled by AuthContext or useEffect in Login component
     } catch (error: any) {

@@ -42,11 +42,12 @@ export async function signIn(
 
     if (error) throw error;
     
-    // Sync user role after successful login
+    // Sync user role after successful login with explicit logging
     if (data?.user?.id) {
+      console.log('🔑 Login successful, syncing user role for ID:', data.user.id);
       try {
         await syncUserRole(data.user.id);
-        console.log('✅ User role synchronized');
+        console.log('✅ User role synchronized after login');
       } catch (syncError) {
         console.error('⚠️ Role sync failed but login succeeded:', syncError);
         // Continue with login flow even if role sync fails

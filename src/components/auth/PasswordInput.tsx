@@ -1,6 +1,5 @@
 
 import React, { useState } from "react";
-import { FormControl } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Eye, EyeOff } from "lucide-react";
 
@@ -14,7 +13,7 @@ interface PasswordInputProps {
   className?: string;
 }
 
-const PasswordInput: React.FC<PasswordInputProps> = ({
+const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(({
   disabled,
   value,
   onChange,
@@ -22,7 +21,8 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
   name,
   placeholder = "••••••••",
   className = "",
-}) => {
+  ...props
+}, ref) => {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
@@ -36,6 +36,8 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
         onChange={onChange}
         onBlur={onBlur}
         name={name}
+        ref={ref}
+        {...props}
       />
       <button
         type="button"
@@ -50,6 +52,8 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
       </button>
     </div>
   );
-};
+});
+
+PasswordInput.displayName = "PasswordInput";
 
 export default PasswordInput;

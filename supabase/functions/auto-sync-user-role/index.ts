@@ -20,7 +20,7 @@ serve(async (req) => {
   try {
     // Enhanced logging for function invocation
     const isManualSync = req.headers.get('x-manual-sync') === 'true';
-    console.log(`🔄 Auto-sync user role function invoked. Manual sync: ${isManualSync}`);
+    console.log(`🔄 Auto-sync user role function invoked. Manual sync: ${isManualSync}, Request ID: ${req.headers.get('x-request-id') || 'unknown'}`);
     
     // Initialize Supabase client with admin privileges
     const supabaseAdmin = createClient(

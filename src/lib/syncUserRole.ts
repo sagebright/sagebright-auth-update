@@ -10,11 +10,17 @@ export async function syncUserRole(userId: string): Promise<any> {
   try {
     console.log('🔄 Manually syncing user role for:', userId);
     
+    // Add a unique identifier to avoid duplicate calls
+    const requestId = crypto.randomUUID();
+    
     // Call the auto-sync-user-role edge function with proper error handling
     const { data, error } = await supabase.functions.invoke('auto-sync-user-role', {
       body: { userId },
       // Add more explicit logging for debugging
-      headers: { 'x-manual-sync': 'true' }
+      headers: { 
+        'x-manual-sync': 'true',
+        'x-request-id': requestId
+      }
     });
     
     if (error) {

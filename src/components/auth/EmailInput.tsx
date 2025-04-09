@@ -13,7 +13,7 @@ interface EmailInputProps {
   className?: string;
 }
 
-const EmailInput: React.FC<EmailInputProps> = ({
+const EmailInput = React.forwardRef<HTMLInputElement, EmailInputProps>(({
   disabled,
   value,
   onChange,
@@ -21,7 +21,8 @@ const EmailInput: React.FC<EmailInputProps> = ({
   name,
   placeholder = "you@example.com",
   className = "",
-}) => {
+  ...props
+}, ref) => {
   return (
     <div className="relative">
       <Mail className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
@@ -34,9 +35,13 @@ const EmailInput: React.FC<EmailInputProps> = ({
         onChange={onChange}
         onBlur={onBlur}
         name={name}
+        ref={ref}
+        {...props}
       />
     </div>
   );
-};
+});
+
+EmailInput.displayName = "EmailInput";
 
 export default EmailInput;
