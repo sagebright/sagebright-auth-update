@@ -33,19 +33,11 @@ export function useLoginForm() {
     try {
       console.log("🔑 Attempting login with:", data.email);
       
-      const result = await signIn(data.email, data.password);
-      console.log("✅ Login result:", result);
+      await signIn(data.email, data.password);
+      console.log("✅ Login successful");
       
-      // Sync user role after successful login
-      if (result && result.user && result.user.id) {
-        try {
-          await syncUserRole(result.user.id);
-          console.log("✅ User role synchronized");
-        } catch (syncError) {
-          console.error("⚠️ Role sync failed but login succeeded:", syncError);
-          // Continue with login flow even if role sync fails
-        }
-      }
+      // Since signIn doesn't return user data as expected, we need to get it from AuthContext
+      // Role syncing will be handled within the AuthContext after sign in
       
       // Redirect will be handled by AuthContext or useEffect in Login component
     } catch (error: any) {

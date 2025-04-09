@@ -1,6 +1,7 @@
 
 import { supabase } from '@/lib/supabaseClient';
 import { getOrgFromUrl, redirectToOrgUrl, getOrgById } from '@/lib/subdomainUtils';
+import { syncUserRole } from '@/lib/syncUserRole';
 
 export async function signUp(
   email: string, 
@@ -40,6 +41,17 @@ export async function signIn(
     });
 
     if (error) throw error;
+    
+    // Sync user role after successful login
+    if (data?.user?.id) {
+      try {
+        await syncUserRole(data.user.id);
+        console.log('✅ User role synchronized');
+      } catch (syncError) {
+        console.error('⚠️ Role sync failed but login succeeded:', syncError);
+        // Continue with login flow even if role sync fails
+      }
+    }
     
     // Check for organization context
     const userOrgId = data.user?.user_metadata?.org_id;
