@@ -40,7 +40,10 @@ const LoginForm: React.FC<LoginFormProps> = ({
               <FormControl>
                 <EmailInput
                   disabled={isLoading}
-                  {...field}
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  name={field.name}
                 />
               </FormControl>
               <FormMessage />
@@ -57,7 +60,10 @@ const LoginForm: React.FC<LoginFormProps> = ({
               <FormControl>
                 <PasswordInput
                   disabled={isLoading}
-                  {...field}
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  name={field.name}
                 />
               </FormControl>
               <FormMessage />
