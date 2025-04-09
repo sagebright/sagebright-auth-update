@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuth } from "@/contexts/auth/AuthContext";
+import { syncExistingUsers } from "@/lib/syncExistingUsers";
 
 // Define the login form validation schema
 export const loginSchema = z.object({
@@ -38,6 +39,16 @@ export function useLoginForm() {
       
       // The login was successful if we reach this point
       console.log("✅ Login successful");
+      
+      // Attempt to sync users after login to ensure the current user exists
+      // This is a safety measure in case the trigger failed
+      try {
+        await syncExistingUsers();
+        console.log("✅ User sync completed after login");
+      } catch (syncError) {
+        console.error("⚠️ User sync failed but login succeeded:", syncError);
+        // Continue with login flow even if sync fails
+      }
       
       // Don't reset isLoading here - this allows the button to stay in loading state
       // until the redirect happens, preventing flashes
