@@ -10,8 +10,11 @@ export async function syncUserRole(userId: string): Promise<any> {
   try {
     console.log('🔄 Manually syncing user role for:', userId);
     
+    // Call the auto-sync-user-role edge function with proper error handling
     const { data, error } = await supabase.functions.invoke('auto-sync-user-role', {
-      body: { userId }
+      body: { userId },
+      // Add more explicit logging for debugging
+      headers: { 'x-manual-sync': 'true' }
     });
     
     if (error) {
@@ -19,6 +22,7 @@ export async function syncUserRole(userId: string): Promise<any> {
       throw error;
     }
     
+    // Log the successful response
     console.log('✅ Manual role sync result:', data);
     return data;
   } catch (error) {

@@ -4,7 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.29.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-manual-sync',
 };
 
 interface AutoSyncUserRoleRequest {
@@ -18,7 +18,9 @@ serve(async (req) => {
   }
 
   try {
-    console.log("🔄 Auto-sync user role function invoked");
+    // Enhanced logging for function invocation
+    const isManualSync = req.headers.get('x-manual-sync') === 'true';
+    console.log(`🔄 Auto-sync user role function invoked. Manual sync: ${isManualSync}`);
     
     // Initialize Supabase client with admin privileges
     const supabaseAdmin = createClient(
@@ -32,7 +34,7 @@ serve(async (req) => {
       }
     );
 
-    // Parse the request body
+    // Parse the request body with enhanced error handling
     let body;
     try {
       body = await req.json();
