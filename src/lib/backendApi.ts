@@ -1,4 +1,3 @@
-
 import { supabase } from './supabaseClient';
 import { handleApiError } from './handleApiError';
 import { getOrgFromUrl } from './subdomainUtils';
@@ -25,6 +24,7 @@ async function fetchWithAuth(path: string, options: RequestInit = {}) {
 
     const res = await fetch(`${API_BASE_URL}${path}`, {
       ...options,
+      credentials: 'include', // Add credentials to include cookies in cross-origin requests
       headers: {
         ...(options.headers || {}),
         'Authorization': `Bearer ${token}`,
