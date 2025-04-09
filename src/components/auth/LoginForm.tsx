@@ -1,12 +1,12 @@
 
 import React from "react";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Mail, LogIn } from "lucide-react";
+import { LogIn } from "lucide-react";
 import { LoginValues } from "@/hooks/useLoginForm";
 import { UseFormReturn } from "react-hook-form";
 import PasswordInput from "./PasswordInput";
+import EmailInput from "./EmailInput";
 
 interface LoginFormProps {
   form: UseFormReturn<LoginValues>;
@@ -37,15 +37,10 @@ const LoginForm: React.FC<LoginFormProps> = ({
             <FormItem>
               <FormLabel className="font-helvetica">Email</FormLabel>
               <FormControl>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-                  <Input
-                    placeholder="you@example.com"
-                    className="pl-10 font-roboto"
-                    disabled={isLoading}
-                    {...field}
-                  />
-                </div>
+                <EmailInput
+                  disabled={isLoading}
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
