@@ -4,7 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.29.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-manual-sync',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-manual-sync, x-request-id',
 };
 
 interface AutoSyncUserRoleRequest {
@@ -20,7 +20,8 @@ serve(async (req) => {
   try {
     // Enhanced logging for function invocation
     const isManualSync = req.headers.get('x-manual-sync') === 'true';
-    console.log(`🔄 Auto-sync user role function invoked. Manual sync: ${isManualSync}, Request ID: ${req.headers.get('x-request-id') || 'unknown'}`);
+    const requestId = req.headers.get('x-request-id') || 'unknown';
+    console.log(`🔄 Auto-sync user role function invoked. Manual sync: ${isManualSync}, Request ID: ${requestId}`);
     
     // Initialize Supabase client with admin privileges
     const supabaseAdmin = createClient(
@@ -38,9 +39,9 @@ serve(async (req) => {
     let body;
     try {
       body = await req.json();
-      console.log("📦 Request body:", JSON.stringify(body));
+      console.log(`📦 Request body for ${requestId}:`, JSON.stringify(body));
     } catch (parseError) {
-      console.error("❌ Failed to parse request body:", parseError);
+      console.error(`❌ Failed to parse request body for ${requestId}:`, parseError);
       return new Response(
         JSON.stringify({ error: 'Invalid JSON in request body', details: parseError.message }),
         { 
@@ -53,7 +54,7 @@ serve(async (req) => {
     const { userId } = body as AutoSyncUserRoleRequest;
     
     if (!userId) {
-      console.error('❌ No user ID provided in request');
+      console.error(`❌ No user ID provided in request ${requestId}`);
       return new Response(
         JSON.stringify({ error: 'User ID is required' }),
         { 
@@ -66,7 +67,7 @@ serve(async (req) => {
     // Validate the UUID format
     const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     if (!uuidPattern.test(userId)) {
-      console.error('❌ Invalid UUID format:', userId);
+      console.error(`❌ Invalid UUID format for ${requestId}:`, userId);
       return new Response(
         JSON.stringify({ error: 'Invalid UUID format for user ID' }),
         { 
@@ -76,7 +77,7 @@ serve(async (req) => {
       );
     }
 
-    console.log(`🔄 Auto-syncing role for user: ${userId}`);
+    console.log(`🔄 Auto-syncing role for user: ${userId} (Request: ${requestId})`);
 
     // Retrieve user role from the users table
     const { data: userData, error: userError } = await supabaseAdmin
@@ -86,7 +87,7 @@ serve(async (req) => {
       .maybeSingle();
 
     if (userError) {
-      console.error('❌ Error fetching user data:', userError);
+      console.error(`❌ Error fetching user data for ${requestId}:`, userError);
       return new Response(
         JSON.stringify({ error: 'Failed to fetch user data', details: userError }),
         { 
@@ -97,7 +98,7 @@ serve(async (req) => {
     }
 
     if (!userData) {
-      console.error(`❌ User not found with ID: ${userId}`);
+      console.error(`❌ User not found with ID: ${userId} (Request: ${requestId})`);
       return new Response(
         JSON.stringify({ error: `User not found with ID: ${userId}` }),
         { 
@@ -107,13 +108,13 @@ serve(async (req) => {
       );
     }
 
-    console.log(`✅ Found user with role: ${userData.role}`);
+    console.log(`✅ Found user with role: ${userData.role} (Request: ${requestId})`);
 
     // Get current user metadata from auth
     const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.getUserById(userId);
 
     if (authError) {
-      console.error('❌ Error fetching auth user:', authError);
+      console.error(`❌ Error fetching auth user for ${requestId}:`, authError);
       return new Response(
         JSON.stringify({ error: 'Failed to fetch auth user data', details: authError }),
         { 
@@ -124,16 +125,17 @@ serve(async (req) => {
     }
 
     const currentRole = authUser?.user?.user_metadata?.role;
-    console.log(`ℹ️ Current auth role: ${currentRole}, database role: ${userData.role}`);
+    console.log(`ℹ️ Current auth role: ${currentRole}, database role: ${userData.role} (Request: ${requestId})`);
 
     // Skip update if roles already match
     if (currentRole === userData.role) {
-      console.log(`ℹ️ No update needed - roles already match: ${userData.role}`);
+      console.log(`ℹ️ No update needed - roles already match: ${userData.role} (Request: ${requestId})`);
       return new Response(
         JSON.stringify({ 
           message: 'No update needed - roles already match', 
           userId, 
-          role: userData.role 
+          role: userData.role,
+          requestId
         }),
         { 
           status: 200,
@@ -143,7 +145,7 @@ serve(async (req) => {
     }
 
     // Update the user's metadata with the role from the database
-    console.log(`🔄 Updating auth metadata role from '${currentRole}' to '${userData.role}'`);
+    console.log(`🔄 Updating auth metadata role from '${currentRole}' to '${userData.role}' (Request: ${requestId})`);
     
     const { data: updateData, error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
       userId,
@@ -156,7 +158,7 @@ serve(async (req) => {
     );
 
     if (updateError) {
-      console.error('❌ Error updating user metadata:', updateError);
+      console.error(`❌ Error updating user metadata for ${requestId}:`, updateError);
       return new Response(
         JSON.stringify({ error: 'Failed to update user metadata', details: updateError }),
         { 
@@ -166,14 +168,15 @@ serve(async (req) => {
       );
     }
 
-    console.log('✅ Successfully updated user metadata with role:', userData.role);
+    console.log(`✅ Successfully updated user metadata with role: ${userData.role} (Request: ${requestId})`);
 
     return new Response(
       JSON.stringify({
         message: 'User role synced successfully',
         userId,
         role: userData.role,
-        previousRole: currentRole
+        previousRole: currentRole,
+        requestId
       }),
       { 
         status: 200,

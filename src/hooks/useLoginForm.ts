@@ -32,13 +32,15 @@ export function useLoginForm() {
     try {
       console.log("🔑 Attempting login with:", data.email);
       
+      // Don't attempt to access the return value directly here
+      // Let the AuthContext handle the redirection
       await signIn(data.email, data.password);
+      
+      // The login was successful if we reach this point
       console.log("✅ Login successful");
       
-      // Role sync happens in the authActions.ts signIn function
-      // No need to manually call it here
-      
-      // Redirect will be handled by AuthContext or useEffect in Login component
+      // Don't reset isLoading here - this allows the button to stay in loading state
+      // until the redirect happens, preventing flashes
     } catch (error: any) {
       console.error("❌ Login failed:", error);
       setAuthError(error.message || "Login failed. Please check your credentials.");
