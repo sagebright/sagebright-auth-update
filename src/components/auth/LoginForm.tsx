@@ -7,6 +7,7 @@ import { LoginValues } from "@/hooks/useLoginForm";
 import { UseFormReturn } from "react-hook-form";
 import PasswordInput from "./PasswordInput";
 import EmailInput from "./EmailInput";
+import { Link } from "react-router-dom";
 
 interface LoginFormProps {
   form: UseFormReturn<LoginValues>;
@@ -65,12 +66,12 @@ const LoginForm: React.FC<LoginFormProps> = ({
         />
 
         <div className="text-right">
-          <a
-            href="mailto:support@sagebright.com"
+          <Link
+            to="/auth/forgot-password"
             className="text-sm font-medium text-sagebright-green hover:underline"
           >
             Forgot password?
-          </a>
+          </Link>
         </div>
 
         <Button

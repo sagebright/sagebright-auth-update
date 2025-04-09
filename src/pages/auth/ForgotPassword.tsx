@@ -13,9 +13,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/auth/AuthContext";
-import { Mail } from "lucide-react";
+import EmailInput from "@/components/auth/EmailInput";
 import AuthLayout from "@/components/auth/AuthLayout";
 
 const forgotPasswordSchema = z.object({
@@ -27,6 +26,7 @@ type ForgotPasswordValues = z.infer<typeof forgotPasswordSchema>;
 export default function ForgotPassword() {
   const { resetPassword } = useAuth();
   const [isLoading, setIsLoading] = React.useState(false);
+  const [isSuccess, setIsSuccess] = React.useState(false);
   
   const form = useForm<ForgotPasswordValues>({
     resolver: zodResolver(forgotPasswordSchema),
@@ -39,6 +39,7 @@ export default function ForgotPassword() {
     setIsLoading(true);
     try {
       await resetPassword(data.email);
+      setIsSuccess(true);
       form.reset();
     } catch (error) {
       // Error is handled in the auth context
@@ -66,45 +67,48 @@ export default function ForgotPassword() {
       </>
       
       <>{/* Content */}
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="font-helvetica">Email</FormLabel>
-                  <FormControl>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-                      <Input 
-                        placeholder="you@example.com" 
-                        className="pl-10 font-roboto"
-                        disabled={isLoading} 
-                        {...field} 
+        {isSuccess ? (
+          <div className="bg-green-50 border border-green-200 text-green-700 rounded-md p-4">
+            <p className="text-sm">
+              We've sent a password reset link to your email address. Please check your inbox.
+            </p>
+          </div>
+        ) : (
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-helvetica">Email</FormLabel>
+                    <FormControl>
+                      <EmailInput
+                        disabled={isLoading}
+                        {...field}
                       />
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button 
-              type="submit" 
-              className="w-full bg-sagebright-green hover:bg-sagebright-green/90 font-helvetica"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <div className="flex items-center">
-                  <div className="animate-spin mr-2 h-4 w-4 border-2 border-t-transparent border-white rounded-full"></div>
-                  Sending reset link...
-                </div>
-              ) : (
-                "Send reset link"
-              )}
-            </Button>
-          </form>
-        </Form>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button 
+                type="submit" 
+                className="w-full bg-sagebright-green hover:bg-sagebright-green/90 font-helvetica"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <div className="flex items-center">
+                    <div className="animate-spin mr-2 h-4 w-4 border-2 border-t-transparent border-white rounded-full"></div>
+                    Sending reset link...
+                  </div>
+                ) : (
+                  "Send reset link"
+                )}
+              </Button>
+            </form>
+          </Form>
+        )}
       </>
     </AuthLayout>
   );
