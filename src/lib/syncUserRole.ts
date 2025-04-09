@@ -8,18 +8,21 @@ import { supabase } from './supabaseClient';
  */
 export async function syncUserRole(userId: string): Promise<any> {
   try {
+    console.log('🔄 Manually syncing user role for:', userId);
+    
     const { data, error } = await supabase.functions.invoke('auto-sync-user-role', {
       body: { userId }
     });
     
     if (error) {
-      console.error('Error syncing user role:', error);
+      console.error('❌ Error syncing user role:', error);
       throw error;
     }
     
+    console.log('✅ Manual role sync result:', data);
     return data;
   } catch (error) {
-    console.error('Failed to sync user role:', error);
+    console.error('❌ Failed to sync user role:', error);
     throw error;
   }
 }

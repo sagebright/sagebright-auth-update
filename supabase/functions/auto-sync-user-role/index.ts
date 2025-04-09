@@ -18,6 +18,8 @@ serve(async (req) => {
   }
 
   try {
+    console.log("🔄 Auto-sync user role function invoked");
+    
     // Initialize Supabase client with admin privileges
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -31,10 +33,25 @@ serve(async (req) => {
     );
 
     // Parse the request body
-    const { userId } = await req.json() as AutoSyncUserRoleRequest;
+    let body;
+    try {
+      body = await req.json();
+      console.log("📦 Request body:", JSON.stringify(body));
+    } catch (parseError) {
+      console.error("❌ Failed to parse request body:", parseError);
+      return new Response(
+        JSON.stringify({ error: 'Invalid JSON in request body', details: parseError.message }),
+        { 
+          status: 400,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders }
+        }
+      );
+    }
+    
+    const { userId } = body as AutoSyncUserRoleRequest;
     
     if (!userId) {
-      console.error('No user ID provided in request');
+      console.error('❌ No user ID provided in request');
       return new Response(
         JSON.stringify({ error: 'User ID is required' }),
         { 
@@ -47,7 +64,7 @@ serve(async (req) => {
     // Validate the UUID format
     const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     if (!uuidPattern.test(userId)) {
-      console.error('Invalid UUID format:', userId);
+      console.error('❌ Invalid UUID format:', userId);
       return new Response(
         JSON.stringify({ error: 'Invalid UUID format for user ID' }),
         { 
@@ -57,7 +74,7 @@ serve(async (req) => {
       );
     }
 
-    console.log(`Auto-syncing role for user: ${userId}`);
+    console.log(`🔄 Auto-syncing role for user: ${userId}`);
 
     // Retrieve user role from the users table
     const { data: userData, error: userError } = await supabaseAdmin
@@ -67,7 +84,7 @@ serve(async (req) => {
       .maybeSingle();
 
     if (userError) {
-      console.error('Error fetching user data:', userError);
+      console.error('❌ Error fetching user data:', userError);
       return new Response(
         JSON.stringify({ error: 'Failed to fetch user data', details: userError }),
         { 
@@ -78,7 +95,7 @@ serve(async (req) => {
     }
 
     if (!userData) {
-      console.error(`User not found with ID: ${userId}`);
+      console.error(`❌ User not found with ID: ${userId}`);
       return new Response(
         JSON.stringify({ error: `User not found with ID: ${userId}` }),
         { 
@@ -88,13 +105,13 @@ serve(async (req) => {
       );
     }
 
-    console.log(`Found user with role: ${userData.role}`);
+    console.log(`✅ Found user with role: ${userData.role}`);
 
     // Get current user metadata from auth
     const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.getUserById(userId);
 
     if (authError) {
-      console.error('Error fetching auth user:', authError);
+      console.error('❌ Error fetching auth user:', authError);
       return new Response(
         JSON.stringify({ error: 'Failed to fetch auth user data', details: authError }),
         { 
@@ -105,11 +122,11 @@ serve(async (req) => {
     }
 
     const currentRole = authUser?.user?.user_metadata?.role;
-    console.log(`Current auth role: ${currentRole}, database role: ${userData.role}`);
+    console.log(`ℹ️ Current auth role: ${currentRole}, database role: ${userData.role}`);
 
     // Skip update if roles already match
     if (currentRole === userData.role) {
-      console.log(`No update needed - roles already match: ${userData.role}`);
+      console.log(`ℹ️ No update needed - roles already match: ${userData.role}`);
       return new Response(
         JSON.stringify({ 
           message: 'No update needed - roles already match', 
@@ -124,6 +141,8 @@ serve(async (req) => {
     }
 
     // Update the user's metadata with the role from the database
+    console.log(`🔄 Updating auth metadata role from '${currentRole}' to '${userData.role}'`);
+    
     const { data: updateData, error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
       userId,
       { 
@@ -135,7 +154,7 @@ serve(async (req) => {
     );
 
     if (updateError) {
-      console.error('Error updating user metadata:', updateError);
+      console.error('❌ Error updating user metadata:', updateError);
       return new Response(
         JSON.stringify({ error: 'Failed to update user metadata', details: updateError }),
         { 
@@ -145,11 +164,11 @@ serve(async (req) => {
       );
     }
 
-    console.log('Successfully updated user metadata with role:', userData.role);
+    console.log('✅ Successfully updated user metadata with role:', userData.role);
 
     return new Response(
       JSON.stringify({
-        message: 'User role synced automatically',
+        message: 'User role synced successfully',
         userId,
         role: userData.role,
         previousRole: currentRole
@@ -161,7 +180,7 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Unexpected error:', error);
+    console.error('❌ Unexpected error:', error);
     return new Response(
       JSON.stringify({ error: 'An unexpected error occurred', details: error.message }),
       { 
