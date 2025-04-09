@@ -19,6 +19,7 @@ import { Eye, EyeOff, LogIn, Mail } from "lucide-react";
 import AuthLayout from "@/components/auth/AuthLayout";
 import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 import AuthDivider from "@/components/auth/AuthDivider";
+import { getOrgFromUrl } from "@/lib/subdomainUtils";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
@@ -28,13 +29,24 @@ const loginSchema = z.object({
 type LoginValues = z.infer<typeof loginSchema>;
 
 export default function Login() {
-  const { signIn, signInWithGoogle } = useAuth();
+  const { signIn, signInWithGoogle, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [isLoading, setIsLoading] = React.useState(false);
   const [showPassword, setShowPassword] = React.useState(false);
+  const [authError, setAuthError] = React.useState<string | null>(null);
   
   const redirectPath = localStorage.getItem("redirectAfterLogin") || "/user-dashboard";
+
+  React.useEffect(() => {
+    // If user is already authenticated, redirect them appropriately
+    if (user) {
+      console.log("User already authenticated, redirecting to dashboard");
+      const role = user.user_metadata?.role || 'user';
+      const targetPath = role === 'admin' ? '/hr-dashboard' : '/user-dashboard';
+      navigate(targetPath, { replace: true });
+    }
+  }, [user, navigate]);
   
   const form = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
@@ -45,6 +57,7 @@ export default function Login() {
   });
 
   const onSubmit = async (data: LoginValues) => {
+    setAuthError(null);
     setIsLoading(true);
     try {
       console.log("🔑 Attempting login with:", data.email);
@@ -52,21 +65,15 @@ export default function Login() {
       const result = await signIn(data.email, data.password);
       console.log("✅ Login result:", result);
   
-      // ⏳ Give Supabase time to propagate session
-      await new Promise((resolve) => setTimeout(resolve, 500));
-  
-      const redirectTo = localStorage.getItem("redirectAfterLogin") || "/user-dashboard";
-      localStorage.removeItem("redirectAfterLogin");
-  
-      console.log("🚀 Navigating to:", redirectTo);
-      navigate(redirectTo, { replace: true });
-    } catch (error) {
+      // Don't manually navigate here - let the auth state change handler
+      // in AuthContext and useRequireAuth handle the redirection
+    } catch (error: any) {
       console.error("❌ Login failed:", error);
+      setAuthError(error.message || "Login failed. Please check your credentials.");
     } finally {
       setIsLoading(false);
     }
   };
-  
 
   const handleGoogleSignIn = async () => {
     try {
@@ -100,6 +107,12 @@ export default function Login() {
           
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              {authError && (
+                <div className="p-3 text-sm bg-red-50 border border-red-200 text-red-600 rounded-md">
+                  {authError}
+                </div>
+              )}
+              
               <FormField
                 control={form.control}
                 name="email"

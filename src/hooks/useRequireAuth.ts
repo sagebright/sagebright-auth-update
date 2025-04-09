@@ -41,12 +41,17 @@ export function useRequireAuth(navigate: NavigateFunction) {
             localStorage.setItem("redirectAfterLogin", fullPath);
             
             if (isMounted) {
-              navigate('/auth/login', { replace: true });
+              // If on a subdomain, redirect to /auth/login instead of the default path
+              const orgSlug = getOrgFromUrl();
+              const loginPath = orgSlug ? '/auth/login' : '/auth/login';
+              
+              navigate(loginPath, { replace: true });
               setIsAuthenticated(false);
             }
           }
         } else if (isMounted) {
           const extractedOrgId = user.user_metadata?.org_id;
+          const userRole = user.user_metadata?.role || 'user';
 
           if (!extractedOrgId) {
             console.warn("⚠️ No org_id found in user metadata for user:", user.id);
@@ -58,12 +63,29 @@ export function useRequireAuth(navigate: NavigateFunction) {
             if (orgSlug) {
               // Check if we need to redirect to the org subdomain
               const currentOrgSlug = getOrgFromUrl();
+              
               if ((!currentOrgSlug || currentOrgSlug !== orgSlug) && 
                   !location.pathname.startsWith("/auth")) {
                 console.log("🔄 Redirecting to org subdomain:", orgSlug);
-                // Store path for after subdomain redirect
-                sessionStorage.setItem('lastAuthenticatedPath', location.pathname + location.search);
+                
+                // Store path for after subdomain redirect, with role-based default
+                const redirectTo = userRole === 'admin' ? '/hr-dashboard' : '/user-dashboard';
+                const pathToStore = location.pathname !== '/' ? 
+                  (location.pathname + location.search) : 
+                  redirectTo;
+                  
+                sessionStorage.setItem('lastAuthenticatedPath', pathToStore);
+                
                 redirectToOrgUrl(orgSlug);
+                return;
+              }
+              
+              // If on the root path, redirect based on role
+              if (location.pathname === '/' && user) {
+                const targetPath = userRole === 'admin' ? '/hr-dashboard' : '/user-dashboard';
+                if (isMounted) {
+                  navigate(targetPath, { replace: true });
+                }
                 return;
               }
             } else {
@@ -107,34 +129,6 @@ export function useRequireAuth(navigate: NavigateFunction) {
         console.log("🔄 Auth state changed:", event);
         
         if (event === 'SIGNED_IN' && isMounted) {
-          // Handle org subdomain routing
-          const orgFromMetadata = session?.user?.user_metadata?.org_id;
-          if (orgFromMetadata) {
-            // Get org details including slug
-            const orgDetails = await getOrgById(orgFromMetadata);
-            const orgSlug = orgDetails?.slug;
-            
-            if (orgSlug) {
-              const currentOrgSlug = getOrgFromUrl();
-              if (!currentOrgSlug || currentOrgSlug !== orgSlug) {
-                console.log("🔄 Redirecting to org subdomain after login:", orgSlug);
-                // Store path for after subdomain redirect
-                sessionStorage.setItem('lastAuthenticatedPath', 
-                  localStorage.getItem("redirectAfterLogin") || '/user-dashboard');
-                redirectToOrgUrl(orgSlug);
-                return;
-              }
-            }
-          }
-
-          // When user signs in, redirect to stored path
-          const redirectPath = localStorage.getItem("redirectAfterLogin");
-          if (redirectPath) {
-            console.log("🚀 Redirecting to:", redirectPath);
-            navigate(redirectPath, { replace: true });
-            localStorage.removeItem("redirectAfterLogin");
-          }
-          
           if (session?.user) {
             setUser(session.user);
             setUserId(session.user.id);
@@ -143,7 +137,33 @@ export function useRequireAuth(navigate: NavigateFunction) {
             // Get and set the org slug if we have an org ID
             if (session.user.user_metadata?.org_id) {
               const orgDetails = await getOrgById(session.user.user_metadata.org_id);
-              setOrgSlug(orgDetails?.slug || null);
+              const orgSlug = orgDetails?.slug || null;
+              setOrgSlug(orgSlug);
+              
+              // Handle org subdomain routing
+              const currentOrgSlug = getOrgFromUrl();
+              if (orgSlug && (!currentOrgSlug || currentOrgSlug !== orgSlug)) {
+                console.log("🔄 Redirecting to org subdomain after login:", orgSlug);
+                
+                // Determine target based on role
+                const userRole = session.user.user_metadata?.role || 'user';
+                const targetPath = userRole === 'admin' ? '/hr-dashboard' : '/user-dashboard';
+                
+                // Store path for after subdomain redirect
+                sessionStorage.setItem('lastAuthenticatedPath', targetPath);
+                redirectToOrgUrl(orgSlug);
+                return;
+              }
+              
+              // If already on correct subdomain, redirect based on role
+              const userRole = session.user.user_metadata?.role || 'user';
+              const targetPath = userRole === 'admin' ? '/hr-dashboard' : '/user-dashboard';
+              
+              // Only redirect if we're on a login page or root
+              if (location.pathname === '/' || location.pathname.startsWith('/auth/')) {
+                console.log("🚀 Redirecting to role-specific dashboard:", targetPath);
+                navigate(targetPath, { replace: true });
+              }
             }
             
             setIsAuthenticated(true);

@@ -61,20 +61,23 @@ const App = () => {
         <BrowserRouter>
           <PageErrorBoundary>
             <Routes>
+              {/* Root path behavior depends on subdomain */}
               <Route 
                 path="/" 
                 element={
-                  <PublicAuthRoute element={
-                    orgContext ? (
-                      <AuthProvider>
-                        <ProtectedRoute>
-                          <Navigate to="/auth/login" replace />
-                        </ProtectedRoute>
-                      </AuthProvider>
-                    ) : (
-                      <Index />
-                    )
-                  } />
+                  orgContext ? (
+                    <AuthProvider>
+                      <ProtectedRoute>
+                        {/* Will be redirected based on role in ProtectedRoute */}
+                        <div className="flex h-screen items-center justify-center">
+                          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+                          <span className="ml-2 text-primary">Loading your dashboard...</span>
+                        </div>
+                      </ProtectedRoute>
+                    </AuthProvider>
+                  ) : (
+                    <PublicAuthRoute element={<Index />} />
+                  )
                 } 
               />
               
