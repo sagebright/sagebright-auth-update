@@ -16,6 +16,7 @@ export function useAuthProvider() {
   const [orgSlug, setOrgSlug] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
@@ -23,26 +24,52 @@ export function useAuthProvider() {
   // Load user from backend once userId is known
   useEffect(() => {
     if (!userId) return;
-
-    getUsers()
-      .then(users => {
+    
+    let isMounted = true;
+    const fetchUserData = async () => {
+      try {
+        const users = await getUsers();
+        if (!isMounted) return;
+        
         const match = users.find(u => u.id === userId);
         setCurrentUser(match || null);
-        setOrgId(match?.org_id || null);
         
-        // Get org slug once we have the org ID
         if (match?.org_id) {
-          getOrgById(match.org_id)
-            .then(org => {
-              if (org?.slug) {
-                setOrgSlug(org.slug);
-              }
-            });
+          setOrgId(match.org_id);
+          
+          // Get org slug once we have the org ID
+          const org = await getOrgById(match.org_id);
+          if (!isMounted) return;
+          
+          if (org?.slug) {
+            setOrgSlug(org.slug);
+            console.log("🏢 Set orgSlug in useAuthProvider:", org.slug);
+            // Only now set isAuthenticated when we have the complete context
+            setIsAuthenticated(true);
+          } else {
+            console.warn("⚠️ No slug found for org ID:", match.org_id);
+            setIsAuthenticated(false);
+          }
+        } else {
+          setIsAuthenticated(false);
         }
-      })
-      .catch(err => {
+      } catch (err) {
         console.error('Error loading current user:', err);
-      });
+        if (isMounted) {
+          setIsAuthenticated(false);
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+    
+    fetchUserData();
+    
+    return () => {
+      isMounted = false;
+    };
   }, [userId]);
 
   useEffect(() => {
@@ -61,41 +88,15 @@ export function useAuthProvider() {
         setUserId(session?.user?.id ?? null);
         setAccessToken(session?.access_token ?? null);
         
-        // Handle org-based routing on auth state change
-        if (event === 'SIGNED_IN' && session?.user) {
-          const userOrgId = session.user.user_metadata?.org_id;
-          const userRole = session.user.user_metadata?.role || 'user';
-          
-          if (userOrgId) {
-            // Get org details including slug
-            const orgDetails = await getOrgById(userOrgId);
-            const orgSlug = orgDetails?.slug;
-            
-            if (orgSlug) {
-              const currentOrgSlug = getOrgFromUrl();
-              if (!currentOrgSlug || currentOrgSlug !== orgSlug) {
-                console.log('🏢 Redirecting to org subdomain:', orgSlug);
-                // Determine target based on role
-                const targetPath = userRole === 'admin' ? '/hr-dashboard' : '/user-dashboard';
-                // Store path for after subdomain redirect
-                sessionStorage.setItem('lastAuthenticatedPath', targetPath);
-                if (isMounted) {
-                  redirectToOrgUrl(orgSlug);
-                }
-                return;
-              }
-              
-              // If we're already on the correct subdomain, just redirect to the appropriate dashboard
-              const targetPath = userRole === 'admin' ? '/hr-dashboard' : '/user-dashboard';
-              
-              // Only redirect if we're on a login page or root
-              if ((location.pathname === '/' || location.pathname.startsWith('/auth/')) && isMounted) {
-                console.log('🏠 Redirecting to dashboard:', targetPath);
-                navigate(targetPath, { replace: true });
-              }
-            }
-          }
+        if (event === 'SIGNED_OUT') {
+          setIsAuthenticated(false);
+          setOrgId(null);
+          setOrgSlug(null);
+          setCurrentUser(null);
         }
+        
+        // Note: We now handle all redirection in the useRequireAuth hook
+        // This makes the redirection logic more centralized and predictable
       }
     );
 
@@ -112,50 +113,16 @@ export function useAuthProvider() {
         setUserId(session?.user?.id ?? null);
         setAccessToken(session?.access_token ?? null);
         
-        // Check for organization-based routing on initial load
-        if (session?.user) {
-          const userOrgId = session.user.user_metadata?.org_id;
-          const userRole = session.user.user_metadata?.role || 'user';
-          
-          if (userOrgId) {
-            // Get org details including slug
-            const orgDetails = await getOrgById(userOrgId);
-            const orgSlug = orgDetails?.slug;
-            
-            if (orgSlug) {
-              setOrgSlug(orgSlug);
-              const currentOrgSlug = getOrgFromUrl();
-              
-              if (!currentOrgSlug || currentOrgSlug !== orgSlug) {
-                // Don't redirect if on auth pages
-                if (!location.pathname.startsWith('/auth') && isMounted) {
-                  console.log('🏢 Redirecting to org subdomain on load:', orgSlug);
-                  // Determine target based on role
-                  const targetPath = userRole === 'admin' ? '/hr-dashboard' : '/user-dashboard';
-                  // Store path for after subdomain redirect
-                  sessionStorage.setItem('lastAuthenticatedPath', targetPath);
-                  redirectToOrgUrl(orgSlug);
-                  return;
-                }
-              } else if ((location.pathname === '/' || location.pathname.startsWith('/auth/')) && isMounted) {
-                // If on root or auth page with correct subdomain, redirect to appropriate dashboard
-                const targetPath = userRole === 'admin' ? '/hr-dashboard' : '/user-dashboard';
-                console.log('🏠 Redirecting to dashboard on initial load:', targetPath);
-                navigate(targetPath, { replace: true });
-                return;
-              }
-            }
-          }
-        } else if (getOrgFromUrl() && location.pathname === '/' && isMounted) {
-          // Handle unauthenticated subdomain root visits - redirect to login
-          console.log('🔑 Unauthenticated on subdomain root, redirecting to login');
-          navigate('/auth/login', { replace: true });
+        // User data and org fetching is now handled in the userId useEffect
+        // We only manage the session state here
+        if (!session) {
+          setLoading(false);
         }
       } catch (error) {
         console.error('Error checking session:', error);
-      } finally {
         if (isMounted) {
           setLoading(false);
+          setIsAuthenticated(false);
         }
       }
     };
@@ -177,6 +144,7 @@ export function useAuthProvider() {
     orgSlug,
     currentUser,
     loading,
+    isAuthenticated,
     setUser,
     setSession,
     setCurrentUser,

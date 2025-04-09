@@ -25,19 +25,16 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     
     if (loading) return;
     
-    // If not authenticated, useRequireAuth will handle the redirect to login
-    if (!isAuthenticated) return;
+    // If not authenticated or missing orgSlug, useRequireAuth will handle the redirect
+    if (!isAuthenticated || !orgSlug) return;
     
     // Handle subdomain mismatch
-    if (orgSlug) {
-      const currentOrgSlug = getOrgFromUrl();
-      
-      if ((!currentOrgSlug || currentOrgSlug !== orgSlug)) {
-        console.log("🏢 ProtectedRoute redirecting to correct org subdomain:", orgSlug);
-        sessionStorage.setItem('lastAuthenticatedPath', location.pathname + location.search);
-        redirectToOrgUrl(orgSlug);
-        return;
-      }
+    const currentOrgSlug = getOrgFromUrl();
+    if (orgSlug && (!currentOrgSlug || currentOrgSlug !== orgSlug)) {
+      console.log("🏢 ProtectedRoute redirecting to correct org subdomain:", orgSlug);
+      sessionStorage.setItem('lastAuthenticatedPath', location.pathname + location.search);
+      redirectToOrgUrl(orgSlug);
+      return;
     }
 
     // Handle root path redirection based on role
@@ -69,7 +66,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     orgId, orgSlug, navigate, requiredRole, requiredPermission, user
   ]);
   
-  if (loading) {
+  // Show loading spinner when auth is loading OR when authenticated but still missing orgSlug
+  if (loading || (isAuthenticated && !orgSlug)) {
     return (
       <div className="flex h-screen items-center justify-center">
         <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
@@ -78,7 +76,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     );
   }
 
-  return <>{children}</>;
+  // Only render children if we're authenticated with complete context
+  return isAuthenticated && orgSlug ? <>{children}</> : null;
 };
 
 export default ProtectedRoute;

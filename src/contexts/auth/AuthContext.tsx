@@ -17,8 +17,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     user,
     userId,
     orgId,
+    orgSlug,
     currentUser,
     loading,
+    isAuthenticated,
   } = useAuthProvider();
 
   const signUp = async (email: string, password: string, fullName: string) => {
@@ -130,8 +132,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     user,
     userId,
     orgId,
+    orgSlug,
     currentUser,
     loading,
+    isAuthenticated,
     signUp,
     signIn,
     signInWithGoogle,
