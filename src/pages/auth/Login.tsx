@@ -10,7 +10,7 @@ import LoginForm from "@/components/auth/LoginForm";
 import { getOrgFromUrl } from "@/lib/subdomainUtils";
 
 export default function Login() {
-  const { signInWithGoogle, user } = useAuth();
+  const { signInWithGoogle, user, isAuthenticated, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { form, isLoading, authError, onSubmit } = useLoginForm();
@@ -18,9 +18,15 @@ export default function Login() {
   const redirectPath = localStorage.getItem("redirectAfterLogin") || "/user-dashboard";
 
   useEffect(() => {
+    // If auth is still loading, don't do anything yet
+    if (loading) {
+      console.log("⏳ Auth still loading on login page, waiting...");
+      return;
+    }
+
     // If user is already authenticated, redirect them appropriately
-    if (user) {
-      console.log("✅ User already authenticated, redirecting to dashboard");
+    if (isAuthenticated && user) {
+      console.log("✅ User already authenticated on login page, redirecting to dashboard");
       console.log("👤 User role from metadata:", user.user_metadata?.role);
       
       // Check the role specifically from user_metadata
@@ -29,6 +35,9 @@ export default function Login() {
       
       console.log("🎯 Redirecting to:", targetPath, "based on role:", role);
       
+      // Clear any stored redirect paths to prevent loops
+      localStorage.removeItem("redirectAfterLogin");
+      
       // Add a small delay to ensure state is fully updated
       const redirectTimer = setTimeout(() => {
         navigate(targetPath, { replace: true });
@@ -36,7 +45,7 @@ export default function Login() {
       
       return () => clearTimeout(redirectTimer);
     }
-  }, [user, navigate]);
+  }, [user, isAuthenticated, loading, navigate]);
 
   const handleGoogleSignIn = async () => {
     try {
@@ -47,6 +56,17 @@ export default function Login() {
     }
   };
 
+  // Show loading indicator while auth state is being determined
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+        <span className="ml-2 text-primary">Loading...</span>
+      </div>
+    );
+  }
+
+  // Only render the login form if the user is not authenticated
   return (
     <AuthLayout
       title="Sign in"

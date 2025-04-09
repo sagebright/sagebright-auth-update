@@ -56,6 +56,7 @@ export function useLoginForm() {
       console.error("❌ Login failed:", error);
       setAuthError(error.message || "Login failed. Please check your credentials.");
       setIsLoading(false);
+      form.reset();
     }
   };
 

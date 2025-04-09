@@ -23,11 +23,17 @@ export function useAuthProvider() {
 
   // Load user from backend once userId is known
   useEffect(() => {
-    if (!userId) return;
+    if (!userId) {
+      // If no userId, we're definitely not authenticated
+      setLoading(false);
+      setIsAuthenticated(false);
+      return;
+    }
     
     let isMounted = true;
     const fetchUserData = async () => {
       try {
+        console.log("🔍 Fetching user data for ID:", userId);
         const users = await getUsers();
         if (!isMounted) return;
         
@@ -50,6 +56,11 @@ export function useAuthProvider() {
             console.warn("⚠️ No slug found for org ID:", match.org_id);
             setIsAuthenticated(false);
           }
+        } else if (match) {
+          // If we have a user but no org, we're still authenticated
+          // This is needed to prevent login loops
+          console.log("👤 User found but no org assigned");
+          setIsAuthenticated(true);
         } else {
           setIsAuthenticated(false);
         }
@@ -93,6 +104,7 @@ export function useAuthProvider() {
           setOrgId(null);
           setOrgSlug(null);
           setCurrentUser(null);
+          setLoading(false);
         }
         
         // Note: We now handle all redirection in the useRequireAuth hook
@@ -113,12 +125,12 @@ export function useAuthProvider() {
         setUserId(session?.user?.id ?? null);
         setAccessToken(session?.access_token ?? null);
         
-        // User data and org fetching is now handled in the userId useEffect
-        // We only manage the session state here
+        // If no session, we're definitely not authenticated and not loading
         if (!session) {
           setLoading(false);
           setIsAuthenticated(false);
         }
+        // User data and org fetching is now handled in the userId useEffect
       } catch (error) {
         console.error('Error checking session:', error);
         if (isMounted) {
