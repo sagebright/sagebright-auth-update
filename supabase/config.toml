@@ -1,1 +1,5 @@
+
 project_id = "uonxhnmvrtuszgjubvaa"
+
+[functions.sync-user-role]
+verify_jwt = true
