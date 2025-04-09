@@ -6,8 +6,10 @@ export interface AuthContextType {
   user: User | null;
   userId: string | null;
   orgId: string | null;
+  orgSlug: string | null; // Added orgSlug property
   currentUser: any | null;
   loading: boolean;
+  isAuthenticated: boolean; // Added isAuthenticated property
   signUp: (email: string, password: string, fullName: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;

@@ -117,6 +117,7 @@ export function useAuthProvider() {
         // We only manage the session state here
         if (!session) {
           setLoading(false);
+          setIsAuthenticated(false);
         }
       } catch (error) {
         console.error('Error checking session:', error);

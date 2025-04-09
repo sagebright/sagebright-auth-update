@@ -54,7 +54,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     }
     
     if (requiredPermission && 
-        (!user?.permissions || !user.permissions.includes(requiredPermission))) {
+        (!user?.user_metadata?.permissions || 
+         !user.user_metadata.permissions.includes(requiredPermission))) {
       console.log("🚫 User lacks required permission:", requiredPermission);
       navigate('/unauthorized', { replace: true });
       return;
