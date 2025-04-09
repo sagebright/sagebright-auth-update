@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabaseClient';
 import { getUsers } from '@/lib/backendApi';
@@ -17,6 +17,7 @@ export function useAuthProvider() {
   const [currentUser, setCurrentUser] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
 
   // Load user from backend once userId is known
@@ -45,10 +46,16 @@ export function useAuthProvider() {
   }, [userId]);
 
   useEffect(() => {
+    console.log("🔧 useAuthProvider initializing on path:", location.pathname);
+    let isMounted = true;
+
     // First set up the auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('🔥 Auth state changed:', event);
+        
+        if (!isMounted) return;
+        
         setSession(session);
         setUser(session?.user ?? null);
         setUserId(session?.user?.id ?? null);
@@ -72,7 +79,9 @@ export function useAuthProvider() {
                 const targetPath = userRole === 'admin' ? '/hr-dashboard' : '/user-dashboard';
                 // Store path for after subdomain redirect
                 sessionStorage.setItem('lastAuthenticatedPath', targetPath);
-                redirectToOrgUrl(orgSlug);
+                if (isMounted) {
+                  redirectToOrgUrl(orgSlug);
+                }
                 return;
               }
               
@@ -80,7 +89,7 @@ export function useAuthProvider() {
               const targetPath = userRole === 'admin' ? '/hr-dashboard' : '/user-dashboard';
               
               // Only redirect if we're on a login page or root
-              if (window.location.pathname === '/' || window.location.pathname.startsWith('/auth/')) {
+              if ((location.pathname === '/' || location.pathname.startsWith('/auth/')) && isMounted) {
                 console.log('🏠 Redirecting to dashboard:', targetPath);
                 navigate(targetPath, { replace: true });
               }
@@ -91,57 +100,73 @@ export function useAuthProvider() {
     );
 
     // Then check for an existing session
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      console.log('🔥 Session in getSession():', session);
-
-      setSession(session);
-      setUser(session?.user ?? null);
-      setUserId(session?.user?.id ?? null);
-      setAccessToken(session?.access_token ?? null);
-      
-      // Check for organization-based routing on initial load
-      if (session?.user) {
-        const userOrgId = session.user.user_metadata?.org_id;
-        const userRole = session.user.user_metadata?.role || 'user';
+    const checkSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        console.log('🔥 Session in getSession():', session);
+  
+        if (!isMounted) return;
+  
+        setSession(session);
+        setUser(session?.user ?? null);
+        setUserId(session?.user?.id ?? null);
+        setAccessToken(session?.access_token ?? null);
         
-        if (userOrgId) {
-          // Get org details including slug
-          const orgDetails = await getOrgById(userOrgId);
-          const orgSlug = orgDetails?.slug;
+        // Check for organization-based routing on initial load
+        if (session?.user) {
+          const userOrgId = session.user.user_metadata?.org_id;
+          const userRole = session.user.user_metadata?.role || 'user';
           
-          if (orgSlug) {
-            setOrgSlug(orgSlug);
-            const currentOrgSlug = getOrgFromUrl();
+          if (userOrgId) {
+            // Get org details including slug
+            const orgDetails = await getOrgById(userOrgId);
+            const orgSlug = orgDetails?.slug;
             
-            if (!currentOrgSlug || currentOrgSlug !== orgSlug) {
-              // Don't redirect if on auth pages
-              if (!window.location.pathname.startsWith('/auth')) {
-                console.log('🏢 Redirecting to org subdomain on load:', orgSlug);
-                // Determine target based on role
+            if (orgSlug) {
+              setOrgSlug(orgSlug);
+              const currentOrgSlug = getOrgFromUrl();
+              
+              if (!currentOrgSlug || currentOrgSlug !== orgSlug) {
+                // Don't redirect if on auth pages
+                if (!location.pathname.startsWith('/auth') && isMounted) {
+                  console.log('🏢 Redirecting to org subdomain on load:', orgSlug);
+                  // Determine target based on role
+                  const targetPath = userRole === 'admin' ? '/hr-dashboard' : '/user-dashboard';
+                  // Store path for after subdomain redirect
+                  sessionStorage.setItem('lastAuthenticatedPath', targetPath);
+                  redirectToOrgUrl(orgSlug);
+                  return;
+                }
+              } else if ((location.pathname === '/' || location.pathname.startsWith('/auth/')) && isMounted) {
+                // If on root or auth page with correct subdomain, redirect to appropriate dashboard
                 const targetPath = userRole === 'admin' ? '/hr-dashboard' : '/user-dashboard';
-                // Store path for after subdomain redirect
-                sessionStorage.setItem('lastAuthenticatedPath', targetPath);
-                redirectToOrgUrl(orgSlug);
-                setLoading(false);
+                console.log('🏠 Redirecting to dashboard on initial load:', targetPath);
+                navigate(targetPath, { replace: true });
                 return;
               }
-            } else if (window.location.pathname === '/' || window.location.pathname.startsWith('/auth/')) {
-              // If on root or auth page with correct subdomain, redirect to appropriate dashboard
-              const targetPath = userRole === 'admin' ? '/hr-dashboard' : '/user-dashboard';
-              console.log('🏠 Redirecting to dashboard on initial load:', targetPath);
-              navigate(targetPath, { replace: true });
             }
           }
+        } else if (getOrgFromUrl() && location.pathname === '/' && isMounted) {
+          // Handle unauthenticated subdomain root visits - redirect to login
+          console.log('🔑 Unauthenticated on subdomain root, redirecting to login');
+          navigate('/auth/login', { replace: true });
+        }
+      } catch (error) {
+        console.error('Error checking session:', error);
+      } finally {
+        if (isMounted) {
+          setLoading(false);
         }
       }
-      
-      setLoading(false);
-    });
+    };
+    
+    checkSession();
     
     return () => {
+      isMounted = false;
       subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, [navigate, location.pathname]);
 
   return {
     accessToken,

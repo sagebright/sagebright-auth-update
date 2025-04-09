@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -41,15 +40,6 @@ const queryClient = new QueryClient({
   },
 });
 
-// Component to wrap public pages that use Navbar and need useAuth
-const PublicAuthRoute = ({ element }) => {
-  return (
-    <AuthProvider>
-      {element}
-    </AuthProvider>
-  );
-};
-
 const App = () => {
   const orgContext = getOrgFromUrl();
   
@@ -59,14 +49,14 @@ const App = () => {
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <PageErrorBoundary>
-            <Routes>
-              {/* Root path behavior depends on subdomain */}
-              <Route 
-                path="/" 
-                element={
-                  orgContext ? (
-                    <AuthProvider>
+          <AuthProvider>
+            <PageErrorBoundary>
+              <Routes>
+                {/* Root path behavior depends on subdomain */}
+                <Route 
+                  path="/" 
+                  element={
+                    orgContext ? (
                       <ProtectedRoute>
                         {/* Will be redirected based on role in ProtectedRoute */}
                         <div className="flex h-screen items-center justify-center">
@@ -74,99 +64,67 @@ const App = () => {
                           <span className="ml-2 text-primary">Loading your dashboard...</span>
                         </div>
                       </ProtectedRoute>
-                    </AuthProvider>
-                  ) : (
-                    <PublicAuthRoute element={<Index />} />
-                  )
-                } 
-              />
-              
-              <Route 
-                path="/contact-us" 
-                element={<PublicAuthRoute element={<ContactUs />} />} 
-              />
-              
-              {/* Wrap all auth routes with AuthProvider */}
-              <Route 
-                path="/auth/login" 
-                element={
-                  <AuthProvider>
-                    <Login />
-                  </AuthProvider>
-                } 
-              />
-              <Route 
-                path="/auth/signup" 
-                element={
-                  <AuthProvider>
-                    <Signup />
-                  </AuthProvider>
-                } 
-              />
-              <Route 
-                path="/auth/forgot-password" 
-                element={
-                  <AuthProvider>
-                    <ForgotPassword />
-                  </AuthProvider>
-                } 
-              />
-              <Route path="/auth/callback" element={<Navigate to="/user-dashboard" replace />} />
-              
-              <Route
-                path="/user-dashboard"
-                element={
-                  <AuthProvider>
+                    ) : (
+                      <Index />
+                    )
+                  } 
+                />
+                
+                <Route path="/contact-us" element={<ContactUs />} />
+                
+                {/* Auth routes */}
+                <Route path="/auth/login" element={<Login />} />
+                <Route path="/auth/signup" element={<Signup />} />
+                <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+                <Route path="/auth/callback" element={<Navigate to="/user-dashboard" replace />} />
+                
+                <Route
+                  path="/user-dashboard"
+                  element={
                     <ProtectedRoute>
                       <Dashboard />
                     </ProtectedRoute>
-                  </AuthProvider>
-                }
-              />
-              
-              <Route
-                path="/dashboard"
-                element={
-                  <AuthProvider>
+                  }
+                />
+                
+                <Route
+                  path="/dashboard"
+                  element={
                     <ProtectedRoute>
                       <Navigate to="/user-dashboard" replace />
                     </ProtectedRoute>
-                  </AuthProvider>
-                }
-              />
-              
-              <Route
-                path="/hr-dashboard"
-                element={
-                  <AuthProvider>
+                  }
+                />
+                
+                <Route
+                  path="/hr-dashboard"
+                  element={
                     <ProtectedRoute requiredRole="admin">
                       <HRDashboard />
                     </ProtectedRoute>
-                  </AuthProvider>
-                }
-              />
-              
-              <Route
-                path="/ask-sage"
-                element={
-                  <AuthProvider>
+                  }
+                />
+                
+                <Route
+                  path="/ask-sage"
+                  element={
                     <ProtectedRoute>
                       <AskSage />
                     </ProtectedRoute>
-                  </AuthProvider>
-                }
-              />
-              
-              <Route path="/design-system" element={<PublicAuthRoute element={<DesignSystem />} />} />
-              <Route path="/dev-debug" element={<PublicAuthRoute element={<DevDebugPage />} />} />
-              <Route path="/form-components-example" element={<PublicAuthRoute element={<FormComponentsExample />} />} />
-              <Route path="/error-handling-example" element={<PublicAuthRoute element={<ErrorHandlingExample />} />} />
-              <Route path="/skeleton-preview" element={<PublicAuthRoute element={<SkeletonPreview />} />} />
-              <Route path="/image-preview" element={<PublicAuthRoute element={<ImageComponentPreview />} />} />
-              
-              <Route path="*" element={<PublicAuthRoute element={<NotFound />} />} />
-            </Routes>
-          </PageErrorBoundary>
+                  }
+                />
+                
+                <Route path="/design-system" element={<DesignSystem />} />
+                <Route path="/dev-debug" element={<DevDebugPage />} />
+                <Route path="/form-components-example" element={<FormComponentsExample />} />
+                <Route path="/error-handling-example" element={<ErrorHandlingExample />} />
+                <Route path="/skeleton-preview" element={<SkeletonPreview />} />
+                <Route path="/image-preview" element={<ImageComponentPreview />} />
+                
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </PageErrorBoundary>
+          </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>

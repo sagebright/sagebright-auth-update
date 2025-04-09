@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useLocation, NavigateFunction } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
@@ -26,13 +25,17 @@ export function useRequireAuth(navigate: NavigateFunction) {
     
     const checkAuth = async () => {
       try {
+        console.log("🔍 Checking auth status...");
         const { data: { user }, error } = await supabase.auth.getUser();
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+        if (!isMounted) return;
 
         console.log("🧑‍💻 Supabase user returned:", user);
         console.log("📦 Supabase session returned:", session);
 
         if (error || sessionError || !user || !session) {
+          console.log("❌ No authenticated user found");
           // Only redirect to login if we're not already on an auth route
           if (!location.pathname.startsWith("/auth")) {
             // Store the full URL with search params for redirect after login
@@ -41,15 +44,17 @@ export function useRequireAuth(navigate: NavigateFunction) {
             localStorage.setItem("redirectAfterLogin", fullPath);
             
             if (isMounted) {
-              // If on a subdomain, redirect to /auth/login instead of the default path
+              // If on a subdomain, redirect to /auth/login
               const orgSlug = getOrgFromUrl();
-              const loginPath = orgSlug ? '/auth/login' : '/auth/login';
+              const loginPath = '/auth/login';
               
+              console.log("🔄 Redirecting to login:", loginPath);
               navigate(loginPath, { replace: true });
               setIsAuthenticated(false);
             }
           }
         } else if (isMounted) {
+          console.log("✅ User is authenticated:", user.id);
           const extractedOrgId = user.user_metadata?.org_id;
           const userRole = user.user_metadata?.role || 'user';
 
@@ -76,7 +81,9 @@ export function useRequireAuth(navigate: NavigateFunction) {
                   
                 sessionStorage.setItem('lastAuthenticatedPath', pathToStore);
                 
-                redirectToOrgUrl(orgSlug);
+                if (isMounted) {
+                  redirectToOrgUrl(orgSlug);
+                }
                 return;
               }
               
@@ -84,6 +91,7 @@ export function useRequireAuth(navigate: NavigateFunction) {
               if (location.pathname === '/' && user) {
                 const targetPath = userRole === 'admin' ? '/hr-dashboard' : '/user-dashboard';
                 if (isMounted) {
+                  console.log("🏠 Redirecting to role-based dashboard:", targetPath);
                   navigate(targetPath, { replace: true });
                 }
                 return;
@@ -117,22 +125,21 @@ export function useRequireAuth(navigate: NavigateFunction) {
       }
     };
 
-    // Use a debounced approach to prevent frequent checks
-    // Only check auth once when the component mounts or pathname changes (not search params)
-    const timer = setTimeout(() => {
-      checkAuth();
-    }, 100);
+    checkAuth();
 
     // Set up listener for auth state changes to keep auth state in sync
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log("🔄 Auth state changed:", event);
+        console.log("🔄 Auth state changed in useRequireAuth:", event);
         
-        if (event === 'SIGNED_IN' && isMounted) {
+        if (!isMounted) return;
+        
+        if (event === 'SIGNED_IN') {
           if (session?.user) {
             setUser(session.user);
             setUserId(session.user.id);
             setOrgId(session.user.user_metadata?.org_id || null);
+            setIsAuthenticated(true);
             
             // Get and set the org slug if we have an org ID
             if (session.user.user_metadata?.org_id) {
@@ -140,33 +147,23 @@ export function useRequireAuth(navigate: NavigateFunction) {
               const orgSlug = orgDetails?.slug || null;
               setOrgSlug(orgSlug);
               
-              // Handle org subdomain routing
-              const currentOrgSlug = getOrgFromUrl();
-              if (orgSlug && (!currentOrgSlug || currentOrgSlug !== orgSlug)) {
-                console.log("🔄 Redirecting to org subdomain after login:", orgSlug);
-                
-                // Determine target based on role
-                const userRole = session.user.user_metadata?.role || 'user';
-                const targetPath = userRole === 'admin' ? '/hr-dashboard' : '/user-dashboard';
-                
-                // Store path for after subdomain redirect
-                sessionStorage.setItem('lastAuthenticatedPath', targetPath);
-                redirectToOrgUrl(orgSlug);
-                return;
-              }
-              
-              // If already on correct subdomain, redirect based on role
-              const userRole = session.user.user_metadata?.role || 'user';
-              const targetPath = userRole === 'admin' ? '/hr-dashboard' : '/user-dashboard';
-              
-              // Only redirect if we're on a login page or root
-              if (location.pathname === '/' || location.pathname.startsWith('/auth/')) {
-                console.log("🚀 Redirecting to role-specific dashboard:", targetPath);
-                navigate(targetPath, { replace: true });
+              if (orgSlug) {
+                // Handle org subdomain routing
+                const currentOrgSlug = getOrgFromUrl();
+                if ((!currentOrgSlug || currentOrgSlug !== orgSlug) && isMounted) {
+                  console.log("🔄 Redirecting to org subdomain after login:", orgSlug);
+                  
+                  // Determine target based on role
+                  const userRole = session.user.user_metadata?.role || 'user';
+                  const targetPath = userRole === 'admin' ? '/hr-dashboard' : '/user-dashboard';
+                  
+                  // Store path for after subdomain redirect
+                  sessionStorage.setItem('lastAuthenticatedPath', targetPath);
+                  redirectToOrgUrl(orgSlug);
+                  return;
+                }
               }
             }
-            
-            setIsAuthenticated(true);
           }
         } else if (event === 'SIGNED_OUT' && isMounted) {
           setUser(null);
@@ -176,9 +173,13 @@ export function useRequireAuth(navigate: NavigateFunction) {
           setIsAuthenticated(false);
           
           // Redirect to root domain on signout
-          if (getOrgFromUrl()) {
+          const orgSlug = getOrgFromUrl();
+          if (orgSlug) {
+            console.log("🚪 Signing out from subdomain, redirecting to root domain");
             window.location.href = window.location.protocol + '//' + 
               window.location.hostname.split('.').slice(1).join('.');
+          } else if (!location.pathname.startsWith("/auth") && isMounted) {
+            navigate('/auth/login', { replace: true });
           }
         }
       }
@@ -186,10 +187,9 @@ export function useRequireAuth(navigate: NavigateFunction) {
 
     return () => {
       isMounted = false;
-      clearTimeout(timer);
       subscription.unsubscribe();
     };
-  }, [navigate, location.pathname]); // Only depend on pathname, not full location object or search params
+  }, [navigate, location.pathname]);
 
   return { user, userId, orgId, orgSlug, loading, isAuthenticated };
 }

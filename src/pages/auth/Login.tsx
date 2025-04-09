@@ -1,5 +1,4 @@
-
-import React from "react";
+import React, { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -38,13 +37,19 @@ export default function Login() {
   
   const redirectPath = localStorage.getItem("redirectAfterLogin") || "/user-dashboard";
 
-  React.useEffect(() => {
+  useEffect(() => {
     // If user is already authenticated, redirect them appropriately
     if (user) {
-      console.log("User already authenticated, redirecting to dashboard");
+      console.log("✅ User already authenticated, redirecting to dashboard");
       const role = user.user_metadata?.role || 'user';
       const targetPath = role === 'admin' ? '/hr-dashboard' : '/user-dashboard';
-      navigate(targetPath, { replace: true });
+      
+      // Add a small delay to ensure state is fully updated
+      const redirectTimer = setTimeout(() => {
+        navigate(targetPath, { replace: true });
+      }, 100);
+      
+      return () => clearTimeout(redirectTimer);
     }
   }, [user, navigate]);
   
@@ -64,13 +69,11 @@ export default function Login() {
       
       const result = await signIn(data.email, data.password);
       console.log("✅ Login result:", result);
-  
-      // Don't manually navigate here - let the auth state change handler
-      // in AuthContext and useRequireAuth handle the redirection
+      
+      // The redirect will be handled by the useEffect above or by AuthContext
     } catch (error: any) {
       console.error("❌ Login failed:", error);
       setAuthError(error.message || "Login failed. Please check your credentials.");
-    } finally {
       setIsLoading(false);
     }
   };
@@ -78,7 +81,7 @@ export default function Login() {
   const handleGoogleSignIn = async () => {
     try {
       await signInWithGoogle();
-      // Note: The redirect will be handled by the AuthContext after successful Google sign-in
+      // The redirect will be handled by the AuthContext after successful Google sign-in
     } catch (error) {
       // Error is handled in the auth context
     }
