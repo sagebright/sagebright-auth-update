@@ -1,6 +1,5 @@
 
 import React from "react";
-import { FormControl } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Mail } from "lucide-react";
 
