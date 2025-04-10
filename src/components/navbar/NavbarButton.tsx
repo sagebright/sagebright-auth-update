@@ -5,6 +5,18 @@ import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/hooks/useTranslation';
 import { NavbarButtonProps } from '@/types'; 
 
+/**
+ * NavbarButton - Navigation button that adapts based on authentication status
+ * 
+ * Renders a button that changes its text and destination based on whether a user
+ * is authenticated or not. Uses i18n for text localization.
+ *
+ * @example
+ * ```tsx
+ * const { user } = useAuth();
+ * <NavbarButton user={user} />
+ * ```
+ */
 const NavbarButton: React.FC<NavbarButtonProps> = ({ user }) => {
   const { t } = useTranslation();
   
