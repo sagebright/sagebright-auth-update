@@ -118,19 +118,19 @@ const AnimationGuidelines = () => {
                     </Card>
                   </Animated>
                   
-                  <Animated animation="slide-in-right" delay="200">
+                  <Animated animation="slide-in-right" delay="300">
                     <Card className="h-32 flex items-center justify-center">
                       <span className="text-center font-medium">Slide Right (delayed)</span>
                     </Card>
                   </Animated>
                   
-                  <Animated animation="slide-in-left" delay="400">
+                  <Animated animation="slide-in-left" delay="500">
                     <Card className="h-32 flex items-center justify-center">
                       <span className="text-center font-medium">Slide Left (delayed)</span>
                     </Card>
                   </Animated>
                   
-                  <Animated animation="enter" delay="600">
+                  <Animated animation="enter" delay="700">
                     <Card className="h-32 flex items-center justify-center">
                       <span className="text-center font-medium">Combined (delayed)</span>
                     </Card>
