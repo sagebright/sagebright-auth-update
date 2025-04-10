@@ -5,10 +5,10 @@ import { useRequireAuth } from '@/hooks/useRequireAuth';
 import { DashboardContainer } from '@/components/layout/DashboardContainer';
 import { ChatHeader } from '@/components/ask-sage/ChatHeader';
 import { ResourcesSidebar } from '@/components/ask-sage/ResourcesSidebar';
-import { ChatMessage, Message } from '@/components/ask-sage/ChatMessage';
+import { ChatMessage } from '@/components/ask-sage/ChatMessage';
 import { ChatInputBar } from '@/components/ask-sage/ChatInputBar';
 import { TypingIndicator } from '@/components/ask-sage/TypingIndicator';
-import { ReflectionForm, ReflectionData } from '@/components/ask-sage/ReflectionForm';
+import { ReflectionData } from '@/components/ask-sage/ReflectionForm';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useChat } from '@/hooks/use-chat';
@@ -27,11 +27,15 @@ const AskSage = () => {
     return searchParams.get('voice') || 'default';
   }, [searchParams]);
 
-  // Log the current voice setting and search params to help with debugging
+  // Log auth state when component loads
   useEffect(() => {
-    console.log("🎤 Current voice setting:", voiceParam);
-    console.log("🔍 Search params:", Object.fromEntries(searchParams.entries()));
-  }, [voiceParam, searchParams]);
+    console.log("🔒 AskSage auth state:", { 
+      authenticated: !!user, 
+      userId, 
+      orgId,
+      loading: authLoading 
+    });
+  }, [user, userId, orgId, authLoading]);
 
   const {
     messages,
@@ -50,7 +54,17 @@ const AskSage = () => {
 
   // Send message using the useChat hook
   const sendMessageToSage = async (content: string) => {
-    // This will leverage the useChat hook to handle the message
+    if (!userId || !orgId) {
+      console.error("❌ Cannot send message - missing userId or orgId", { userId, orgId });
+      toast({
+        variant: "destructive",
+        title: "Authentication Error",
+        description: "Please ensure you're logged in with an organization."
+      });
+      return;
+    }
+
+    console.log("📝 Sending message to Sage:", { content, userId, orgId });
     try {
       await handleSendMessage(content);
     } catch (error) {
@@ -64,6 +78,7 @@ const AskSage = () => {
   };
 
   const handleSelectQuestion = (question: string) => {
+    console.log("Selected suggested question:", question);
     sendMessageToSage(question);
   };
 
@@ -72,6 +87,24 @@ const AskSage = () => {
       <div className="flex h-screen items-center justify-center">
         <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
         <span className="ml-2 text-primary">Checking authentication...</span>
+      </div>
+    );
+  }
+
+  // Add additional check for userId and orgId
+  if (!authLoading && (!userId || !orgId)) {
+    console.error("⚠️ User authenticated but missing userId or orgId:", { userId, orgId });
+    return (
+      <div className="flex h-screen flex-col items-center justify-center p-4 text-center">
+        <div className="text-red-500 text-3xl mb-4">⚠️</div>
+        <h2 className="text-xl font-bold mb-2">Authentication Issue</h2>
+        <p className="mb-4">Your user account is not properly linked to an organization.</p>
+        <button 
+          onClick={() => navigate('/user-dashboard')}
+          className="bg-primary text-white px-4 py-2 rounded hover:bg-primary/90"
+        >
+          Return to Dashboard
+        </button>
       </div>
     );
   }

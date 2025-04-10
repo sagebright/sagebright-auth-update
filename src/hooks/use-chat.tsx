@@ -21,6 +21,8 @@ export const useChat = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { userId, orgId, currentUser } = useAuth();
 
+  console.log("🔍 useChat hook initializing with", { userId, orgId });
+
   // Add initial greeting from Sage if empty chat
   useEffect(() => {
     if (messages.length === 0) {
@@ -47,11 +49,39 @@ export const useChat = () => {
     return () => clearTimeout(timer);
   }, [messages, showReflection]);
 
+  // Wait for auth to be ready before sending messages
+  useEffect(() => {
+    console.log("📝 Auth context updated:", { userId, orgId });
+  }, [userId, orgId]);
+
   const handleSendMessage = async (content: string) => {
-    if (!content.trim() || !userId || !orgId) {
-      console.log("Missing content, userId or orgId:", { content, userId, orgId });
+    if (!content.trim()) {
+      console.log("Empty message content, not sending");
       return;
     }
+
+    // Added extra validation for userId and orgId with detailed console logs
+    if (!userId) {
+      console.error("❌ Missing userId, user might not be authenticated", { userId });
+      toast({
+        variant: "destructive",
+        title: "Authentication Error",
+        description: "You need to be logged in to use Sage. Please sign in and try again."
+      });
+      return;
+    }
+
+    if (!orgId) {
+      console.error("❌ Missing orgId. User might not be linked to an organization", { userId, orgId });
+      toast({
+        variant: "destructive",
+        title: "Organization Error",
+        description: "Your account is not linked to an organization. Please contact support."
+      });
+      return;
+    }
+    
+    console.log("✅ Sending message with context:", { content, userId, orgId });
 
     const userMessage: Message = {
       id: Date.now().toString(),

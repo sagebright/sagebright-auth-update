@@ -19,10 +19,22 @@ export async function callOpenAI({
 }): Promise<string> {
   console.log("🎤 Using voice:", voice);
   console.log("🔑 Checking OpenAI key:", !!import.meta.env.VITE_OPENAI_KEY);
+  console.log("📝 Context received:", {
+    hasOrgData: !!context.org,
+    hasUserData: !!context.user,
+    userId: context.userId,
+    orgId: context.orgId
+  });
 
   if (!import.meta.env.VITE_OPENAI_KEY) {
     console.error("OpenAI API key is missing or invalid");
     throw new Error("OpenAI API key is missing. Please check your environment configuration.");
+  }
+
+  // Additional validation before proceeding
+  if (!context.orgId) {
+    console.error("Missing context.orgId in callOpenAI", context);
+    throw new Error("Organization context is missing. Please contact support.");
   }
 
   const tone = voiceprints[voice] || voiceprints['default'];
@@ -86,6 +98,9 @@ function generateSystemPrompt(
     if (org.policies) prompt += `- Policies: ${JSON.stringify(org.policies)}\n`;
     if (org.culture) prompt += `- Culture: ${org.culture}\n`;
     if (org.leadership_style) prompt += `- Leadership Style: ${org.leadership_style}\n`;
+  } else {
+    console.warn("⚠️ No organization data available for prompt");
+    prompt += `\n---\n🔸 ORGANIZATION CONTEXT: Limited information available\n`;
   }
 
   if (user) {
@@ -96,6 +111,9 @@ function generateSystemPrompt(
     if (user.learning_style) prompt += `- Learning Style: ${user.learning_style}\n`;
     if (user.introvert_extrovert) prompt += `- Social Style: ${user.introvert_extrovert}\n`;
     if (user.personality_notes) prompt += `- Personality Notes: ${user.personality_notes}\n`;
+  } else {
+    console.warn("⚠️ No user data available for prompt");
+    prompt += `\n---\n🔹 USER CONTEXT: Limited information available\n`;
   }
   console.log("🧠 Final system prompt created");
 
