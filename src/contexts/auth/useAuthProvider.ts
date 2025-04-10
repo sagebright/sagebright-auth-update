@@ -18,9 +18,50 @@ export function useAuthProvider() {
   const [currentUser, setCurrentUser] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isRecoveringOrgContext, setIsRecoveringOrgContext] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
+
+  // Function to fetch user data from backend
+  const fetchUserData = async (uid: string) => {
+    let isMounted = true;
+    try {
+      console.log("🔍 Fetching user data for ID:", uid);
+      const users = await getUsers();
+      if (!isMounted) return null;
+      
+      const match = users.find(u => u.id === uid);
+      
+      if (match) {
+        console.log("👤 User found in database:", match.id);
+        if (match.org_id) {
+          console.log("🏢 User has org_id:", match.org_id);
+          setOrgId(match.org_id);
+          
+          // Get org slug once we have the org ID
+          const org = await getOrgById(match.org_id);
+          if (!isMounted) return null;
+          
+          if (org?.slug) {
+            setOrgSlug(org.slug);
+            console.log("🏢 Set orgSlug in useAuthProvider:", org.slug);
+          } else {
+            console.warn("⚠️ No slug found for org ID:", match.org_id);
+          }
+        } else {
+          console.warn("⚠️ User found but no org assigned:", uid);
+        }
+        return match;
+      } else {
+        console.warn("⚠️ User not found in database:", uid);
+        return null;
+      }
+    } catch (err) {
+      console.error('❌ Error loading current user:', err);
+      return null;
+    }
+  };
 
   // Load user from backend once userId is known
   useEffect(() => {
@@ -36,31 +77,18 @@ export function useAuthProvider() {
     setIsAuthenticated(true);
     
     let isMounted = true;
-    const fetchUserData = async () => {
+    
+    const loadUserData = async () => {
       try {
-        console.log("🔍 Fetching user data for ID:", userId);
-        const users = await getUsers();
+        const userData = await fetchUserData(userId);
         if (!isMounted) return;
         
-        const match = users.find(u => u.id === userId);
-        setCurrentUser(match || null);
+        setCurrentUser(userData || null);
         
-        if (match?.org_id) {
-          setOrgId(match.org_id);
-          
-          // Get org slug once we have the org ID
-          const org = await getOrgById(match.org_id);
-          if (!isMounted) return;
-          
-          if (org?.slug) {
-            setOrgSlug(org.slug);
-            console.log("🏢 Set orgSlug in useAuthProvider:", org.slug);
-          } else {
-            console.warn("⚠️ No slug found for org ID:", match.org_id);
-          }
-        } else if (match) {
-          // If we have a user but no org, there might be an issue with the user's org assignment
+        // If we have a user but no org, there might be an issue with the user's org assignment
+        if (userData && !userData.org_id && !isRecoveringOrgContext) {
           console.log("👤 User found but no org assigned. Attempting to sync role...");
+          setIsRecoveringOrgContext(true);
           
           // Try to force sync the user's role to ensure org_id is updated
           try {
@@ -84,17 +112,30 @@ export function useAuthProvider() {
                 setOrgSlug(orgAfterSync.slug);
                 console.log("🏢 Set orgSlug after role sync:", orgAfterSync.slug);
               }
+              
+              // Update the current user with the new data
+              setCurrentUser(matchAfterSync);
             } else {
               console.warn("⚠️ Still no org_id found after role sync");
+              
+              // Show user feedback if we're on a protected page
+              if (!['/auth/login', '/auth/signup', '/auth/forgot-password'].includes(location.pathname)) {
+                toast({
+                  variant: "destructive",
+                  title: "Organization Context Issue",
+                  description: "Unable to retrieve your organization context. Some features may be limited."
+                });
+              }
             }
           } catch (syncError) {
             console.error("❌ Error syncing role:", syncError);
+          } finally {
+            setIsRecoveringOrgContext(false);
           }
         }
       } catch (err) {
         console.error('Error loading current user:', err);
         // Despite the error, we're still authenticated at the Supabase level
-        // Don't reset isAuthenticated here
       } finally {
         if (isMounted) {
           setLoading(false);
@@ -102,12 +143,12 @@ export function useAuthProvider() {
       }
     };
     
-    fetchUserData();
+    loadUserData();
     
     return () => {
       isMounted = false;
     };
-  }, [userId]);
+  }, [userId, location.pathname, toast, isRecoveringOrgContext]);
 
   useEffect(() => {
     console.log("🔧 useAuthProvider initializing on path:", location.pathname);
@@ -135,6 +176,17 @@ export function useAuthProvider() {
             try {
               await syncUserRole(session.user.id);
               console.log("✅ User role synchronized after login");
+              
+              // Force refresh the session to get updated metadata
+              try {
+                const { data: refreshData } = await supabase.auth.refreshSession();
+                if (refreshData.session) {
+                  setSession(refreshData.session);
+                  setUser(refreshData.session.user);
+                }
+              } catch (refreshError) {
+                console.error("❌ Error refreshing session:", refreshError);
+              }
               
               // Also sync existing users to ensure db consistency
               console.log("🔄 Manually syncing existing users to users table");
@@ -214,5 +266,6 @@ export function useAuthProvider() {
     setCurrentUser,
     setLoading,
     setAccessToken,
+    isRecoveringOrgContext,
   };
 }

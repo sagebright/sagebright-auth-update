@@ -25,6 +25,7 @@ const AskSage = () => {
   
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isRecovering, setIsRecovering] = useState(false);
+  const [recoveryAttempted, setRecoveryAttempted] = useState(false);
   
   // Get voice parameter from searchParams
   const voiceParam = React.useMemo(() => {
@@ -39,6 +40,11 @@ const AskSage = () => {
       orgId,
       loading: authLoading 
     });
+    
+    // Log warning if user is missing orgId
+    if (user && !orgId) {
+      console.warn("⚠️ User authenticated but missing orgId. This may affect chat functionality.");
+    }
   }, [user, userId, orgId, authLoading]);
 
   const {
@@ -82,6 +88,9 @@ const AskSage = () => {
         description: "Please wait a moment while we reload the page..."
       });
       
+      // Mark that recovery was attempted
+      setRecoveryAttempted(true);
+      
       // Give a moment for the toast to show before reloading
       setTimeout(() => {
         window.location.reload();
@@ -93,6 +102,7 @@ const AskSage = () => {
         title: "Recovery Failed",
         description: "Unable to recover organization context. Try logging out and back in."
       });
+      setRecoveryAttempted(true);
     } finally {
       setIsRecovering(false);
     }
@@ -128,6 +138,20 @@ const AskSage = () => {
     sendMessageToSage(question);
   };
 
+  const handleSignOut = async () => {
+    try {
+      await supabase.auth.signOut();
+      navigate('/auth/login');
+    } catch (error) {
+      console.error('Error signing out:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error signing out',
+        description: 'Failed to sign out. Please try again.'
+      });
+    }
+  };
+
   if (authLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -146,20 +170,27 @@ const AskSage = () => {
         <h2 className="text-xl font-bold mb-2">Authentication Issue</h2>
         <p className="mb-4">Your user account is not properly linked to an organization.</p>
         <div className="space-y-4">
-          <Button 
-            onClick={handleRecoverOrgContext}
-            className="bg-primary text-white px-4 py-2 rounded hover:bg-primary/90"
-            disabled={isRecovering}
-          >
-            {isRecovering ? (
-              <>
-                <span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-solid border-current border-r-transparent"></span>
-                Recovering...
-              </>
-            ) : (
-              "Try to Recover"
-            )}
-          </Button>
+          {!recoveryAttempted ? (
+            <Button 
+              onClick={handleRecoverOrgContext}
+              className="bg-primary text-white px-4 py-2 rounded hover:bg-primary/90"
+              disabled={isRecovering}
+            >
+              {isRecovering ? (
+                <>
+                  <span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-solid border-current border-r-transparent"></span>
+                  Recovering...
+                </>
+              ) : (
+                "Try to Recover"
+              )}
+            </Button>
+          ) : (
+            <div className="text-amber-600 mb-4">
+              <p>Recovery already attempted but was unsuccessful.</p>
+              <p className="mt-2">Please try signing out and signing back in.</p>
+            </div>
+          )}
           
           <div className="flex flex-col space-y-2">
             <Button 
@@ -171,10 +202,7 @@ const AskSage = () => {
             </Button>
             
             <Button 
-              onClick={async () => {
-                await supabase.auth.signOut();
-                navigate('/auth/login');
-              }}
+              onClick={handleSignOut}
               variant="secondary"
               className="px-4 py-2 rounded"
             >

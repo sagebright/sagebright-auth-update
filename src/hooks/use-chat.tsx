@@ -19,20 +19,18 @@ export const useChat = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [showReflection, setShowReflection] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { userId, orgId, currentUser } = useAuth();
+  const { userId, orgId, currentUser, isAuthenticated } = useAuth();
 
-  console.log("🔍 useChat hook initializing with", { userId, orgId });
+  console.log("🔍 useChat hook initializing with", { userId, orgId, isAuthenticated });
   
-  // Log any issues with auth context
-  useEffect(() => {
-    if (userId && !orgId) {
-      console.warn("⚠️ User authenticated but missing orgId. This may affect chat functionality.");
-    }
-  }, [userId, orgId]);
-
   // Add initial greeting from Sage if empty chat
   useEffect(() => {
     if (messages.length === 0) {
+      if (!userId || !orgId) {
+        console.warn("⚠️ User authenticated but missing userId or orgId:", { userId, orgId });
+        return;
+      }
+      
       setMessages([
         {
           id: '1',
@@ -43,10 +41,13 @@ export const useChat = () => {
         }
       ]);
     }
-  }, [messages.length]);
+  }, [messages.length, userId, orgId]);
 
   // Randomly prompt for reflection after some time
   useEffect(() => {
+    // Only set reflection timer if we have valid auth context
+    if (!userId || !orgId) return;
+    
     const timer = setTimeout(() => {
       if (messages.length > 1 && !showReflection && Math.random() > 0.7) {
         setShowReflection(true);
@@ -54,12 +55,7 @@ export const useChat = () => {
     }, 30000);
 
     return () => clearTimeout(timer);
-  }, [messages, showReflection]);
-
-  // Wait for auth to be ready before sending messages
-  useEffect(() => {
-    console.log("📝 Auth context updated:", { userId, orgId });
-  }, [userId, orgId]);
+  }, [messages, showReflection, userId, orgId]);
 
   const handleSendMessage = async (content: string) => {
     if (!content.trim()) {
@@ -83,7 +79,7 @@ export const useChat = () => {
       toast({
         variant: "destructive",
         title: "Organization Error",
-        description: "Your account is not linked to an organization. Please contact support."
+        description: "Your account is not linked to an organization. Please try the 'Try to Recover' option or contact support."
       });
       return;
     }

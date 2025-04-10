@@ -13,11 +13,8 @@ export async function syncUserRole(userId: string): Promise<any> {
     // Add a unique identifier to avoid duplicate calls
     const requestId = crypto.randomUUID();
     
-    // Set the correct edge function URL using the project ID
-    const SUPABASE_PROJECT_ID = 'uonxhnmvrtuszgjubvaa';
-    
-    // Call the auto-sync-user-role edge function with proper error handling
-    const { data, error } = await supabase.functions.invoke('auto-sync-user-role', {
+    // Call the new sync-user-role edge function with proper error handling
+    const { data, error } = await supabase.functions.invoke('sync-user-role', {
       body: { userId },
       // Add more explicit logging for debugging
       headers: { 
@@ -37,21 +34,43 @@ export async function syncUserRole(userId: string): Promise<any> {
   } catch (error) {
     console.error('❌ Failed to sync user role:', error);
     
-    // Add fallback for user role assignment directly
+    // Try falling back to auto-sync-user-role if the main function fails
     try {
-      console.log('🔄 Attempting to get user data directly');
-      const { data: userData, error: authError } = await supabase.auth.getUser();
+      console.log('🔄 Attempting fallback to auto-sync-user-role');
+      const { data: fallbackData, error: fallbackError } = await supabase.functions.invoke('auto-sync-user-role', {
+        body: { userId },
+        headers: { 
+          'x-fallback-sync': 'true',
+          'x-request-id': crypto.randomUUID()
+        }
+      });
       
-      if (authError || !userData) {
-        console.error('❌ Cannot get current user', authError);
-        throw error; // Re-throw the original error
+      if (fallbackError) {
+        console.error('❌ Fallback also failed:', fallbackError);
+        throw fallbackError;
       }
       
-      console.log('✅ Got user data directly');
-      return { message: 'Could not sync with edge function, but got user data', userId };
-    } catch (fallbackError) {
-      console.error('❌ Fallback also failed:', fallbackError);
-      throw error; // Re-throw the original error
+      console.log('✅ Fallback sync succeeded:', fallbackData);
+      return fallbackData;
+    } catch (fallbackCallError) {
+      console.error('❌ All sync attempts failed:', fallbackCallError);
+      
+      // Final fallback to get user data directly
+      try {
+        console.log('🔄 Attempting to get user data directly');
+        const { data: userData, error: authError } = await supabase.auth.getUser();
+        
+        if (authError || !userData) {
+          console.error('❌ Cannot get current user', authError);
+          throw error; // Re-throw the original error
+        }
+        
+        console.log('✅ Got user data directly');
+        return { message: 'Could not sync with edge function, but got user data', userId };
+      } catch (directFallbackError) {
+        console.error('❌ All recovery attempts failed:', directFallbackError);
+        throw error; // Re-throw the original error
+      }
     }
   }
 }
