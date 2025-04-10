@@ -1,4 +1,3 @@
-
 import { supabase } from '@/lib/supabaseClient';
 import { getOrgFromUrl, redirectToOrgUrl, getOrgById } from '@/lib/subdomainUtils';
 import { syncUserRole } from '@/lib/syncUserRole';
@@ -53,18 +52,20 @@ export async function signIn(
 
     if (error) throw error;
     
-    toast({
-      title: "Login successful",
-      description: "Welcome back!",
-      variant: "default",
-    });
-    
     // Sync user role after successful login with explicit logging
     if (data?.user?.id) {
       console.log('🔑 Login successful, syncing user role for ID:', data.user.id);
       try {
         await syncUserRole(data.user.id);
         console.log('✅ User role synchronized after login');
+        
+        // Force refresh the session to get updated metadata
+        try {
+          await supabase.auth.refreshSession();
+          console.log('✅ Session refreshed after role sync');
+        } catch (refreshError) {
+          console.error('⚠️ Session refresh failed:', refreshError);
+        }
       } catch (syncError) {
         console.error('⚠️ Role sync failed but login succeeded:', syncError);
         // Continue with login flow even if role sync fails
@@ -80,32 +81,12 @@ export async function signIn(
       }
     }
     
-    // Check for organization context
-    const userOrgId = data.user?.user_metadata?.org_id;
-    if (userOrgId) {
-      // Get org details including slug
-      try {
-        const orgDetails = await getOrgById(userOrgId);
-        const orgSlug = orgDetails?.slug;
-        
-        if (orgSlug) {
-          const currentOrgSlug = getOrgFromUrl();
-          if (!currentOrgSlug || currentOrgSlug !== orgSlug) {
-            console.log('🏢 Redirecting to org subdomain after sign in:', orgSlug);
-            // Store path for after subdomain redirect
-            const redirectPath = localStorage.getItem("redirectAfterLogin") || '/user-dashboard';
-            sessionStorage.setItem('lastAuthenticatedPath', redirectPath);
-            localStorage.removeItem("redirectAfterLogin");
-            redirectToOrgUrl(orgSlug);
-            return data;
-          }
-        }
-      } catch (orgError) {
-        console.error('⚠️ Error getting org details, but login succeeded:', orgError);
-        // Continue with login flow even if org resolution fails
-      }
-    }
-
+    toast({
+      title: "Login successful",
+      description: "Welcome back!",
+      variant: "default",
+    });
+    
     return data;
   } catch (error: any) {
     handleApiError(error, { context: 'login' });

@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
 import { getOrgFromUrl, redirectToOrgUrl } from '@/lib/subdomainUtils';
 import AuthRecovery from '@/components/auth/AuthRecovery';
+import { syncUserRoleQuietly } from '@/lib/syncUserRole';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -20,6 +21,34 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const location = useLocation();
   const { loading, isAuthenticated, user, orgId, orgSlug } = useRequireAuth(navigate);
   const [showRecovery, setShowRecovery] = useState(false);
+  const [recoveryAttempted, setRecoveryAttempted] = useState(false);
+  
+  // On first render, if we have userId but no orgId, try to recover silently
+  useEffect(() => {
+    if (!loading && isAuthenticated && user && !orgId && !recoveryAttempted && location.pathname !== '/auth/recovery') {
+      const attemptSilentRecovery = async () => {
+        setRecoveryAttempted(true);
+        try {
+          if (user.id) {
+            console.log("🔄 Attempting silent recovery for user:", user.id);
+            await syncUserRoleQuietly(user.id);
+            // Wait a moment before deciding if we need to show recovery UI
+            setTimeout(() => {
+              if (!orgId) {
+                console.log("⚠️ Silent recovery didn't restore org context, showing recovery UI");
+                setShowRecovery(true);
+              }
+            }, 1000);
+          }
+        } catch (error) {
+          console.error("Silent recovery failed:", error);
+          setShowRecovery(true);
+        }
+      };
+      
+      attemptSilentRecovery();
+    }
+  }, [isAuthenticated, loading, orgId, user, recoveryAttempted, location.pathname]);
   
   useEffect(() => {
     console.log("🛡️ ProtectedRoute running on:", location.pathname);
@@ -41,15 +70,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       }
     }
 
-    // Check if authenticated user is missing org context
-    if (isAuthenticated && user && !orgId && location.pathname !== '/auth/recovery') {
-      console.log("⚠️ Authenticated user is missing orgId, showing recovery option");
-      setShowRecovery(true);
-      return;
-    } else {
-      setShowRecovery(false);
-    }
-
+    // Check if authenticated user is missing org context - but don't show recovery immediately
+    // This is now handled by the silent recovery attempt in the first useEffect
+    
     // Handle root path redirection based on role
     if (location.pathname === '/') {
       // Get role from user_metadata

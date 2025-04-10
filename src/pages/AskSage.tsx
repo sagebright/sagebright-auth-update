@@ -16,6 +16,7 @@ import { toast } from "@/components/ui/use-toast";
 import { syncUserRole } from '@/lib/syncUserRole';
 import { supabase } from '@/lib/supabaseClient';
 import { Button } from '@/components/ui/button';
+import AuthRecovery from '@/components/auth/AuthRecovery';
 
 const AskSage = () => {
   const navigate = useNavigate();
@@ -24,8 +25,6 @@ const AskSage = () => {
   const isMobile = useIsMobile();
   
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isRecovering, setIsRecovering] = useState(false);
-  const [recoveryAttempted, setRecoveryAttempted] = useState(false);
   
   // Get voice parameter from searchParams
   const voiceParam = React.useMemo(() => {
@@ -40,11 +39,6 @@ const AskSage = () => {
       orgId,
       loading: authLoading 
     });
-    
-    // Log warning if user is missing orgId
-    if (user && !orgId) {
-      console.warn("⚠️ User authenticated but missing orgId. This may affect chat functionality.");
-    }
   }, [user, userId, orgId, authLoading]);
 
   const {
@@ -60,52 +54,6 @@ const AskSage = () => {
   const handleReflectionSubmit = (data: ReflectionData) => {
     console.log('Reflection submitted:', data);
     setShowReflection(false);
-  };
-
-  // Attempt to recover org context by triggering role sync
-  const handleRecoverOrgContext = async () => {
-    if (!userId) {
-      toast({
-        variant: "destructive",
-        title: "Authentication Error",
-        description: "Cannot recover without user ID. Please log out and back in."
-      });
-      return;
-    }
-
-    setIsRecovering(true);
-    try {
-      // Try to force sync the user role
-      console.log("🔄 Attempting to recover org context for user ID:", userId);
-      await syncUserRole(userId);
-      
-      // Force refresh the session
-      const { data, error } = await supabase.auth.refreshSession();
-      if (error) throw error;
-      
-      toast({
-        title: "Recovery Attempted",
-        description: "Please wait a moment while we reload the page..."
-      });
-      
-      // Mark that recovery was attempted
-      setRecoveryAttempted(true);
-      
-      // Give a moment for the toast to show before reloading
-      setTimeout(() => {
-        window.location.reload();
-      }, 1500);
-    } catch (error) {
-      console.error("Error recovering org context:", error);
-      toast({
-        variant: "destructive",
-        title: "Recovery Failed",
-        description: "Unable to recover organization context. Try logging out and back in."
-      });
-      setRecoveryAttempted(true);
-    } finally {
-      setIsRecovering(false);
-    }
   };
 
   // Send message using the useChat hook
@@ -165,51 +113,12 @@ const AskSage = () => {
   if (!authLoading && (!userId || !orgId)) {
     console.error("⚠️ User authenticated but missing userId or orgId:", { userId, orgId });
     return (
-      <div className="flex h-screen flex-col items-center justify-center p-4 text-center">
-        <div className="text-red-500 text-3xl mb-4">⚠️</div>
-        <h2 className="text-xl font-bold mb-2">Authentication Issue</h2>
-        <p className="mb-4">Your user account is not properly linked to an organization.</p>
-        <div className="space-y-4">
-          {!recoveryAttempted ? (
-            <Button 
-              onClick={handleRecoverOrgContext}
-              className="bg-primary text-white px-4 py-2 rounded hover:bg-primary/90"
-              disabled={isRecovering}
-            >
-              {isRecovering ? (
-                <>
-                  <span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-solid border-current border-r-transparent"></span>
-                  Recovering...
-                </>
-              ) : (
-                "Try to Recover"
-              )}
-            </Button>
-          ) : (
-            <div className="text-amber-600 mb-4">
-              <p>Recovery already attempted but was unsuccessful.</p>
-              <p className="mt-2">Please try signing out and signing back in.</p>
-            </div>
-          )}
-          
-          <div className="flex flex-col space-y-2">
-            <Button 
-              onClick={() => navigate('/user-dashboard')}
-              variant="outline"
-              className="px-4 py-2 rounded"
-            >
-              Return to Dashboard
-            </Button>
-            
-            <Button 
-              onClick={handleSignOut}
-              variant="secondary"
-              className="px-4 py-2 rounded"
-            >
-              Sign Out and Login Again
-            </Button>
-          </div>
-        </div>
+      <div className="container mx-auto max-w-4xl py-8 px-4">
+        <AuthRecovery
+          userId={user?.id}
+          variant="page"
+          error="Your account is missing organization context. This is required to use the application."
+        />
       </div>
     );
   }

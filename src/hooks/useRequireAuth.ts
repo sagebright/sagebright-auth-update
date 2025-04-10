@@ -3,11 +3,33 @@ import { useEffect, useState } from 'react';
 import { useLocation, NavigateFunction } from 'react-router-dom';
 import { useAuth } from '@/contexts/auth/AuthContext';
 import { getOrgFromUrl, redirectToOrgUrl } from '@/lib/subdomainUtils';
+import { syncUserRoleQuietly } from '@/lib/syncUserRole';
 
 export function useRequireAuth(navigate: NavigateFunction) {
   const location = useLocation();
   const auth = useAuth();
   const [redirecting, setRedirecting] = useState(false);
+  const [recoverySilentlyAttempted, setRecoverySilentlyAttempted] = useState(false);
+
+  // Try to recover silently if we have user but no org
+  useEffect(() => {
+    if (!auth.loading && auth.isAuthenticated && auth.user && !auth.orgId && !recoverySilentlyAttempted) {
+      const tryRecoverSilently = async () => {
+        setRecoverySilentlyAttempted(true);
+        try {
+          console.log("🔄 Attempting silent recovery in useRequireAuth for user:", auth.user.id);
+          await syncUserRoleQuietly(auth.user.id);
+        } catch (error) {
+          console.warn("Silent recovery failed in useRequireAuth:", error);
+          // Continue with the flow even if recovery fails
+        }
+      };
+      
+      if (auth.user.id) {
+        tryRecoverSilently();
+      }
+    }
+  }, [auth.loading, auth.isAuthenticated, auth.user, auth.orgId, recoverySilentlyAttempted]);
 
   useEffect(() => {
     console.log("🔐 useRequireAuth running on:", location.pathname);
