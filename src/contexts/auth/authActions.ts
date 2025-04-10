@@ -34,7 +34,7 @@ export async function signUp(
     
     onSuccess();
   } catch (error: any) {
-    handleApiError(error, 'signup');
+    handleApiError(error, { context: 'signup' });
     onError(error);
     throw error;
   }
@@ -108,7 +108,7 @@ export async function signIn(
 
     return data;
   } catch (error: any) {
-    handleApiError(error, 'login');
+    handleApiError(error, { context: 'login' });
     onError(error);
     throw error;
   }
@@ -125,7 +125,7 @@ export async function signInWithGoogle(onError: (error: any) => void) {
 
     if (error) throw error;
   } catch (error: any) {
-    handleApiError(error, 'google-login');
+    handleApiError(error, { context: 'google-login' });
     onError(error);
     throw error;
   }
@@ -156,7 +156,7 @@ export async function signOut(onError: (error: any) => void) {
     window.location.href = '/auth/login';
     return true;
   } catch (error: any) {
-    handleApiError(error, 'logout');
+    handleApiError(error, { context: 'logout' });
     onError(error);
     throw error;
   }
@@ -178,7 +178,7 @@ export async function resetPassword(email: string, onError: (error: any) => void
     
     return true;
   } catch (error: any) {
-    handleApiError(error, 'password-reset');
+    handleApiError(error, { context: 'password-reset' });
     onError(error);
     throw error;
   }
