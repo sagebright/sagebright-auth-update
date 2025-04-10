@@ -1,4 +1,3 @@
-
 import { supabase } from '@/lib/supabaseClient';
 import { getOrgFromUrl, redirectToOrgUrl, getOrgById } from '@/lib/subdomainUtils';
 import { syncUserRole } from '@/lib/syncUserRole';
@@ -115,17 +114,21 @@ export async function signInWithGoogle(onError: (error: any) => void) {
 
 export async function signOut(onError: (error: any) => void) {
   try {
+    // Store the current org slug before signing out
+    const currentOrgSlug = getOrgFromUrl();
+    
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
     
-    // Redirect to root domain on signout if on a subdomain
-    const currentOrgSlug = getOrgFromUrl();
+    // Redirect to org-specific login page if on a subdomain
     if (currentOrgSlug) {
       window.location.href = window.location.protocol + '//' + 
-        window.location.hostname.split('.').slice(1).join('.');
+        window.location.hostname + '/auth/login';
       return;
     }
     
+    // Otherwise redirect to main login page
+    window.location.href = '/auth/login';
     return true;
   } catch (error: any) {
     onError(error);
