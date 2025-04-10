@@ -2,9 +2,10 @@
 import { serve } from "https://deno.land/std@0.180.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.29.0";
 
+// Update the CORS headers to include the custom headers we use
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-manual-sync, x-request-id, x-fallback-sync, x-last-resort',
 };
 
 interface SyncUserRoleRequest {

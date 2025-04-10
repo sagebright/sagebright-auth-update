@@ -5,9 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/auth/AuthContext";
-import { LoginFormValues } from "@/types";
 import { toast } from "@/hooks/use-toast";
-import { syncUserRoleQuietly } from "@/lib/syncUserRole";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
@@ -40,16 +38,6 @@ export const useLoginForm = () => {
       if (result?.error) {
         setAuthError(result.error.message || "Authentication failed");
       } else {
-        // If login successful, quietly try to sync user role
-        if (userId) {
-          try {
-            await syncUserRoleQuietly(userId);
-          } catch (syncError) {
-            console.error("Background sync after login failed:", syncError);
-            // Don't block the login flow if sync fails
-          }
-        }
-        
         // Get stored redirect path or use default
         const redirectPath = localStorage.getItem("redirectAfterLogin") || "/user-dashboard";
         localStorage.removeItem("redirectAfterLogin");

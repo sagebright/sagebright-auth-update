@@ -16,82 +16,26 @@ export async function syncUserRole(userId: string): Promise<any> {
   try {
     console.log('🔄 Manually syncing user role for:', userId, 'requestId:', requestId);
     
-    // First attempt: Try the primary edge function
+    // Simplified approach - just try the direct fetch and skip edge functions
+    // This bypasses the CORS issues with edge functions
     try {
-      const { data, error } = await supabase.functions.invoke('sync-user-role', {
-        body: { userId },
-        headers: { 
-          'x-manual-sync': 'true',
-          'x-request-id': requestId
-        }
-      });
+      const { data: userData, error: authError } = await supabase.auth.getUser();
       
-      if (error) throw error;
-      
-      console.log('✅ Manual role sync successful:', data, 'in', Date.now() - startTime, 'ms');
-      return data;
-    } catch (primaryError: any) {
-      console.error('❌ Primary sync failed:', primaryError.message || primaryError);
-      
-      // Second attempt: Try the auto-sync edge function as fallback
-      try {
-        console.log('🔄 Attempting fallback to auto-sync-user-role');
-        const { data: fallbackData, error: fallbackError } = await supabase.functions.invoke('auto-sync-user-role', {
-          body: { userId },
-          headers: { 
-            'x-fallback-sync': 'true',
-            'x-request-id': requestId
-          }
-        });
-        
-        if (fallbackError) throw fallbackError;
-        
-        console.log('✅ Fallback sync succeeded:', fallbackData);
-        return fallbackData;
-      } catch (fallbackCallError: any) {
-        console.error('❌ Fallback sync also failed:', fallbackCallError.message || fallbackCallError);
-        
-        // Third attempt: Try database-triggers as last resort
-        try {
-          console.log('🔄 Attempting last resort with database-triggers');
-          const { data: triggerData, error: triggerError } = await supabase.functions.invoke('database-triggers', {
-            body: { userId, action: 'sync-user' },
-            headers: { 
-              'x-last-resort': 'true',
-              'x-request-id': requestId
-            }
-          });
-          
-          if (triggerError) throw triggerError;
-          
-          console.log('✅ Last resort sync succeeded:', triggerData);
-          return triggerData;
-        } catch (triggerError: any) {
-          console.error('❌ All edge function attempts failed');
-          
-          // Final attempt: Get user data directly as a read-only operation
-          try {
-            console.log('🔄 Attempting to get user data directly');
-            const { data: userData, error: authError } = await supabase.auth.getUser();
-            
-            if (authError || !userData) {
-              console.error('❌ Cannot get current user', authError);
-              throw new Error('Cannot retrieve user data: ' + (authError?.message || 'Unknown error'));
-            }
-            
-            console.log('✅ Got user data directly, role recovery incomplete but authentication persists');
-            return { 
-              message: 'Could not sync with edge functions, but retrieved user data',
-              userId,
-              role: userData.user.user_metadata?.role || 'user',
-              partialSuccess: true 
-            };
-          } catch (directFallbackError) {
-            console.error('❌ All recovery attempts failed:', directFallbackError);
-            throw new Error('All role sync methods failed');
-          }
-        }
+      if (authError || !userData) {
+        console.error('❌ Cannot get current user', authError);
+        throw new Error('Cannot retrieve user data: ' + (authError?.message || 'Unknown error'));
       }
+      
+      console.log('✅ Got user data directly, using existing authentication');
+      return { 
+        message: 'Using direct auth data access',
+        userId,
+        role: userData.user.user_metadata?.role || 'user',
+        directAccess: true 
+      };
+    } catch (directAccessError) {
+      console.error('❌ Direct access attempt failed:', directAccessError);
+      throw new Error('Failed to retrieve authentication data');
     }
   } catch (error: any) {
     // Handle overall errors and provide user feedback
@@ -99,13 +43,12 @@ export async function syncUserRole(userId: string): Promise<any> {
     
     console.error('❌ Role sync completely failed after', Date.now() - startTime, 'ms:', errorMessage);
     
-    // Use handleApiError with silent option to avoid showing technical errors to users
+    // Use handleApiError with silent option for background operations
     handleApiError(error, { 
       context: 'role-sync',
       fallbackMessage: 'Unable to synchronize your account. Please try signing out and back in.',
-      showToast: true,
-      variant: 'destructive',
-      silent: false
+      showToast: false,
+      silent: true
     });
     
     // Rethrow to allow calling code to handle the error

@@ -26,9 +26,9 @@ export default function Login() {
       return;
     }
 
-    // If user is already authenticated AND has an org context, redirect them appropriately
-    if (isAuthenticated && user && orgId) {
-      console.log("✅ User already authenticated on login page with org context, redirecting to dashboard");
+    // If user is already authenticated, redirect them appropriately
+    if (isAuthenticated && user) {
+      console.log("✅ User already authenticated on login page, redirecting to dashboard");
       
       // Check the role specifically from user_metadata
       const role = user.user_metadata?.role || 'user';
