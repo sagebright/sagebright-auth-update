@@ -18,7 +18,7 @@ const NavbarButton = ({ user }: NavbarButtonProps) => {
       aria-label={user ? t('common.dashboard') as string : t('common.requestAccess') as string}
     >
       <Link to={user ? "/user-dashboard" : "/auth/login"}>
-        {user ? t('common.dashboard') : t('common.requestAccess')}
+        {user ? t('common.dashboard') as string : t('common.requestAccess') as string}
       </Link>
     </Button>
   );

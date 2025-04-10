@@ -23,7 +23,7 @@ const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({ onClick, isLoad
       aria-label={t('common.continueWithGoogle') as string}
     >
       <Chrome className="mr-2 h-4 w-4" aria-hidden="true" />
-      {t('common.continueWithGoogle')}
+      {t('common.continueWithGoogle') as string}
     </Button>
   );
 };
