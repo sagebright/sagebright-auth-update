@@ -3,6 +3,8 @@
  * Shared type definitions for the Sagebright application
  */
 
+import { User } from '@supabase/supabase-js';
+
 // Auth types
 export interface LoginFormValues {
   email: string;
@@ -26,6 +28,11 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   asChild?: boolean;
   variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
   size?: 'default' | 'sm' | 'lg' | 'icon';
+}
+
+// Navbar component props
+export interface NavbarButtonProps {
+  user: User | null;
 }
 
 // Language/i18n types

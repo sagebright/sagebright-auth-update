@@ -3,10 +3,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/hooks/useTranslation';
-
-interface NavbarButtonProps {
-  user: Record<string, unknown> | null;
-}
+import { NavbarButtonProps } from '@/types'; 
 
 const NavbarButton: React.FC<NavbarButtonProps> = ({ user }) => {
   const { t } = useTranslation();

@@ -8,10 +8,11 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { Menu } from 'lucide-react';
+import { User } from '@supabase/supabase-js';
 
 interface MobileNavProps {
   isContactPage: boolean;
-  user: any;
+  user: User | null;
 }
 
 const MobileNav = ({ isContactPage, user }: MobileNavProps) => {
