@@ -6,6 +6,7 @@ import ColorReference from "@/components/design-system/ColorReference";
 import FormValidationExamples from "@/components/design-system/FormValidationExamples";
 import ImageUsageGuidelines from "@/components/design-system/ImageUsageGuidelines";
 import LoadingStateGuidelines from "@/components/design-system/LoadingStateGuidelines";
+import AnimationGuidelines from "@/components/design-system/AnimationGuidelines";
 
 const DesignSystem = () => {
   return (
@@ -34,6 +35,7 @@ const DesignSystem = () => {
             <TabsTrigger value="forms">Form Validation</TabsTrigger>
             <TabsTrigger value="images">Image Guidelines</TabsTrigger>
             <TabsTrigger value="loading">Loading States</TabsTrigger>
+            <TabsTrigger value="animations">Animations</TabsTrigger>
           </TabsList>
           
           <TabsContent value="colors">
@@ -50,6 +52,10 @@ const DesignSystem = () => {
           
           <TabsContent value="loading">
             <LoadingStateGuidelines />
+          </TabsContent>
+          
+          <TabsContent value="animations">
+            <AnimationGuidelines />
           </TabsContent>
         </Tabs>
       </main>
