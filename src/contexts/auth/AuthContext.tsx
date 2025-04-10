@@ -51,7 +51,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, password: string) => {
     try {
-      return await authActions.signIn(
+      const result = await authActions.signIn(
         email, 
         password,
         (error) => {
@@ -62,6 +62,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           });
         }
       );
+      return result; // Return the result from authActions.signIn
     } catch (error) {
       // Error already handled in the action
       throw error;

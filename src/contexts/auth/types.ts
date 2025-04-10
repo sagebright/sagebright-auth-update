@@ -11,7 +11,7 @@ export interface AuthContextType {
   loading: boolean;
   isAuthenticated: boolean; // Added isAuthenticated property
   signUp: (email: string, password: string, fullName: string) => Promise<void>;
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<any>; // Changed return type to Promise<any>
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;

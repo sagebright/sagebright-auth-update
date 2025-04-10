@@ -16,7 +16,7 @@ export const loginSchema = z.object({
 export type LoginValues = z.infer<typeof loginSchema>;
 
 export function useLoginForm() {
-  const { signIn } = useAuth();
+  const { signIn, user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -36,7 +36,7 @@ export function useLoginForm() {
       console.log("🔑 Attempting login with:", data.email);
       
       // Perform sign in operation
-      const authData = await signIn(data.email, data.password);
+      await signIn(data.email, data.password);
       
       // The login was successful if we reach this point
       console.log("✅ Login successful");
@@ -50,8 +50,10 @@ export function useLoginForm() {
         // Continue with login flow even if sync fails
       }
       
-      // If we have a role, redirect to the appropriate dashboard
-      if (authData?.user?.user_metadata?.role === 'admin') {
+      // Determine the redirect path based on the user's role from the auth context
+      // Since the auth state will be updated by the time we reach here
+      const userRole = user?.user_metadata?.role || 'user';
+      if (userRole === 'admin') {
         navigate('/hr-dashboard', { replace: true });
       } else {
         navigate('/user-dashboard', { replace: true });
