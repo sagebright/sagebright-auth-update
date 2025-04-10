@@ -48,9 +48,18 @@ export const LoggedIn: Story = {
     user: {
       id: '123',
       email: 'user@example.com',
-      firstName: 'Test',
-      lastName: 'User',
-      // Add other required user properties here
+      // Using properties that exist in the Supabase User type
+      // Removed firstName which was causing the error
+      app_metadata: {},
+      aud: 'authenticated',
+      confirmed_at: new Date().toISOString(),
+      created_at: new Date().toISOString(),
+      last_sign_in_at: new Date().toISOString(),
+      role: 'authenticated',
+      updated_at: new Date().toISOString(),
+      user_metadata: {
+        full_name: 'Test User'
+      }
     },
   },
 };
