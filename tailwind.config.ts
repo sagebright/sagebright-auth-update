@@ -21,7 +21,20 @@ export default {
 		},
 		screens: themeConfig.screens,
 		extend: {
-			colors: themeConfig.colors,
+			colors: {
+				...themeConfig.colors,
+				tooltip: {
+					DEFAULT: 'hsl(var(--tooltip))',
+					foreground: 'hsl(var(--tooltip-foreground))'
+				},
+				// Additional accessible colors with proper contrast
+				accessible: {
+					link: 'hsl(var(--accessible-link))', // High contrast link color
+					error: 'hsl(var(--accessible-error))', // High contrast error color
+					success: 'hsl(var(--accessible-success))', // High contrast success color
+					warning: 'hsl(var(--accessible-warning))' // High contrast warning color
+				},
+			},
 			fontFamily: themeConfig.fontFamily,
 			fontSize: themeConfig.fontSize,
 			spacing: themeConfig.spacing,
@@ -32,6 +45,32 @@ export default {
 			transitionDuration: themeConfig.transitionDuration,
 			scale: themeConfig.scale,
 			brightness: themeConfig.brightness,
+			// Add focus ring styles
+			ringWidth: {
+				DEFAULT: '2px',
+				0: '0',
+				1: '1px',
+				2: '2px',
+				3: '3px',
+				4: '4px',
+			},
+			ringOffsetWidth: {
+				DEFAULT: '2px',
+				0: '0',
+				1: '1px',
+				2: '2px',
+				3: '3px',
+				4: '4px',
+			},
+			ringColor: {
+				DEFAULT: 'hsl(var(--ring))',
+				primary: 'hsl(var(--primary))',
+				secondary: 'hsl(var(--secondary))',
+				accent1: 'hsl(var(--accent1))',
+			},
+			ringOffsetColor: {
+				DEFAULT: 'hsl(var(--background))',
+			},
 		}
 	},
 	plugins: [require("tailwindcss-animate")],

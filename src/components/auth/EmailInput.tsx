@@ -9,8 +9,10 @@ interface EmailInputProps {
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onBlur?: () => void;
   name?: string;
+  id?: string;
   placeholder?: string;
   className?: string;
+  "aria-required"?: "true" | "false";
 }
 
 const EmailInput = React.forwardRef<HTMLInputElement, EmailInputProps>(({
@@ -19,13 +21,15 @@ const EmailInput = React.forwardRef<HTMLInputElement, EmailInputProps>(({
   onChange,
   onBlur,
   name,
+  id,
   placeholder = "you@example.com",
   className = "",
+  "aria-required": ariaRequired,
   ...props
 }, ref) => {
   return (
     <div className="relative">
-      <Mail className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+      <Mail className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" aria-hidden="true" />
       <Input
         type="email"
         placeholder={placeholder}
@@ -35,7 +39,10 @@ const EmailInput = React.forwardRef<HTMLInputElement, EmailInputProps>(({
         onChange={onChange}
         onBlur={onBlur}
         name={name}
+        id={id}
         ref={ref}
+        aria-required={ariaRequired}
+        autoComplete="email"
         {...props}
       />
     </div>
