@@ -18,35 +18,48 @@ export async function callOpenAI({
   voice?: string;
 }): Promise<string> {
   console.log("🎤 Using voice:", voice);
-  console.log("🔑 VITE_OPENAI_KEY:", import.meta.env.VITE_OPENAI_KEY?.slice(0, 8));
+  console.log("🔑 Checking OpenAI key:", !!import.meta.env.VITE_OPENAI_KEY);
+
+  if (!import.meta.env.VITE_OPENAI_KEY) {
+    console.error("OpenAI API key is missing or invalid");
+    throw new Error("OpenAI API key is missing. Please check your environment configuration.");
+  }
 
   const tone = voiceprints[voice] || voiceprints['default'];
   const systemPrompt = generateSystemPrompt(context, tone);
 
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${import.meta.env.VITE_OPENAI_KEY}`,
-    },
-    body: JSON.stringify({
-      model: "gpt-4",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: question },
-      ],
-      temperature: 0.7,
-    }),
-  });
+  try {
+    console.log("Sending request to OpenAI API");
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${import.meta.env.VITE_OPENAI_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-4",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: question },
+        ],
+        temperature: 0.7,
+      }),
+    });
 
-  const data = await response.json();
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+      console.error("OpenAI API error:", errorData || response.statusText);
+      throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
+    }
 
-  if (!response.ok) {
-    console.error("OpenAI API error:", data);
-    throw new Error("Sage had trouble responding.");
+    const data = await response.json();
+    console.log("Received response from OpenAI");
+
+    return data.choices?.[0]?.message?.content ?? "No response from Sage.";
+  } catch (error) {
+    console.error("Error in callOpenAI:", error);
+    throw error;
   }
-
-  return data.choices?.[0]?.message?.content ?? "No response from Sage.";
 }
 
 function generateSystemPrompt(
@@ -84,7 +97,7 @@ function generateSystemPrompt(
     if (user.introvert_extrovert) prompt += `- Social Style: ${user.introvert_extrovert}\n`;
     if (user.personality_notes) prompt += `- Personality Notes: ${user.personality_notes}\n`;
   }
-  console.log("🧠 Final system prompt:\n", prompt);
+  console.log("🧠 Final system prompt created");
 
   return prompt;
 }

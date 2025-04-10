@@ -4,7 +4,7 @@ import { Message } from '@/components/ask-sage/ChatMessage';
 import { buildSageContext } from '@/lib/buildSageContext';
 import { callOpenAI } from '@/lib/api';
 import { useAuth } from "@/contexts/auth/AuthContext";
-import { getVoiceFromUrl } from '@/lib/utils';
+import { toast } from '@/components/ui/use-toast';
 
 // Updated suggested questions order to prioritize the two required questions
 const SUGGESTED_QUESTIONS = [
@@ -27,9 +27,10 @@ export const useChat = () => {
       setMessages([
         {
           id: '1',
-          content: "Welcome back! You're doing the work — I'm just here to help make it smoother. What do you want to explore next?",
+          content: "Hi there! I'm Sage, your onboarding assistant. How can I help you today?",
           sender: 'sage',
           timestamp: new Date(),
+          avatar_url: '/lovable-uploads/sage_avatar.png',
         }
       ]);
     }
@@ -47,7 +48,10 @@ export const useChat = () => {
   }, [messages, showReflection]);
 
   const handleSendMessage = async (content: string) => {
-    if (!content.trim()) return;
+    if (!content.trim() || !userId || !orgId) {
+      console.log("Missing content, userId or orgId:", { content, userId, orgId });
+      return;
+    }
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -61,9 +65,20 @@ export const useChat = () => {
     setIsLoading(true);
 
     try {
+      console.log("Building context for userId:", userId, "orgId:", orgId);
       const { context } = await buildSageContext(userId, orgId);
-      const voice = getVoiceFromUrl();
-      const answer = await callOpenAI({ question: content, context, voice });
+      console.log("Context built:", context);
+      
+      // Get voice from URL or use default
+      const voice = new URLSearchParams(window.location.search).get('voice') || 'default';
+      console.log("Using voice:", voice);
+      
+      const answer = await callOpenAI({ 
+        question: content, 
+        context, 
+        voice 
+      });
+      console.log("Received answer from OpenAI");
 
       const sageMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -75,14 +90,23 @@ export const useChat = () => {
 
       setMessages(prev => [...prev, sageMessage]);
     } catch (err) {
+      console.error("Error in handleSendMessage:", err);
+      
       const errorMessage: Message = {
         id: (Date.now() + 2).toString(),
-        content: "Sage couldn't respond. Try again.",
+        content: "I'm sorry, I couldn't process your request. Please try again.",
         sender: 'sage',
         timestamp: new Date(),
+        avatar_url: "/lovable-uploads/sage_avatar.png",
       };
 
       setMessages(prev => [...prev, errorMessage]);
+      
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to get a response. Please try again."
+      });
     } finally {
       setIsLoading(false);
     }

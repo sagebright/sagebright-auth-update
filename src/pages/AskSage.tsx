@@ -12,26 +12,16 @@ import { ReflectionForm, ReflectionData } from '@/components/ask-sage/Reflection
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useChat } from '@/hooks/use-chat';
-import { buildSageContext } from "@/lib/buildSageContext";
-import { callOpenAI } from "@/lib/api";
+import { toast } from "@/components/ui/use-toast";
 
 const AskSage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user, userId, orgId, loading: authLoading } = useRequireAuth(navigate);
-  
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const isMobile = useIsMobile();
   
-  const {
-    suggestedQuestions,
-    showReflection,
-    setShowReflection,
-    handleFeedback
-  } = useChat();
-
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  
   // Get voice parameter from searchParams
   const voiceParam = React.useMemo(() => {
     return searchParams.get('voice') || 'default';
@@ -43,70 +33,34 @@ const AskSage = () => {
     console.log("🔍 Search params:", Object.fromEntries(searchParams.entries()));
   }, [voiceParam, searchParams]);
 
-  // Add initial greeting from Sage when the component mounts
-  useEffect(() => {
-    if (messages.length === 0) {
-      setMessages([{
-        id: 'welcome-message',
-        sender: 'sage',
-        content: "Hi there! I'm Sage, your onboarding assistant. How can I help you today?",
-        timestamp: new Date(),
-        avatar_url: '/lovable-uploads/sage_avatar.png',
-      }]);
-    }
-  }, [messages.length]);
-
-  const sendMessageToSage = async (content: string) => {
-    if (!content.trim() || !userId || !orgId) return;
-
-    const userMessage: Message = {
-      id: `user-${Date.now()}`,
-      sender: 'user',
-      content,
-      timestamp: new Date(),
-      avatar_url: user?.user_metadata?.avatar_url,
-    };
-
-    setMessages(prev => [...prev, userMessage]);
-    setIsLoading(true);
-
-    try {
-      const { context } = await buildSageContext(userId, orgId);
-      console.log("🧠 Sage Context:\n", context);
-      
-      const answer = await callOpenAI({ 
-        question: content, 
-        context, 
-        voice: voiceParam 
-      });
-
-      const sageMessage: Message = {
-        id: `sage-${Date.now()}`,
-        sender: 'sage',
-        content: answer,
-        timestamp: new Date(),
-        avatar_url: "/lovable-uploads/sage_avatar.png",
-      };
-
-      setMessages(prev => [...prev, sageMessage]);
-    } catch (err) {
-      console.error("Sage had trouble:", err);
-      const errorMsg: Message = {
-        id: `error-${Date.now()}`,
-        sender: 'sage',
-        content: "I'm sorry, I couldn't process your request. Please try again.",
-        timestamp: new Date(),
-        avatar_url: "/lovable-uploads/sage_avatar.png",
-      };
-      setMessages(prev => [...prev, errorMsg]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const {
+    messages,
+    isLoading,
+    suggestedQuestions,
+    showReflection,
+    setShowReflection,
+    handleSendMessage,
+    handleFeedback
+  } = useChat();
 
   const handleReflectionSubmit = (data: ReflectionData) => {
     console.log('Reflection submitted:', data);
     setShowReflection(false);
+  };
+
+  // Send message using the useChat hook
+  const sendMessageToSage = async (content: string) => {
+    // This will leverage the useChat hook to handle the message
+    try {
+      await handleSendMessage(content);
+    } catch (error) {
+      console.error("Error sending message:", error);
+      toast({
+        variant: "destructive",
+        title: "Message Error",
+        description: "Failed to send your message. Please try again.",
+      });
+    }
   };
 
   const handleSelectQuestion = (question: string) => {

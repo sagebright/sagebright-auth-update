@@ -1,3 +1,4 @@
+
 // src/lib/buildSageContext.ts
 
 import { fetchOrgContext } from '@/lib/fetchOrgContext';
@@ -11,25 +12,43 @@ import { fetchUserContext } from '@/lib/fetchUserContext';
  * @returns Enriched context object Sage will use
  */
 export async function buildSageContext(userId: string, orgId: string) {
-  const [orgContext, userContext] = await Promise.all([
-    fetchOrgContext(orgId),
-    fetchUserContext(userId),
-  ]);
-
-  if (!orgContext) {
-    return {
-      messages: [`Sage couldn't find your organization's context.`],
-      context: {},
-    };
+  console.log("🔍 Building context for userId:", userId, "and orgId:", orgId);
+  
+  if (!userId || !orgId) {
+    console.error("Missing userId or orgId:", { userId, orgId });
+    throw new Error("Missing userId or orgId");
   }
 
-  return {
-    messages: [],
-    context: {
-      org: orgContext,
-      user: userContext,
-      userId,
-      orgId,
-    },
-  };
+  try {
+    const [orgContext, userContext] = await Promise.all([
+      fetchOrgContext(orgId),
+      fetchUserContext(userId),
+    ]);
+
+    console.log("✅ Context fetched:", { 
+      orgContextExists: !!orgContext, 
+      userContextExists: !!userContext 
+    });
+
+    if (!orgContext) {
+      console.warn("No organization context found for orgId:", orgId);
+      return {
+        messages: ["Sage couldn't find your organization's context."],
+        context: { userId, orgId },
+      };
+    }
+
+    return {
+      messages: [],
+      context: {
+        org: orgContext,
+        user: userContext,
+        userId,
+        orgId,
+      },
+    };
+  } catch (error) {
+    console.error("Error building context:", error);
+    throw error;
+  }
 }
