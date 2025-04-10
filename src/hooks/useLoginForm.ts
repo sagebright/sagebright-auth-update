@@ -5,6 +5,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuth } from "@/contexts/auth/AuthContext";
 import { syncExistingUsers } from "@/lib/syncExistingUsers";
+import { useNavigate } from "react-router-dom";
 
 // Define the login form validation schema
 export const loginSchema = z.object({
@@ -18,6 +19,7 @@ export function useLoginForm() {
   const { signIn } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const form = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
@@ -33,15 +35,13 @@ export function useLoginForm() {
     try {
       console.log("🔑 Attempting login with:", data.email);
       
-      // Don't attempt to access the return value directly here
-      // Let the AuthContext handle the redirection
-      await signIn(data.email, data.password);
+      // Perform sign in operation
+      const authData = await signIn(data.email, data.password);
       
       // The login was successful if we reach this point
       console.log("✅ Login successful");
       
-      // Try to sync users after login as an additional safety measure
-      // Note: We only try once here since authActions.ts also does this
+      // Try to sync users after login but don't block the flow
       try {
         await syncExistingUsers();
         console.log("✅ User sync completed after login");
@@ -50,8 +50,16 @@ export function useLoginForm() {
         // Continue with login flow even if sync fails
       }
       
-      // Don't reset isLoading here - this allows the button to stay in loading state
-      // until the redirect happens, preventing flashes
+      // If we have a role, redirect to the appropriate dashboard
+      if (authData?.user?.user_metadata?.role === 'admin') {
+        navigate('/hr-dashboard', { replace: true });
+      } else {
+        navigate('/user-dashboard', { replace: true });
+      }
+      
+      // Reset loading state once redirected
+      setIsLoading(false);
+      
     } catch (error: any) {
       console.error("❌ Login failed:", error);
       setAuthError(error.message || "Login failed. Please check your credentials.");

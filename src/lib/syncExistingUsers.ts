@@ -10,7 +10,7 @@ export async function syncExistingUsers(): Promise<string[]> {
     console.log('🔄 Manually syncing existing users to users table');
     
     // Call the database-triggers edge function directly
-    // This is the approach that's working based on logs
+    // This method has been working successfully based on logs
     const { data: triggerData, error: triggerError } = await supabase.functions.invoke('database-triggers', {
       body: {}
     });

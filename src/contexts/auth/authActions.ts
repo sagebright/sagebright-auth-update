@@ -54,7 +54,7 @@ export async function signIn(
         // Continue with login flow even if role sync fails
       }
       
-      // Also try to sync the user to the users table
+      // Also try to sync the user to the users table but don't let it block the flow
       try {
         await syncExistingUsers();
         console.log('✅ User synchronized to users table after login');
