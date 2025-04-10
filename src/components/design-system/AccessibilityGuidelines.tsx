@@ -65,7 +65,7 @@ const AccessibilityGuidelines = () => {
                     <div className="bg-muted p-4 rounded-md">
                       <h4 className="text-xs uppercase text-muted-foreground mb-2">Best Practices</h4>
                       <ul className="list-disc list-inside space-y-2 text-sm">
-                        <li>Use logical tab order (avoid using tabindex > 0)</li>
+                        <li>Use logical tab order (avoid using tabindex {'>'} 0)</li>
                         <li>Maintain focus when modals open/close</li>
                         <li>Trap focus in dialogs and modals</li>
                         <li>Skip navigation links for keyboard users</li>
