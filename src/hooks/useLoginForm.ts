@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuth } from "@/contexts/auth/AuthContext";
 import { syncExistingUsers } from "@/lib/syncExistingUsers";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 
 // Define the login form validation schema
 export const loginSchema = z.object({
@@ -16,10 +17,11 @@ export const loginSchema = z.object({
 export type LoginValues = z.infer<typeof loginSchema>;
 
 export function useLoginForm() {
-  const { signIn, user } = useAuth();
+  const { signIn } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const form = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
@@ -36,7 +38,7 @@ export function useLoginForm() {
       console.log("🔑 Attempting login with:", data.email);
       
       // Perform sign in operation
-      await signIn(data.email, data.password);
+      const authData = await signIn(data.email, data.password);
       
       // The login was successful if we reach this point
       console.log("✅ Login successful");
@@ -50,17 +52,22 @@ export function useLoginForm() {
         // Continue with login flow even if sync fails
       }
       
-      // Determine the redirect path based on the user's role from the auth context
-      // Since the auth state will be updated by the time we reach here
-      const userRole = user?.user_metadata?.role || 'user';
-      if (userRole === 'admin') {
-        navigate('/hr-dashboard', { replace: true });
-      } else {
-        navigate('/user-dashboard', { replace: true });
-      }
+      // Get the correct redirect path based on role
+      const userRole = authData?.user?.user_metadata?.role || 'user';
+      const redirectPath = userRole === 'admin' ? '/hr-dashboard' : '/user-dashboard';
       
-      // Reset loading state once redirected
-      setIsLoading(false);
+      // Show a toast for successful login
+      toast({
+        title: "Login successful",
+        description: `Welcome back! Redirecting to your dashboard...`,
+      });
+      
+      // Redirect to the appropriate dashboard
+      setTimeout(() => {
+        navigate(redirectPath, { replace: true });
+        // Reset loading state after redirection has been triggered
+        setIsLoading(false);
+      }, 500);
       
     } catch (error: any) {
       console.error("❌ Login failed:", error);

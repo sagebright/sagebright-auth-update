@@ -25,16 +25,18 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     
     if (loading) return;
     
-    // If not authenticated or missing orgSlug, useRequireAuth will handle the redirect
-    if (!isAuthenticated || !orgSlug) return;
+    // If not authenticated or missing user, useRequireAuth will handle the redirect
+    if (!isAuthenticated || !user) return;
     
-    // Handle subdomain mismatch
-    const currentOrgSlug = getOrgFromUrl();
-    if (orgSlug && (!currentOrgSlug || currentOrgSlug !== orgSlug)) {
-      console.log("🏢 ProtectedRoute redirecting to correct org subdomain:", orgSlug);
-      sessionStorage.setItem('lastAuthenticatedPath', location.pathname + location.search);
-      redirectToOrgUrl(orgSlug);
-      return;
+    // Handle subdomain mismatch if we have org context
+    if (orgSlug) {
+      const currentOrgSlug = getOrgFromUrl();
+      if (orgSlug && (!currentOrgSlug || currentOrgSlug !== orgSlug)) {
+        console.log("🏢 ProtectedRoute redirecting to correct org subdomain:", orgSlug);
+        sessionStorage.setItem('lastAuthenticatedPath', location.pathname + location.search);
+        redirectToOrgUrl(orgSlug);
+        return;
+      }
     }
 
     // Handle root path redirection based on role
@@ -75,8 +77,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     orgId, orgSlug, navigate, requiredRole, requiredPermission, user
   ]);
   
-  // Show loading spinner when auth is loading OR when authenticated but still missing orgSlug
-  if (loading || (isAuthenticated && !orgSlug)) {
+  // Show loading spinner when auth is loading
+  if (loading) {
     return (
       <div className="flex h-screen items-center justify-center">
         <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
@@ -86,7 +88,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   // Only render children if we're authenticated with complete context
-  return isAuthenticated && orgSlug ? <>{children}</> : null;
-};
+  return isAuthenticated && user ? <>{children}</> : null;
+}
 
 export default ProtectedRoute;

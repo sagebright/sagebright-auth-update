@@ -30,6 +30,10 @@ export function useAuthProvider() {
       return;
     }
     
+    // Mark as authenticated if we have a userId - this is critical
+    // We set this early so login flows can continue
+    setIsAuthenticated(true);
+    
     let isMounted = true;
     const fetchUserData = async () => {
       try {
@@ -50,25 +54,17 @@ export function useAuthProvider() {
           if (org?.slug) {
             setOrgSlug(org.slug);
             console.log("🏢 Set orgSlug in useAuthProvider:", org.slug);
-            // Only now set isAuthenticated when we have the complete context
-            setIsAuthenticated(true);
           } else {
             console.warn("⚠️ No slug found for org ID:", match.org_id);
-            setIsAuthenticated(false);
           }
         } else if (match) {
           // If we have a user but no org, we're still authenticated
-          // This is needed to prevent login loops
           console.log("👤 User found but no org assigned");
-          setIsAuthenticated(true);
-        } else {
-          setIsAuthenticated(false);
         }
       } catch (err) {
         console.error('Error loading current user:', err);
-        if (isMounted) {
-          setIsAuthenticated(false);
-        }
+        // Despite the error, we're still authenticated at the Supabase level
+        // Don't reset isAuthenticated here
       } finally {
         if (isMounted) {
           setLoading(false);
@@ -99,6 +95,11 @@ export function useAuthProvider() {
         setUserId(session?.user?.id ?? null);
         setAccessToken(session?.access_token ?? null);
         
+        // Set authentication state immediately based on session
+        if (session && session.user) {
+          setIsAuthenticated(true);
+        }
+        
         if (event === 'SIGNED_OUT') {
           setIsAuthenticated(false);
           setOrgId(null);
@@ -106,9 +107,6 @@ export function useAuthProvider() {
           setCurrentUser(null);
           setLoading(false);
         }
-        
-        // Note: We now handle all redirection in the useRequireAuth hook
-        // This makes the redirection logic more centralized and predictable
       }
     );
 
@@ -125,8 +123,10 @@ export function useAuthProvider() {
         setUserId(session?.user?.id ?? null);
         setAccessToken(session?.access_token ?? null);
         
-        // If no session, we're definitely not authenticated and not loading
-        if (!session) {
+        // Set authentication state immediately based on session
+        if (session && session.user) {
+          setIsAuthenticated(true);
+        } else {
           setLoading(false);
           setIsAuthenticated(false);
         }

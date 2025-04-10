@@ -8,12 +8,14 @@ import AuthDivider from "@/components/auth/AuthDivider";
 import { useLoginForm } from "@/hooks/useLoginForm";
 import LoginForm from "@/components/auth/LoginForm";
 import { getOrgFromUrl } from "@/lib/subdomainUtils";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Login() {
   const { signInWithGoogle, user, isAuthenticated, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { form, isLoading, authError, onSubmit } = useLoginForm();
+  const { toast } = useToast();
   
   const redirectPath = localStorage.getItem("redirectAfterLogin") || "/user-dashboard";
 
@@ -34,13 +36,19 @@ export default function Login() {
       
       console.log("🎯 Redirecting to:", targetPath, "based on role:", role);
       
+      // Show a toast for redirection
+      toast({
+        title: "Already signed in",
+        description: "Redirecting to your dashboard...",
+      });
+      
       // Clear any stored redirect paths to prevent loops
       localStorage.removeItem("redirectAfterLogin");
       
       // Redirect immediately to prevent login page flash
       navigate(targetPath, { replace: true });
     }
-  }, [user, isAuthenticated, loading, navigate]);
+  }, [user, isAuthenticated, loading, navigate, toast]);
 
   // Handle Google sign-in
   const handleGoogleSignIn = async () => {

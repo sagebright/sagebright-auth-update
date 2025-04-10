@@ -36,7 +36,7 @@ export function useRequireAuth(navigate: NavigateFunction) {
       return;
     }
 
-    // Handle unauthenticated users
+    // Handle unauthenticated users - Check both isAuthenticated and session/user for safety
     if (!auth.isAuthenticated || !auth.user) {
       console.log("❌ User not authenticated, redirecting to login");
       
@@ -54,22 +54,27 @@ export function useRequireAuth(navigate: NavigateFunction) {
     const userRole = auth.user?.user_metadata?.role || 'user';
     console.log("👤 User role from metadata:", userRole);
 
-    // We now have a fully authenticated user with org context
-    console.log("✅ User authenticated with org context:", auth.orgSlug);
+    // We now have a fully authenticated user
+    console.log("✅ User authenticated with role:", userRole);
 
-    // Handle subdomain mismatch - ensure user is on the correct subdomain
-    const currentOrgSlug = getOrgFromUrl();
-    if (auth.orgSlug && (!currentOrgSlug || currentOrgSlug !== auth.orgSlug)) {
-      console.log("🏢 Redirecting to correct org subdomain:", auth.orgSlug);
+    // Handle org context if available
+    if (auth.orgSlug) {
+      console.log("🏢 User has org context:", auth.orgSlug);
       
-      // Store path for after subdomain redirect
-      const targetPath = userRole === 'admin' ? '/hr-dashboard' : '/user-dashboard';
-      console.log("🎯 Target path based on role:", targetPath);
-      sessionStorage.setItem('lastAuthenticatedPath', targetPath);
-      
-      setRedirecting(true);
-      redirectToOrgUrl(auth.orgSlug);
-      return;
+      // Handle subdomain mismatch - ensure user is on the correct subdomain
+      const currentOrgSlug = getOrgFromUrl();
+      if (auth.orgSlug && (!currentOrgSlug || currentOrgSlug !== auth.orgSlug)) {
+        console.log("🏢 Redirecting to correct org subdomain:", auth.orgSlug);
+        
+        // Store path for after subdomain redirect
+        const targetPath = userRole === 'admin' ? '/hr-dashboard' : '/user-dashboard';
+        console.log("🎯 Target path based on role:", targetPath);
+        sessionStorage.setItem('lastAuthenticatedPath', targetPath);
+        
+        setRedirecting(true);
+        redirectToOrgUrl(auth.orgSlug);
+        return;
+      }
     }
 
     // Handle root path redirection based on role
