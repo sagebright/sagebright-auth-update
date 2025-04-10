@@ -19,8 +19,8 @@ const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({ onClick, isLoad
       className="w-full font-roboto"
       onClick={onClick}
       loading={isLoading}
-      loadingText={t('common.loading')}
-      aria-label={t('common.continueWithGoogle')}
+      loadingText={t('common.loading') as string}
+      aria-label={t('common.continueWithGoogle') as string}
     >
       <Chrome className="mr-2 h-4 w-4" aria-hidden="true" />
       {t('common.continueWithGoogle')}
