@@ -22,6 +22,13 @@ export const useChat = () => {
   const { userId, orgId, currentUser } = useAuth();
 
   console.log("🔍 useChat hook initializing with", { userId, orgId });
+  
+  // Log any issues with auth context
+  useEffect(() => {
+    if (userId && !orgId) {
+      console.warn("⚠️ User authenticated but missing orgId. This may affect chat functionality.");
+    }
+  }, [userId, orgId]);
 
   // Add initial greeting from Sage if empty chat
   useEffect(() => {
@@ -36,7 +43,7 @@ export const useChat = () => {
         }
       ]);
     }
-  }, []);
+  }, [messages.length]);
 
   // Randomly prompt for reflection after some time
   useEffect(() => {

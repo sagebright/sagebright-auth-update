@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { getUsers } from '@/lib/backendApi';
 import { useToast } from '@/hooks/use-toast';
 import { getOrgFromUrl, redirectToOrgUrl, getOrgById } from '@/lib/subdomainUtils';
+import { syncUserRole } from '@/lib/syncUserRole';
 
 export function useAuthProvider() {
   const [accessToken, setAccessToken] = useState<string | null>(null);
@@ -58,8 +59,37 @@ export function useAuthProvider() {
             console.warn("⚠️ No slug found for org ID:", match.org_id);
           }
         } else if (match) {
-          // If we have a user but no org, we're still authenticated
-          console.log("👤 User found but no org assigned");
+          // If we have a user but no org, there might be an issue with the user's org assignment
+          console.log("👤 User found but no org assigned. Attempting to sync role...");
+          
+          // Try to force sync the user's role to ensure org_id is updated
+          try {
+            await syncUserRole(userId);
+            console.log("✅ Role sync attempted for user without org_id");
+            
+            // Try fetching user data again after role sync
+            const usersAfterSync = await getUsers();
+            if (!isMounted) return;
+            
+            const matchAfterSync = usersAfterSync.find(u => u.id === userId);
+            if (matchAfterSync?.org_id) {
+              setOrgId(matchAfterSync.org_id);
+              console.log("✅ Org ID retrieved after role sync:", matchAfterSync.org_id);
+              
+              // Get org slug for the newly found org_id
+              const orgAfterSync = await getOrgById(matchAfterSync.org_id);
+              if (!isMounted) return;
+              
+              if (orgAfterSync?.slug) {
+                setOrgSlug(orgAfterSync.slug);
+                console.log("🏢 Set orgSlug after role sync:", orgAfterSync.slug);
+              }
+            } else {
+              console.warn("⚠️ Still no org_id found after role sync");
+            }
+          } catch (syncError) {
+            console.error("❌ Error syncing role:", syncError);
+          }
         }
       } catch (err) {
         console.error('Error loading current user:', err);
@@ -98,6 +128,27 @@ export function useAuthProvider() {
         // Set authentication state immediately based on session
         if (session && session.user) {
           setIsAuthenticated(true);
+          
+          // If this is a sign-in event, sync the user role
+          if (event === 'SIGNED_IN') {
+            console.log("🔑 Login successful, syncing user role for ID:", session.user.id);
+            try {
+              await syncUserRole(session.user.id);
+              console.log("✅ User role synchronized after login");
+              
+              // Also sync existing users to ensure db consistency
+              console.log("🔄 Manually syncing existing users to users table");
+              try {
+                const { data } = await supabase.functions.invoke('database-triggers');
+                console.log("✅ Successfully called database-triggers:", data);
+                console.log("✅ User synchronized to users table after login");
+              } catch (error) {
+                console.error("❌ Error calling database-triggers:", error);
+              }
+            } catch (error) {
+              console.error("❌ Error syncing user role after login:", error);
+            }
+          }
         }
         
         if (event === 'SIGNED_OUT') {

@@ -13,6 +13,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useChat } from '@/hooks/use-chat';
 import { toast } from "@/components/ui/use-toast";
+import { syncUserRole } from '@/lib/syncUserRole';
+import { supabase } from '@/lib/supabaseClient';
+import { Button } from '@/components/ui/button';
 
 const AskSage = () => {
   const navigate = useNavigate();
@@ -21,6 +24,7 @@ const AskSage = () => {
   const isMobile = useIsMobile();
   
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isRecovering, setIsRecovering] = useState(false);
   
   // Get voice parameter from searchParams
   const voiceParam = React.useMemo(() => {
@@ -50,6 +54,48 @@ const AskSage = () => {
   const handleReflectionSubmit = (data: ReflectionData) => {
     console.log('Reflection submitted:', data);
     setShowReflection(false);
+  };
+
+  // Attempt to recover org context by triggering role sync
+  const handleRecoverOrgContext = async () => {
+    if (!userId) {
+      toast({
+        variant: "destructive",
+        title: "Authentication Error",
+        description: "Cannot recover without user ID. Please log out and back in."
+      });
+      return;
+    }
+
+    setIsRecovering(true);
+    try {
+      // Try to force sync the user role
+      console.log("🔄 Attempting to recover org context for user ID:", userId);
+      await syncUserRole(userId);
+      
+      // Force refresh the session
+      const { data, error } = await supabase.auth.refreshSession();
+      if (error) throw error;
+      
+      toast({
+        title: "Recovery Attempted",
+        description: "Please wait a moment while we reload the page..."
+      });
+      
+      // Give a moment for the toast to show before reloading
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+    } catch (error) {
+      console.error("Error recovering org context:", error);
+      toast({
+        variant: "destructive",
+        title: "Recovery Failed",
+        description: "Unable to recover organization context. Try logging out and back in."
+      });
+    } finally {
+      setIsRecovering(false);
+    }
   };
 
   // Send message using the useChat hook
@@ -99,12 +145,43 @@ const AskSage = () => {
         <div className="text-red-500 text-3xl mb-4">⚠️</div>
         <h2 className="text-xl font-bold mb-2">Authentication Issue</h2>
         <p className="mb-4">Your user account is not properly linked to an organization.</p>
-        <button 
-          onClick={() => navigate('/user-dashboard')}
-          className="bg-primary text-white px-4 py-2 rounded hover:bg-primary/90"
-        >
-          Return to Dashboard
-        </button>
+        <div className="space-y-4">
+          <Button 
+            onClick={handleRecoverOrgContext}
+            className="bg-primary text-white px-4 py-2 rounded hover:bg-primary/90"
+            disabled={isRecovering}
+          >
+            {isRecovering ? (
+              <>
+                <span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-solid border-current border-r-transparent"></span>
+                Recovering...
+              </>
+            ) : (
+              "Try to Recover"
+            )}
+          </Button>
+          
+          <div className="flex flex-col space-y-2">
+            <Button 
+              onClick={() => navigate('/user-dashboard')}
+              variant="outline"
+              className="px-4 py-2 rounded"
+            >
+              Return to Dashboard
+            </Button>
+            
+            <Button 
+              onClick={async () => {
+                await supabase.auth.signOut();
+                navigate('/auth/login');
+              }}
+              variant="secondary"
+              className="px-4 py-2 rounded"
+            >
+              Sign Out and Login Again
+            </Button>
+          </div>
+        </div>
       </div>
     );
   }
