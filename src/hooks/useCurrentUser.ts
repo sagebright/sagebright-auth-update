@@ -23,10 +23,12 @@ export function useCurrentUser() {
     const fetchUserData = async () => {
       try {
         const users = await getUsers();
-        const currentUser = users.find(u => u.id === userId) || null;
+        const currentUser = users?.find(u => u.id === userId) || null;
         setUserData(currentUser);
       } catch (error) {
         console.error('Error fetching current user data:', error);
+        // Fall back to basic user data from auth context
+        // Don't show an error to the user - we'll just use the basic auth data
       } finally {
         setLoading(false);
       }
@@ -36,6 +38,7 @@ export function useCurrentUser() {
   }, [userId, authLoading]);
 
   // Combined user data from auth and backend
+  // Even if userData fetch fails, we still have the basic user info from auth
   const currentUser = userData ? { ...user, ...userData } : user;
   const isAuthenticated = !!currentUser && !authLoading && !loading;
   

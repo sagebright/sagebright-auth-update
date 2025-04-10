@@ -8,6 +8,7 @@ interface ApiErrorOptions {
   variant?: "default" | "destructive";
   duration?: number;
   shouldThrow?: boolean;
+  silent?: boolean;
 }
 
 /**
@@ -26,17 +27,29 @@ export function handleApiError(
     showToast = true,
     variant = "destructive",
     duration = 5000,
-    shouldThrow = false
+    shouldThrow = false,
+    silent = false
   } = options;
   
-  // Log the error with context for debugging
+  // Always log the error with context for debugging
   console.error(`[Error${context ? `: ${context}` : ""}]`, error);
   
   // Extract error message
   const errorMessage = extractErrorMessage(error) || fallbackMessage;
   
-  // Show toast notification if enabled
-  if (showToast) {
+  // Check if this is a permissions/role error
+  const isPermissionError = 
+    errorMessage.includes("insufficient role") ||
+    errorMessage.includes("permission denied") || 
+    errorMessage.includes("forbidden") ||
+    errorMessage.includes("Forbidden");
+    
+  // Don't show permission errors to users if they're accessing something they don't have access to
+  // This is a common case and not an actual application error
+  const shouldShowToastForThisError = showToast && !(silent || isPermissionError);
+  
+  // Show toast notification if enabled and not silenced
+  if (shouldShowToastForThisError) {
     toast({
       title: "Error",
       description: errorMessage,

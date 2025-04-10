@@ -73,15 +73,29 @@ export async function apiRequest(
     context?: string;
     fallbackMessage?: string;
     showToast?: boolean;
+    silent?: boolean;
   } = {}
 ) {
   try {
     return await fetchWithAuth(path, options);
-  } catch (error) {
+  } catch (error: any) {
+    // Check if this is a "Forbidden: insufficient role" error
+    const isForbiddenRoleError = 
+      error?.message?.includes('Forbidden: insufficient role') || 
+      error?.message?.includes('403') || 
+      error?.message?.includes('forbidden');
+      
+    // Only show toasts for errors that aren't silent and aren't role-related
+    // (Role errors are expected during normal operation in some cases)
+    const shouldShowToast = 
+      !errorConfig.silent && 
+      errorConfig.showToast !== false && 
+      !isForbiddenRoleError;
+    
     handleApiError(error, {
       context: errorConfig.context || path,
       fallbackMessage: errorConfig.fallbackMessage || 'Unable to complete request. Please try again.',
-      showToast: errorConfig.showToast !== undefined ? errorConfig.showToast : true
+      showToast: shouldShowToast
     });
     return null;
   }
@@ -94,7 +108,9 @@ export async function apiRequest(
 export async function getUsers() {
   const res = await apiRequest('/users', {}, {
     context: 'fetching users',
-    fallbackMessage: 'Unable to load users. Please try again.'
+    fallbackMessage: 'Unable to load users. Please try again.',
+    // Don't show toast for this operation, it's common for regular users to get 403
+    silent: true
   });
   return res?.data || [];
 }
