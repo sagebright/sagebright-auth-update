@@ -1,7 +1,10 @@
+
 import { supabase } from '@/lib/supabaseClient';
 import { getOrgFromUrl, redirectToOrgUrl, getOrgById } from '@/lib/subdomainUtils';
 import { syncUserRole } from '@/lib/syncUserRole';
 import { syncExistingUsers } from '@/lib/syncExistingUsers';
+import { toast } from '@/hooks/use-toast';
+import { handleApiError } from '@/lib/handleApiError';
 
 export async function signUp(
   email: string, 
@@ -22,8 +25,16 @@ export async function signUp(
     });
 
     if (error) throw error;
+    
+    toast({
+      title: "Account created successfully",
+      description: "Please check your email for verification instructions.",
+      variant: "default",
+    });
+    
     onSuccess();
   } catch (error: any) {
+    handleApiError(error, 'signup');
     onError(error);
     throw error;
   }
@@ -41,6 +52,12 @@ export async function signIn(
     });
 
     if (error) throw error;
+    
+    toast({
+      title: "Login successful",
+      description: "Welcome back!",
+      variant: "default",
+    });
     
     // Sync user role after successful login with explicit logging
     if (data?.user?.id) {
@@ -91,6 +108,7 @@ export async function signIn(
 
     return data;
   } catch (error: any) {
+    handleApiError(error, 'login');
     onError(error);
     throw error;
   }
@@ -107,6 +125,7 @@ export async function signInWithGoogle(onError: (error: any) => void) {
 
     if (error) throw error;
   } catch (error: any) {
+    handleApiError(error, 'google-login');
     onError(error);
     throw error;
   }
@@ -120,6 +139,12 @@ export async function signOut(onError: (error: any) => void) {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
     
+    toast({
+      title: "Logged out successfully",
+      description: "You have been securely logged out.",
+      variant: "default",
+    });
+    
     // Redirect to org-specific login page if on a subdomain
     if (currentOrgSlug) {
       window.location.href = window.location.protocol + '//' + 
@@ -131,6 +156,7 @@ export async function signOut(onError: (error: any) => void) {
     window.location.href = '/auth/login';
     return true;
   } catch (error: any) {
+    handleApiError(error, 'logout');
     onError(error);
     throw error;
   }
@@ -143,8 +169,16 @@ export async function resetPassword(email: string, onError: (error: any) => void
     });
 
     if (error) throw error;
+    
+    toast({
+      title: "Password reset email sent",
+      description: "Please check your email for instructions to reset your password.",
+      variant: "default",
+    });
+    
     return true;
   } catch (error: any) {
+    handleApiError(error, 'password-reset');
     onError(error);
     throw error;
   }
