@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -25,6 +24,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const Login = lazy(() => import("./pages/auth/Login"));
 const Signup = lazy(() => import("./pages/auth/Signup"));
 const ForgotPassword = lazy(() => import("./pages/auth/ForgotPassword"));
+const RecoveryPage = lazy(() => import("./pages/auth/RecoveryPage"));
 const DevDebugPage = lazy(() => import("@/pages/dev-debug"));
 const DesignSystem = lazy(() => import("@/pages/DesignSystem"));
 const FormComponentsExample = lazy(() => import("@/pages/FormComponentsExample"));
@@ -95,6 +95,7 @@ const App = () => {
                     <Route path="/auth/signup" element={<Signup />} />
                     <Route path="/auth/forgot-password" element={<ForgotPassword />} />
                     <Route path="/auth/callback" element={<Navigate to="/user-dashboard" replace />} />
+                    <Route path="/auth/recovery" element={<RecoveryPage />} />
                     
                     <Route
                       path="/user-dashboard"

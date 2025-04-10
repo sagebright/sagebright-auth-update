@@ -1,8 +1,9 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
 import { getOrgFromUrl, redirectToOrgUrl } from '@/lib/subdomainUtils';
+import AuthRecovery from '@/components/auth/AuthRecovery';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -18,6 +19,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const navigate = useNavigate();
   const location = useLocation();
   const { loading, isAuthenticated, user, orgId, orgSlug } = useRequireAuth(navigate);
+  const [showRecovery, setShowRecovery] = useState(false);
   
   useEffect(() => {
     console.log("🛡️ ProtectedRoute running on:", location.pathname);
@@ -37,6 +39,15 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         redirectToOrgUrl(orgSlug);
         return;
       }
+    }
+
+    // Check if authenticated user is missing org context
+    if (isAuthenticated && user && !orgId && location.pathname !== '/auth/recovery') {
+      console.log("⚠️ Authenticated user is missing orgId, showing recovery option");
+      setShowRecovery(true);
+      return;
+    } else {
+      setShowRecovery(false);
     }
 
     // Handle root path redirection based on role
@@ -83,6 +94,20 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       <div className="flex h-screen items-center justify-center">
         <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
         <span className="ml-2 text-primary">Loading...</span>
+      </div>
+    );
+  }
+
+  // Show recovery component if needed
+  if (showRecovery && isAuthenticated && user) {
+    return (
+      <div className="container mx-auto max-w-4xl py-8 px-4">
+        <AuthRecovery 
+          userId={user.id}
+          variant="page"
+          error="Your account is missing organization context. This is required to use the application."
+          onRecoverySuccess={() => setShowRecovery(false)}
+        />
       </div>
     );
   }
