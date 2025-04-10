@@ -8,7 +8,7 @@ import { ResourcesSidebar } from '@/components/ask-sage/ResourcesSidebar';
 import { ChatMessage } from '@/components/ask-sage/ChatMessage';
 import { ChatInputBar } from '@/components/ask-sage/ChatInputBar';
 import { TypingIndicator } from '@/components/ask-sage/TypingIndicator';
-import { ReflectionData } from '@/components/ask-sage/ReflectionForm';
+import { ReflectionForm, ReflectionData } from '@/components/ask-sage/ReflectionForm';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useChat } from '@/hooks/use-chat';

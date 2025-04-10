@@ -62,7 +62,7 @@ export const ReflectionForm: React.FC<ReflectionFormProps> = ({ onSubmit, onCanc
           id="share-manager"
           checked={shareWithManager}
           onChange={(e) => setShareWithManager(e.target.checked)}
-          className="h-4 w-4 text-sagebright-green rounded border-gray-300 focus:ring-sagebright-green"
+          className="h-4 w-4 text-primary rounded border-gray-300 focus:ring-primary"
         />
         <label htmlFor="share-manager" className="ml-2 block text-sm text-gray-700">
           Would you like to share this with your manager?
@@ -79,11 +79,10 @@ export const ReflectionForm: React.FC<ReflectionFormProps> = ({ onSubmit, onCanc
         </Button>
         <Button 
           onClick={handleSubmit}
-          className="bg-sagebright-gold hover:bg-sagebright-gold/90 text-charcoal"
-          loading={isSubmitting}
-          loadingText="Saving..."
+          className="bg-accent2 hover:bg-accent2/90 text-charcoal"
+          disabled={isSubmitting}
         >
-          Save Reflection
+          {isSubmitting ? "Saving..." : "Save Reflection"}
         </Button>
       </div>
     </div>
