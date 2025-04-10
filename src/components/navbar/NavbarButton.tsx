@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { memo } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -17,7 +17,7 @@ import { NavbarButtonProps } from '@/types';
  * <NavbarButton user={user} />
  * ```
  */
-const NavbarButton: React.FC<NavbarButtonProps> = ({ user }) => {
+const NavbarButton: React.FC<NavbarButtonProps> = memo(({ user }) => {
   const { t } = useTranslation();
   
   return (
@@ -31,6 +31,9 @@ const NavbarButton: React.FC<NavbarButtonProps> = ({ user }) => {
       </Link>
     </Button>
   );
-};
+});
+
+// Set display name for React DevTools
+NavbarButton.displayName = 'NavbarButton';
 
 export default NavbarButton;

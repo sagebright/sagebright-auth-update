@@ -1,30 +1,44 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import PageErrorBoundary from "./components/PageErrorBoundary";
-import Index from "./pages/Index";
-import Dashboard from "./pages/Dashboard";
-import HRDashboard from "./pages/HRDashboard";
-import AskSage from "./pages/AskSage";
-import ContactUs from "./pages/ContactUs";
-import NotFound from "./pages/NotFound";
-import Login from "./pages/auth/Login";
-import Signup from "./pages/auth/Signup";
-import ForgotPassword from "./pages/auth/ForgotPassword";
+import { lazy, Suspense } from "react";
+import { handleApiError } from "./lib/handleApiError";
 import { AuthProvider } from "./contexts/auth/AuthContext";
 import { LanguageProvider } from "./contexts/language/LanguageContext";
-import ProtectedRoute from "./components/ProtectedRoute";
-import DevDebugPage from "@/pages/dev-debug";
-import DesignSystem from "@/pages/DesignSystem";
-import FormComponentsExample from "@/pages/FormComponentsExample";
-import ErrorHandlingExample from "@/pages/ErrorHandlingExample";
-import SkeletonPreview from "@/pages/SkeletonPreview";
 import { getOrgFromUrl } from "./lib/subdomainUtils";
-import { handleApiError } from "./lib/handleApiError";
-import ImageComponentPreview from "./pages/ImageComponentPreview";
 import "@/i18n"; // Import i18n configuration
+
+// Eagerly loaded components
+import PageErrorBoundary from "./components/PageErrorBoundary";
+import ProtectedRoute from "./components/ProtectedRoute";
+
+// Lazily loaded page components
+const Index = lazy(() => import("./pages/Index"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const HRDashboard = lazy(() => import("./pages/HRDashboard"));
+const AskSage = lazy(() => import("./pages/AskSage"));
+const ContactUs = lazy(() => import("./pages/ContactUs"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const Login = lazy(() => import("./pages/auth/Login"));
+const Signup = lazy(() => import("./pages/auth/Signup"));
+const ForgotPassword = lazy(() => import("./pages/auth/ForgotPassword"));
+const DevDebugPage = lazy(() => import("@/pages/dev-debug"));
+const DesignSystem = lazy(() => import("@/pages/DesignSystem"));
+const FormComponentsExample = lazy(() => import("@/pages/FormComponentsExample"));
+const ErrorHandlingExample = lazy(() => import("@/pages/ErrorHandlingExample"));
+const SkeletonPreview = lazy(() => import("@/pages/SkeletonPreview"));
+const ImageComponentPreview = lazy(() => import("./pages/ImageComponentPreview"));
+
+// Loading fallback component
+const PageLoadingFallback = () => (
+  <div className="flex h-screen items-center justify-center">
+    <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+    <span className="ml-2 text-primary">Loading page...</span>
+  </div>
+);
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -54,78 +68,80 @@ const App = () => {
           <AuthProvider>
             <LanguageProvider>
               <PageErrorBoundary>
-                <Routes>
-                  {/* Root path behavior depends on subdomain */}
-                  <Route 
-                    path="/" 
-                    element={
-                      orgContext ? (
+                <Suspense fallback={<PageLoadingFallback />}>
+                  <Routes>
+                    {/* Root path behavior depends on subdomain */}
+                    <Route 
+                      path="/" 
+                      element={
+                        orgContext ? (
+                          <ProtectedRoute>
+                            {/* Will be redirected based on role in ProtectedRoute */}
+                            <div className="flex h-screen items-center justify-center">
+                              <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+                              <span className="ml-2 text-primary">Loading your dashboard...</span>
+                            </div>
+                          </ProtectedRoute>
+                        ) : (
+                          <Index />
+                        )
+                      } 
+                    />
+                    
+                    <Route path="/contact-us" element={<ContactUs />} />
+                    
+                    {/* Auth routes */}
+                    <Route path="/auth/login" element={<Login />} />
+                    <Route path="/auth/signup" element={<Signup />} />
+                    <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+                    <Route path="/auth/callback" element={<Navigate to="/user-dashboard" replace />} />
+                    
+                    <Route
+                      path="/user-dashboard"
+                      element={
                         <ProtectedRoute>
-                          {/* Will be redirected based on role in ProtectedRoute */}
-                          <div className="flex h-screen items-center justify-center">
-                            <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
-                            <span className="ml-2 text-primary">Loading your dashboard...</span>
-                          </div>
+                          <Dashboard />
                         </ProtectedRoute>
-                      ) : (
-                        <Index />
-                      )
-                    } 
-                  />
-                  
-                  <Route path="/contact-us" element={<ContactUs />} />
-                  
-                  {/* Auth routes */}
-                  <Route path="/auth/login" element={<Login />} />
-                  <Route path="/auth/signup" element={<Signup />} />
-                  <Route path="/auth/forgot-password" element={<ForgotPassword />} />
-                  <Route path="/auth/callback" element={<Navigate to="/user-dashboard" replace />} />
-                  
-                  <Route
-                    path="/user-dashboard"
-                    element={
-                      <ProtectedRoute>
-                        <Dashboard />
-                      </ProtectedRoute>
-                    }
-                  />
-                  
-                  <Route
-                    path="/dashboard"
-                    element={
-                      <ProtectedRoute>
-                        <Navigate to="/user-dashboard" replace />
-                      </ProtectedRoute>
-                    }
-                  />
-                  
-                  <Route
-                    path="/hr-dashboard"
-                    element={
-                      <ProtectedRoute requiredRole="admin">
-                        <HRDashboard />
-                      </ProtectedRoute>
-                    }
-                  />
-                  
-                  <Route
-                    path="/ask-sage"
-                    element={
-                      <ProtectedRoute>
-                        <AskSage />
-                      </ProtectedRoute>
-                    }
-                  />
-                  
-                  <Route path="/design-system" element={<DesignSystem />} />
-                  <Route path="/dev-debug" element={<DevDebugPage />} />
-                  <Route path="/form-components-example" element={<FormComponentsExample />} />
-                  <Route path="/error-handling-example" element={<ErrorHandlingExample />} />
-                  <Route path="/skeleton-preview" element={<SkeletonPreview />} />
-                  <Route path="/image-preview" element={<ImageComponentPreview />} />
-                  
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
+                      }
+                    />
+                    
+                    <Route
+                      path="/dashboard"
+                      element={
+                        <ProtectedRoute>
+                          <Navigate to="/user-dashboard" replace />
+                        </ProtectedRoute>
+                      }
+                    />
+                    
+                    <Route
+                      path="/hr-dashboard"
+                      element={
+                        <ProtectedRoute requiredRole="admin">
+                          <HRDashboard />
+                        </ProtectedRoute>
+                      }
+                    />
+                    
+                    <Route
+                      path="/ask-sage"
+                      element={
+                        <ProtectedRoute>
+                          <AskSage />
+                        </ProtectedRoute>
+                      }
+                    />
+                    
+                    <Route path="/design-system" element={<DesignSystem />} />
+                    <Route path="/dev-debug" element={<DevDebugPage />} />
+                    <Route path="/form-components-example" element={<FormComponentsExample />} />
+                    <Route path="/error-handling-example" element={<ErrorHandlingExample />} />
+                    <Route path="/skeleton-preview" element={<SkeletonPreview />} />
+                    <Route path="/image-preview" element={<ImageComponentPreview />} />
+                    
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </Suspense>
               </PageErrorBoundary>
             </LanguageProvider>
           </AuthProvider>

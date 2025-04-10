@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { memo, useMemo } from 'react';
 import { cn } from "@/lib/utils";
 import { AppShell } from './AppShell';
 import UserSidebar from '@/components/dashboard/UserSidebar';
@@ -12,7 +12,7 @@ interface DashboardContainerProps {
   showSagePanel?: boolean;
 }
 
-export function DashboardContainer({
+export const DashboardContainer = memo(function DashboardContainer({
   children,
   className,
   showSagePanel = true,
@@ -20,9 +20,14 @@ export function DashboardContainer({
   const location = useLocation();
   const isAdminDashboard = location.pathname === "/hr-dashboard";
 
+  // Memoize the sidebar content to prevent unnecessary re-renders
+  const sidebarContent = useMemo(() => {
+    return isAdminDashboard ? <AdminSidebar /> : <UserSidebar />;
+  }, [isAdminDashboard]);
+
   return (
     <AppShell
-      sidebarContent={isAdminDashboard ? <AdminSidebar /> : <UserSidebar />}
+      sidebarContent={sidebarContent}
       showSagePanel={showSagePanel}
       className={className}
     >
@@ -31,4 +36,4 @@ export function DashboardContainer({
       </div>
     </AppShell>
   );
-}
+});

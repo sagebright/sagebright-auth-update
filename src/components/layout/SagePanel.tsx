@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { cn } from "@/lib/utils";
 import { SageAvatar } from '../conversation/SageAvatar';
 import { ConversationContainer } from '../conversation/ConversationContainer';
@@ -9,7 +9,8 @@ interface SagePanelProps {
   className?: string;
 }
 
-export function SagePanel({ className }: SagePanelProps) {
+// Memoized SagePanel component to prevent unnecessary re-renders
+export const SagePanel = React.memo(function SagePanel({ className }: SagePanelProps) {
   // Example conversation - in a real app, this would come from a context or prop
   const [messages, setMessages] = useState<Omit<ChatBubbleProps, "avatarFallback">[]>([
     {
@@ -21,6 +22,17 @@ export function SagePanel({ className }: SagePanelProps) {
   ]);
   
   const [isTyping, setIsTyping] = useState(false);
+  
+  // Memoize the header to prevent unnecessary re-renders
+  const headerContent = useMemo(() => (
+    <div className="p-4 flex items-center gap-3">
+      <SageAvatar size="md" />
+      <div>
+        <h3 className="font-medium text-sm">Sage</h3>
+        <p className="text-xs text-muted-foreground">Your personal assistant</p>
+      </div>
+    </div>
+  ), []);
   
   const handleSendMessage = (message: string) => {
     // Add user message
@@ -54,16 +66,8 @@ export function SagePanel({ className }: SagePanelProps) {
         onSendMessage={handleSendMessage}
         isTyping={isTyping}
         sageAvatarUrl="/lovable-uploads/sage_avatar.png"
-        headerSlot={
-          <div className="p-4 flex items-center gap-3">
-            <SageAvatar size="md" />
-            <div>
-              <h3 className="font-medium text-sm">Sage</h3>
-              <p className="text-xs text-muted-foreground">Your personal assistant</p>
-            </div>
-          </div>
-        }
+        headerSlot={headerContent}
       />
     </div>
   );
-}
+});
