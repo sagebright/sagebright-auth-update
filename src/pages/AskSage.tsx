@@ -3,24 +3,25 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
 import { DashboardContainer } from '@/components/layout/DashboardContainer';
-import { ConversationContainer } from '@/components/conversation/ConversationContainer';
 import { ChatHeader } from '@/components/ask-sage/ChatHeader';
 import { ResourcesSidebar } from '@/components/ask-sage/ResourcesSidebar';
+import { ChatMessage, Message } from '@/components/ask-sage/ChatMessage';
+import { ChatInputBar } from '@/components/ask-sage/ChatInputBar';
+import { TypingIndicator } from '@/components/ask-sage/TypingIndicator';
 import { ReflectionForm, ReflectionData } from '@/components/ask-sage/ReflectionForm';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useChat } from '@/hooks/use-chat';
 import { buildSageContext } from "@/lib/buildSageContext";
 import { callOpenAI } from "@/lib/api";
-import { ChatBubbleProps } from '@/components/conversation/ChatBubble';
 
 const AskSage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user, userId, orgId, loading: authLoading } = useRequireAuth(navigate);
-
-  const [messages, setMessages] = useState<Omit<ChatBubbleProps, "avatarFallback">[]>([]);
-  const [isTyping, setIsTyping] = useState(false);
+  
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const isMobile = useIsMobile();
   
@@ -42,65 +43,74 @@ const AskSage = () => {
     console.log("🔍 Search params:", Object.fromEntries(searchParams.entries()));
   }, [voiceParam, searchParams]);
 
-  // Add an initial greeting from Sage when the component mounts
+  // Add initial greeting from Sage when the component mounts
   useEffect(() => {
     if (messages.length === 0) {
       setMessages([{
+        id: 'welcome-message',
         sender: 'sage',
         content: "Hi there! I'm Sage, your onboarding assistant. How can I help you today?",
         timestamp: new Date(),
-        avatarUrl: '/lovable-uploads/sage_avatar.png',
+        avatar_url: '/lovable-uploads/sage_avatar.png',
       }]);
     }
   }, [messages.length]);
 
-  const sendMessageToSage = async (question: string) => {
-    if (!userId || !orgId) return;
+  const sendMessageToSage = async (content: string) => {
+    if (!content.trim() || !userId || !orgId) return;
 
-    const userMessage = {
+    const userMessage: Message = {
       id: `user-${Date.now()}`,
-      sender: "user" as const,
-      content: question,
+      sender: 'user',
+      content,
       timestamp: new Date(),
-      avatarUrl: user?.user_metadata?.avatar_url || "",
+      avatar_url: user?.user_metadata?.avatar_url,
     };
 
-    setMessages((prev) => [...prev, userMessage]);
-    setIsTyping(true);
+    setMessages(prev => [...prev, userMessage]);
+    setIsLoading(true);
 
     try {
       const { context } = await buildSageContext(userId, orgId);
       console.log("🧠 Sage Context:\n", context);
-      // Use the preserved voice parameter from state
-      const answer = await callOpenAI({ question, context, voice: voiceParam });    
+      
+      const answer = await callOpenAI({ 
+        question: content, 
+        context, 
+        voice: voiceParam 
+      });
 
-      const sageMessage = {
+      const sageMessage: Message = {
         id: `sage-${Date.now()}`,
-        sender: "sage" as const,
+        sender: 'sage',
         content: answer,
         timestamp: new Date(),
-        avatarUrl: "/lovable-uploads/sage_avatar.png",
+        avatar_url: "/lovable-uploads/sage_avatar.png",
       };
 
-      setMessages((prev) => [...prev, sageMessage]);
+      setMessages(prev => [...prev, sageMessage]);
     } catch (err) {
       console.error("Sage had trouble:", err);
-      const errorMsg = {
+      const errorMsg: Message = {
         id: `error-${Date.now()}`,
-        sender: "sage" as const,
+        sender: 'sage',
         content: "I'm sorry, I couldn't process your request. Please try again.",
         timestamp: new Date(),
-        avatarUrl: "/lovable-uploads/sage_avatar.png",
+        avatar_url: "/lovable-uploads/sage_avatar.png",
       };
-      setMessages((prev) => [...prev, errorMsg]);
+      setMessages(prev => [...prev, errorMsg]);
     } finally {
-      setIsTyping(false);
+      setIsLoading(false);
     }
   };
 
   const handleReflectionSubmit = (data: ReflectionData) => {
     console.log('Reflection submitted:', data);
     setShowReflection(false);
+  };
+
+  const handleSelectQuestion = (question: string) => {
+    sendMessageToSage(question);
   };
 
   if (authLoading) {
@@ -119,16 +129,31 @@ const AskSage = () => {
         <ChatHeader sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
         <div className="flex flex-1 overflow-hidden">
-          {/* Main conversation area */}
+          {/* Main chat area */}
           <div className="flex-1 flex flex-col min-w-0 h-full">
-            <ConversationContainer
-              messages={messages}
-              onSendMessage={sendMessageToSage}
-              isTyping={isTyping}
-              sageAvatarUrl="/lovable-uploads/sage_avatar.png"
-              userAvatarUrl={user?.user_metadata?.avatar_url}
-              className="h-full"
-            />
+            <div className="flex-1 overflow-y-auto p-4">
+              <div className="max-w-3xl mx-auto space-y-6">
+                {messages.map((message) => (
+                  <ChatMessage 
+                    key={message.id} 
+                    message={message} 
+                    onFeedback={handleFeedback} 
+                  />
+                ))}
+                {isLoading && <TypingIndicator />}
+              </div>
+            </div>
+
+            {/* Chat input */}
+            <div className="flex-shrink-0">
+              <ChatInputBar 
+                onSendMessage={sendMessageToSage} 
+                onReflectionSubmit={handleReflectionSubmit}
+                isLoading={isLoading}
+                suggestedQuestions={suggestedQuestions}
+                onSelectQuestion={handleSelectQuestion}
+              />
+            </div>
           </div>
 
           {/* Resources sidebar */}
