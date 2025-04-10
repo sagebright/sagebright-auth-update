@@ -9,7 +9,7 @@ interface NavbarButtonProps {
 
 const NavbarButton = ({ user }: NavbarButtonProps) => {
   return (
-    <Button asChild className="bg-sagebright-coral hover:bg-sagebright-coral/90 text-white text-cta font-dmSans rounded-md transition-transform duration-300 hover:scale-103 hover:brightness-105">
+    <Button asChild className="bg-accent1 hover:bg-accent1/90 text-accent1-foreground text-cta font-dmSans rounded-md transition-transform duration-300 hover:scale-103 hover:brightness-105">
       <Link to={user ? "/user-dashboard" : "/auth/login"}>
         {user ? "Dashboard" : "Request Access"}
       </Link>
