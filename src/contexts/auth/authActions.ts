@@ -1,7 +1,7 @@
-
 import { supabase } from '@/lib/supabaseClient';
 import { getOrgFromUrl, redirectToOrgUrl, getOrgById } from '@/lib/subdomainUtils';
 import { syncUserRole } from '@/lib/syncUserRole';
+import { syncExistingUsers } from '@/lib/syncExistingUsers';
 
 export async function signUp(
   email: string, 
@@ -51,6 +51,15 @@ export async function signIn(
       } catch (syncError) {
         console.error('⚠️ Role sync failed but login succeeded:', syncError);
         // Continue with login flow even if role sync fails
+      }
+      
+      // Also try to sync the user to the users table
+      try {
+        await syncExistingUsers();
+        console.log('✅ User synchronized to users table after login');
+      } catch (userSyncError) {
+        console.error('⚠️ User sync failed but login succeeded:', userSyncError);
+        // Continue with login flow even if user sync fails
       }
     }
     

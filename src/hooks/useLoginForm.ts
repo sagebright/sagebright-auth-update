@@ -40,8 +40,7 @@ export function useLoginForm() {
       // The login was successful if we reach this point
       console.log("✅ Login successful");
       
-      // Attempt to sync users after login to ensure the current user exists
-      // This is a safety measure in case the trigger failed
+      // Try to sync users after login as an additional safety measure
       try {
         await syncExistingUsers();
         console.log("✅ User sync completed after login");
@@ -56,7 +55,8 @@ export function useLoginForm() {
       console.error("❌ Login failed:", error);
       setAuthError(error.message || "Login failed. Please check your credentials.");
       setIsLoading(false);
-      form.reset();
+      // Reset only the password field, not the email
+      form.setValue('password', '');
     }
   };
 

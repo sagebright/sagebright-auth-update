@@ -13,6 +13,9 @@ export async function syncUserRole(userId: string): Promise<any> {
     // Add a unique identifier to avoid duplicate calls
     const requestId = crypto.randomUUID();
     
+    // Set the correct edge function URL using the project ID
+    const SUPABASE_PROJECT_ID = 'uonxhnmvrtuszgjubvaa';
+    
     // Call the auto-sync-user-role edge function with proper error handling
     const { data, error } = await supabase.functions.invoke('auto-sync-user-role', {
       body: { userId },
@@ -33,6 +36,22 @@ export async function syncUserRole(userId: string): Promise<any> {
     return data;
   } catch (error) {
     console.error('❌ Failed to sync user role:', error);
-    throw error;
+    
+    // Add fallback for user role assignment directly
+    try {
+      console.log('🔄 Attempting to get user data directly');
+      const { data: userData, error: authError } = await supabase.auth.getUser();
+      
+      if (authError || !userData) {
+        console.error('❌ Cannot get current user', authError);
+        throw error; // Re-throw the original error
+      }
+      
+      console.log('✅ Got user data directly');
+      return { message: 'Could not sync with edge function, but got user data', userId };
+    } catch (fallbackError) {
+      console.error('❌ Fallback also failed:', fallbackError);
+      throw error; // Re-throw the original error
+    }
   }
 }

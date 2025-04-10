@@ -27,7 +27,6 @@ export default function Login() {
     // If user is already authenticated, redirect them appropriately
     if (isAuthenticated && user) {
       console.log("✅ User already authenticated on login page, redirecting to dashboard");
-      console.log("👤 User role from metadata:", user.user_metadata?.role);
       
       // Check the role specifically from user_metadata
       const role = user.user_metadata?.role || 'user';
@@ -38,15 +37,12 @@ export default function Login() {
       // Clear any stored redirect paths to prevent loops
       localStorage.removeItem("redirectAfterLogin");
       
-      // Add a small delay to ensure state is fully updated
-      const redirectTimer = setTimeout(() => {
-        navigate(targetPath, { replace: true });
-      }, 100);
-      
-      return () => clearTimeout(redirectTimer);
+      // Redirect immediately to prevent login page flash
+      navigate(targetPath, { replace: true });
     }
   }, [user, isAuthenticated, loading, navigate]);
 
+  // Handle Google sign-in
   const handleGoogleSignIn = async () => {
     try {
       await signInWithGoogle();
@@ -56,12 +52,22 @@ export default function Login() {
     }
   };
 
-  // Show loading indicator while auth state is being determined
+  // If still loading auth state, show a loading indicator
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center">
         <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
         <span className="ml-2 text-primary">Loading...</span>
+      </div>
+    );
+  }
+  
+  // If already authenticated, show a loading indicator instead of a flash of the login page
+  if (isAuthenticated && user) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+        <span className="ml-2 text-primary">Redirecting to dashboard...</span>
       </div>
     );
   }
