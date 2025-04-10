@@ -15,7 +15,7 @@ const meta: Meta<typeof Button> = {
   argTypes: {
     variant: {
       control: 'select',
-      options: ['default', 'destructive', 'outline', 'secondary', 'ghost', 'link'],
+      options: ['default', 'destructive', 'outline', 'secondary', 'ghost', 'link', 'accent1', 'accent2', 'charcoal'],
       description: 'The button variant to display',
     },
     size: {
@@ -136,5 +136,35 @@ export const Disabled: Story = {
   args: {
     children: 'Disabled Button',
     disabled: true,
+  },
+};
+
+/**
+ * Accent1 button variant (Sagebright brand color)
+ */
+export const Accent1: Story = {
+  args: {
+    children: 'Accent1 Button',
+    variant: 'accent1',
+  },
+};
+
+/**
+ * Accent2 button variant (Sagebright brand color)
+ */
+export const Accent2: Story = {
+  args: {
+    children: 'Accent2 Button',
+    variant: 'accent2',
+  },
+};
+
+/**
+ * Charcoal button variant (Sagebright brand color)
+ */
+export const Charcoal: Story = {
+  args: {
+    children: 'Charcoal Button',
+    variant: 'charcoal',
   },
 };
