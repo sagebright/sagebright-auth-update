@@ -2,6 +2,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Chrome } from "lucide-react";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface GoogleSignInButtonProps {
   onClick: () => void;
@@ -9,6 +10,8 @@ interface GoogleSignInButtonProps {
 }
 
 const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({ onClick, isLoading = false }) => {
+  const { t } = useTranslation();
+  
   return (
     <Button 
       variant="outline" 
@@ -16,11 +19,11 @@ const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({ onClick, isLoad
       className="w-full font-roboto"
       onClick={onClick}
       loading={isLoading}
-      loadingText="Connecting to Google..."
-      aria-label="Sign in with Google"
+      loadingText={t('common.loading')}
+      aria-label={t('common.continueWithGoogle')}
     >
       <Chrome className="mr-2 h-4 w-4" aria-hidden="true" />
-      Continue with Google
+      {t('common.continueWithGoogle')}
     </Button>
   );
 };

@@ -2,20 +2,23 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface NavbarButtonProps {
   user: any;
 }
 
 const NavbarButton = ({ user }: NavbarButtonProps) => {
+  const { t } = useTranslation();
+  
   return (
     <Button 
       asChild 
       className="bg-accent1 hover:bg-accent1/90 text-accent1-foreground text-cta font-dmSans rounded-md transition-transform duration-300 hover:scale-103 hover:brightness-105"
-      aria-label={user ? "Go to dashboard" : "Request access"}
+      aria-label={user ? t('common.dashboard') : t('common.requestAccess')}
     >
       <Link to={user ? "/user-dashboard" : "/auth/login"}>
-        {user ? "Dashboard" : "Request Access"}
+        {user ? t('common.dashboard') : t('common.requestAccess')}
       </Link>
     </Button>
   );

@@ -2,6 +2,7 @@
 import React from "react";
 import { Input } from "@/components/ui/input";
 import { Mail } from "lucide-react";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface EmailInputProps {
   disabled?: boolean;
@@ -22,17 +23,20 @@ const EmailInput = React.forwardRef<HTMLInputElement, EmailInputProps>(({
   onBlur,
   name,
   id,
-  placeholder = "you@example.com",
+  placeholder,
   className = "",
   "aria-required": ariaRequired,
   ...props
 }, ref) => {
+  const { t } = useTranslation();
+  const defaultPlaceholder = "you@example.com";
+  
   return (
     <div className="relative">
       <Mail className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" aria-hidden="true" />
       <Input
         type="email"
-        placeholder={placeholder}
+        placeholder={placeholder || defaultPlaceholder}
         className={`pl-10 font-roboto ${className}`}
         disabled={disabled}
         value={value}

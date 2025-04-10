@@ -1,0 +1,59 @@
+
+{
+  "common": {
+    "welcomeBack": "Bienvenido de nuevo",
+    "signIn": "Iniciar sesión",
+    "signUp": "Registrarse",
+    "signOut": "Cerrar sesión",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "forgotPassword": "¿Olvidaste tu contraseña?",
+    "continueWithGoogle": "Continuar con Google",
+    "continueWithEmail": "O continuar con correo electrónico",
+    "enterCredentials": "Ingresa tus credenciales para iniciar sesión en tu cuenta",
+    "createAccount": "Crea tu cuenta",
+    "requestAccess": "Solicitar Acceso",
+    "dashboard": "Panel",
+    "loading": "Cargando...",
+    "redirecting": "Redirigiendo...",
+    "error": "Algo salió mal",
+    "tryAgain": "Por favor, inténtalo de nuevo"
+  },
+  "auth": {
+    "passwordRequirements": "La contraseña debe tener al menos 6 caracteres",
+    "emailInvalid": "Por favor, introduce una dirección de correo electrónico válida",
+    "newUserInfo": "Las nuevas cuentas de usuario solo pueden ser creadas por un administrador",
+    "alreadySignedIn": "Ya has iniciado sesión",
+    "redirectingToDashboard": "Redirigiendo a tu panel...",
+    "rememberPassword": "¿Recuerdas tu contraseña?",
+    "backToLogin": "Volver al inicio de sesión",
+    "resetPasswordHeading": "Restablecer tu contraseña",
+    "resetPasswordSubheading": "Te enviaremos un enlace para restablecer tu contraseña",
+    "resetPasswordEmail": "Ingresa tu dirección de correo electrónico y te enviaremos un enlace para restablecer tu contraseña",
+    "sendResetLink": "Enviar enlace de restablecimiento",
+    "sendingResetLink": "Enviando enlace de restablecimiento...",
+    "resetLinkSent": "Hemos enviado un enlace para restablecer la contraseña a tu correo electrónico. Por favor, revisa tu bandeja de entrada",
+    "alreadyHaveAccount": "¿Ya tienes una cuenta?",
+    "createAccountInfo": "Ingresa tu información para crear una cuenta"
+  },
+  "navbar": {
+    "meetSage": "Conoce a Sage",
+    "builtForTeams": "Creado para Equipos",
+    "fromIntroToImpact": "De Intro a Impacto",
+    "designedForPeople": "Diseñado para Personas",
+    "contactUs": "Contáctanos"
+  },
+  "dashboard": {
+    "welcomeMessage": "Bienvenido a tu panel",
+    "upcomingMeetings": "Próximas Reuniones",
+    "tasksList": "Lista de Tareas",
+    "yourProgress": "Tu Progreso",
+    "teamContacts": "Contactos del Equipo",
+    "sagePicksSection": "Selecciones de Sage",
+    "justForFun": "Solo por Diversión"
+  },
+  "errors": {
+    "loginFailed": "Error al iniciar sesión. Por favor, verifica tus credenciales.",
+    "genericError": "Algo salió mal. Por favor, inténtalo de nuevo más tarde."
+  }
+}

@@ -1,0 +1,59 @@
+
+{
+  "common": {
+    "welcomeBack": "Welcome back",
+    "signIn": "Sign in",
+    "signUp": "Sign up",
+    "signOut": "Sign out",
+    "email": "Email",
+    "password": "Password",
+    "forgotPassword": "Forgot password?",
+    "continueWithGoogle": "Continue with Google",
+    "continueWithEmail": "Or continue with email",
+    "enterCredentials": "Enter your credentials to sign in to your account",
+    "createAccount": "Create your account",
+    "requestAccess": "Request Access",
+    "dashboard": "Dashboard",
+    "loading": "Loading...",
+    "redirecting": "Redirecting...",
+    "error": "Something went wrong",
+    "tryAgain": "Please try again"
+  },
+  "auth": {
+    "passwordRequirements": "Password must be at least 6 characters",
+    "emailInvalid": "Please enter a valid email address",
+    "newUserInfo": "New user accounts can only be created by an administrator",
+    "alreadySignedIn": "Already signed in",
+    "redirectingToDashboard": "Redirecting to your dashboard...",
+    "rememberPassword": "Remember your password?",
+    "backToLogin": "Back to login",
+    "resetPasswordHeading": "Reset your password",
+    "resetPasswordSubheading": "We'll send you a link to reset your password",
+    "resetPasswordEmail": "Enter your email address and we'll send you a link to reset your password",
+    "sendResetLink": "Send reset link",
+    "sendingResetLink": "Sending reset link...",
+    "resetLinkSent": "We've sent a password reset link to your email address. Please check your inbox",
+    "alreadyHaveAccount": "Already have an account?",
+    "createAccountInfo": "Enter your information to create an account"
+  },
+  "navbar": {
+    "meetSage": "Meet Sage",
+    "builtForTeams": "Built for Teams",
+    "fromIntroToImpact": "From Intro to Impact",
+    "designedForPeople": "Designed for People",
+    "contactUs": "Contact Us"
+  },
+  "dashboard": {
+    "welcomeMessage": "Welcome to your dashboard",
+    "upcomingMeetings": "Upcoming Meetings",
+    "tasksList": "Tasks List",
+    "yourProgress": "Your Progress",
+    "teamContacts": "Team Contacts",
+    "sagePicksSection": "Sage Picks",
+    "justForFun": "Just For Fun"
+  },
+  "errors": {
+    "loginFailed": "Login failed. Please check your credentials.",
+    "genericError": "Something went wrong. Please try again later."
+  }
+}

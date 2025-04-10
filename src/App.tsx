@@ -14,6 +14,7 @@ import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import { AuthProvider } from "./contexts/auth/AuthContext";
+import { LanguageProvider } from "./contexts/language/LanguageContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import DevDebugPage from "@/pages/dev-debug";
 import DesignSystem from "@/pages/DesignSystem";
@@ -23,6 +24,7 @@ import SkeletonPreview from "@/pages/SkeletonPreview";
 import { getOrgFromUrl } from "./lib/subdomainUtils";
 import { handleApiError } from "./lib/handleApiError";
 import ImageComponentPreview from "./pages/ImageComponentPreview";
+import "@/i18n"; // Import i18n configuration
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -50,80 +52,82 @@ const App = () => {
         <Sonner />
         <BrowserRouter>
           <AuthProvider>
-            <PageErrorBoundary>
-              <Routes>
-                {/* Root path behavior depends on subdomain */}
-                <Route 
-                  path="/" 
-                  element={
-                    orgContext ? (
+            <LanguageProvider>
+              <PageErrorBoundary>
+                <Routes>
+                  {/* Root path behavior depends on subdomain */}
+                  <Route 
+                    path="/" 
+                    element={
+                      orgContext ? (
+                        <ProtectedRoute>
+                          {/* Will be redirected based on role in ProtectedRoute */}
+                          <div className="flex h-screen items-center justify-center">
+                            <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+                            <span className="ml-2 text-primary">Loading your dashboard...</span>
+                          </div>
+                        </ProtectedRoute>
+                      ) : (
+                        <Index />
+                      )
+                    } 
+                  />
+                  
+                  <Route path="/contact-us" element={<ContactUs />} />
+                  
+                  {/* Auth routes */}
+                  <Route path="/auth/login" element={<Login />} />
+                  <Route path="/auth/signup" element={<Signup />} />
+                  <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+                  <Route path="/auth/callback" element={<Navigate to="/user-dashboard" replace />} />
+                  
+                  <Route
+                    path="/user-dashboard"
+                    element={
                       <ProtectedRoute>
-                        {/* Will be redirected based on role in ProtectedRoute */}
-                        <div className="flex h-screen items-center justify-center">
-                          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
-                          <span className="ml-2 text-primary">Loading your dashboard...</span>
-                        </div>
+                        <Dashboard />
                       </ProtectedRoute>
-                    ) : (
-                      <Index />
-                    )
-                  } 
-                />
-                
-                <Route path="/contact-us" element={<ContactUs />} />
-                
-                {/* Auth routes */}
-                <Route path="/auth/login" element={<Login />} />
-                <Route path="/auth/signup" element={<Signup />} />
-                <Route path="/auth/forgot-password" element={<ForgotPassword />} />
-                <Route path="/auth/callback" element={<Navigate to="/user-dashboard" replace />} />
-                
-                <Route
-                  path="/user-dashboard"
-                  element={
-                    <ProtectedRoute>
-                      <Dashboard />
-                    </ProtectedRoute>
-                  }
-                />
-                
-                <Route
-                  path="/dashboard"
-                  element={
-                    <ProtectedRoute>
-                      <Navigate to="/user-dashboard" replace />
-                    </ProtectedRoute>
-                  }
-                />
-                
-                <Route
-                  path="/hr-dashboard"
-                  element={
-                    <ProtectedRoute requiredRole="admin">
-                      <HRDashboard />
-                    </ProtectedRoute>
-                  }
-                />
-                
-                <Route
-                  path="/ask-sage"
-                  element={
-                    <ProtectedRoute>
-                      <AskSage />
-                    </ProtectedRoute>
-                  }
-                />
-                
-                <Route path="/design-system" element={<DesignSystem />} />
-                <Route path="/dev-debug" element={<DevDebugPage />} />
-                <Route path="/form-components-example" element={<FormComponentsExample />} />
-                <Route path="/error-handling-example" element={<ErrorHandlingExample />} />
-                <Route path="/skeleton-preview" element={<SkeletonPreview />} />
-                <Route path="/image-preview" element={<ImageComponentPreview />} />
-                
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </PageErrorBoundary>
+                    }
+                  />
+                  
+                  <Route
+                    path="/dashboard"
+                    element={
+                      <ProtectedRoute>
+                        <Navigate to="/user-dashboard" replace />
+                      </ProtectedRoute>
+                    }
+                  />
+                  
+                  <Route
+                    path="/hr-dashboard"
+                    element={
+                      <ProtectedRoute requiredRole="admin">
+                        <HRDashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  
+                  <Route
+                    path="/ask-sage"
+                    element={
+                      <ProtectedRoute>
+                        <AskSage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  
+                  <Route path="/design-system" element={<DesignSystem />} />
+                  <Route path="/dev-debug" element={<DevDebugPage />} />
+                  <Route path="/form-components-example" element={<FormComponentsExample />} />
+                  <Route path="/error-handling-example" element={<ErrorHandlingExample />} />
+                  <Route path="/skeleton-preview" element={<SkeletonPreview />} />
+                  <Route path="/image-preview" element={<ImageComponentPreview />} />
+                  
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </PageErrorBoundary>
+            </LanguageProvider>
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
