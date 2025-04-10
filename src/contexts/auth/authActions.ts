@@ -1,3 +1,4 @@
+
 import { supabase } from '@/lib/supabaseClient';
 import { getOrgFromUrl, redirectToOrgUrl, getOrgById } from '@/lib/subdomainUtils';
 import { syncUserRole } from '@/lib/syncUserRole';
@@ -67,20 +68,25 @@ export async function signIn(
     const userOrgId = data.user?.user_metadata?.org_id;
     if (userOrgId) {
       // Get org details including slug
-      const orgDetails = await getOrgById(userOrgId);
-      const orgSlug = orgDetails?.slug;
-      
-      if (orgSlug) {
-        const currentOrgSlug = getOrgFromUrl();
-        if (!currentOrgSlug || currentOrgSlug !== orgSlug) {
-          console.log('🏢 Redirecting to org subdomain after sign in:', orgSlug);
-          // Store path for after subdomain redirect
-          const redirectPath = localStorage.getItem("redirectAfterLogin") || '/user-dashboard';
-          sessionStorage.setItem('lastAuthenticatedPath', redirectPath);
-          localStorage.removeItem("redirectAfterLogin");
-          redirectToOrgUrl(orgSlug);
-          return data;
+      try {
+        const orgDetails = await getOrgById(userOrgId);
+        const orgSlug = orgDetails?.slug;
+        
+        if (orgSlug) {
+          const currentOrgSlug = getOrgFromUrl();
+          if (!currentOrgSlug || currentOrgSlug !== orgSlug) {
+            console.log('🏢 Redirecting to org subdomain after sign in:', orgSlug);
+            // Store path for after subdomain redirect
+            const redirectPath = localStorage.getItem("redirectAfterLogin") || '/user-dashboard';
+            sessionStorage.setItem('lastAuthenticatedPath', redirectPath);
+            localStorage.removeItem("redirectAfterLogin");
+            redirectToOrgUrl(orgSlug);
+            return data;
+          }
         }
+      } catch (orgError) {
+        console.error('⚠️ Error getting org details, but login succeeded:', orgError);
+        // Continue with login flow even if org resolution fails
       }
     }
 

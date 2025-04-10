@@ -41,6 +41,7 @@ export function useLoginForm() {
       console.log("✅ Login successful");
       
       // Try to sync users after login as an additional safety measure
+      // Note: We only try once here since authActions.ts also does this
       try {
         await syncExistingUsers();
         console.log("✅ User sync completed after login");
