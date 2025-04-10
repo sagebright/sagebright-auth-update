@@ -3,7 +3,7 @@ import React from "react";
 import { Separator } from "@/components/ui/separator";
 import { useTranslation } from "@/hooks/useTranslation";
 
-const AuthDivider = () => {
+const AuthDivider: React.FC = () => {
   const { t } = useTranslation();
   
   return (

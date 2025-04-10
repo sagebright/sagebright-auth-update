@@ -1,27 +1,24 @@
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useAuth } from "@/contexts/auth/AuthContext";
-import { syncExistingUsers } from "@/lib/syncExistingUsers";
+import * as z from "zod";
 import { useNavigate } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/auth/AuthContext";
+import { LoginFormValues } from "@/types";
 
-// Define the login form validation schema
-export const loginSchema = z.object({
+const loginSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
-  password: z.string().min(6, { message: "Password must be at least 6 characters" }),
+  password: z.string().min(1, { message: "Password is required" }),
 });
 
 export type LoginValues = z.infer<typeof loginSchema>;
 
-export function useLoginForm() {
+export const useLoginForm = () => {
   const { signIn } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
-  const [authError, setAuthError] = useState<string | null>(null);
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   const form = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
@@ -31,50 +28,26 @@ export function useLoginForm() {
     },
   });
 
-  const onSubmit = async (data: LoginValues) => {
-    setAuthError(null);
+  const onSubmit = async (values: LoginValues): Promise<void> => {
     setIsLoading(true);
+    setAuthError(null);
+
     try {
-      console.log("🔑 Attempting login with:", data.email);
+      const result = await signIn(values.email, values.password);
       
-      // Perform sign in operation
-      const authData = await signIn(data.email, data.password);
-      
-      // The login was successful if we reach this point
-      console.log("✅ Login successful");
-      
-      // Try to sync users after login but don't block the flow
-      try {
-        await syncExistingUsers();
-        console.log("✅ User sync completed after login");
-      } catch (syncError) {
-        console.error("⚠️ User sync failed but login succeeded:", syncError);
-        // Continue with login flow even if sync fails
+      if (result?.error) {
+        setAuthError(result.error.message || "Authentication failed");
+      } else {
+        navigate("/user-dashboard");
       }
-      
-      // Get the correct redirect path based on role
-      const userRole = authData?.user?.user_metadata?.role || 'user';
-      const redirectPath = userRole === 'admin' ? '/hr-dashboard' : '/user-dashboard';
-      
-      // Show a toast for successful login
-      toast({
-        title: "Login successful",
-        description: `Welcome back! Redirecting to your dashboard...`,
-      });
-      
-      // Redirect to the appropriate dashboard
-      setTimeout(() => {
-        navigate(redirectPath, { replace: true });
-        // Reset loading state after redirection has been triggered
-        setIsLoading(false);
-      }, 500);
-      
-    } catch (error: any) {
-      console.error("❌ Login failed:", error);
-      setAuthError(error.message || "Login failed. Please check your credentials.");
+    } catch (error) {
+      if (error instanceof Error) {
+        setAuthError(error.message);
+      } else {
+        setAuthError("An unexpected error occurred");
+      }
+    } finally {
       setIsLoading(false);
-      // Reset only the password field, not the email
-      form.setValue('password', '');
     }
   };
 
@@ -82,7 +55,6 @@ export function useLoginForm() {
     form,
     isLoading,
     authError,
-    setAuthError,
     onSubmit,
   };
-}
+};

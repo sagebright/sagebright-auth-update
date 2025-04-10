@@ -9,7 +9,10 @@ interface GoogleSignInButtonProps {
   isLoading?: boolean;
 }
 
-const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({ onClick, isLoading = false }) => {
+const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({ 
+  onClick, 
+  isLoading = false 
+}) => {
   const { t } = useTranslation();
   
   return (

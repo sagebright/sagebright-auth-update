@@ -17,7 +17,7 @@ interface EmailInputProps {
 }
 
 const EmailInput = React.forwardRef<HTMLInputElement, EmailInputProps>(({
-  disabled,
+  disabled = false,
   value,
   onChange,
   onBlur,

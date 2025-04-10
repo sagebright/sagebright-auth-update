@@ -16,7 +16,7 @@ interface PasswordInputProps {
 }
 
 const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(({
-  disabled,
+  disabled = false,
   value,
   onChange,
   onBlur,
@@ -27,7 +27,7 @@ const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(({
   "aria-required": ariaRequired,
   ...props
 }, ref) => {
-  const [showPassword, setShowPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState<boolean>(false);
   const toggleBtnId = `${id || name}-toggle`;
 
   return (

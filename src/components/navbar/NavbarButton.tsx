@@ -5,10 +5,10 @@ import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/hooks/useTranslation';
 
 interface NavbarButtonProps {
-  user: any;
+  user: Record<string, unknown> | null;
 }
 
-const NavbarButton = ({ user }: NavbarButtonProps) => {
+const NavbarButton: React.FC<NavbarButtonProps> = ({ user }) => {
   const { t } = useTranslation();
   
   return (
