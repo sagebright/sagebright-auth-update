@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { getOrgById } from '@/lib/subdomainUtils';
 import { supabase } from '@/lib/supabaseClient';
@@ -10,18 +10,23 @@ export function useOrgContext(userId: string | null, isAuthenticated: boolean) {
   const [orgSlug, setOrgSlug] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<any | null>(null);
   const [isRecoveringOrgContext, setIsRecoveringOrgContext] = useState(false);
+  const fetchInProgressRef = useRef(false);
   const { toast } = useToast();
   
   // First try to get org context from user metadata when userId is available
   useEffect(() => {
-    if (!userId || !isAuthenticated) return;
+    if (!userId || !isAuthenticated || fetchInProgressRef.current) return;
     
     const getOrgFromUserMetadata = async () => {
+      if (fetchInProgressRef.current) return;
+      fetchInProgressRef.current = true;
+      
       try {
         // Get user data from auth
         const { data, error } = await supabase.auth.getUser();
         if (error || !data?.user) {
           console.warn('⚠️ Unable to get user data for org context:', error);
+          fetchInProgressRef.current = false;
           return;
         }
         
@@ -38,8 +43,11 @@ export function useOrgContext(userId: string | null, isAuthenticated: boolean) {
           // If not in metadata, try to get from database
           await fetchOrgFromDatabase(userId);
         }
+        
+        fetchInProgressRef.current = false;
       } catch (err) {
         console.error("❌ Error getting org context from metadata:", err);
+        fetchInProgressRef.current = false;
       }
     };
     
@@ -55,6 +63,18 @@ export function useOrgContext(userId: string | null, isAuthenticated: boolean) {
         console.log("🏢 Set orgSlug in useOrgContext:", org.slug);
       } else {
         console.warn("⚠️ No slug found for org ID:", orgId);
+        
+        // Try to find the slug using a direct query as backup
+        const { data: orgData, error } = await supabase
+          .from('orgs')
+          .select('slug')
+          .eq('id', orgId)
+          .single();
+          
+        if (!error && orgData && orgData.slug) {
+          setOrgSlug(orgData.slug);
+          console.log("🏢 Set orgSlug via direct query:", orgData.slug);
+        }
       }
     } catch (error) {
       console.error("❌ Error fetching org details:", error);

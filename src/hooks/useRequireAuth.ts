@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useLocation, NavigateFunction } from 'react-router-dom';
 import { useAuth } from '@/contexts/auth/AuthContext';
 import { getOrgFromUrl, redirectToOrgUrl } from '@/lib/subdomainUtils';
@@ -8,9 +8,14 @@ export function useRequireAuth(navigate: NavigateFunction) {
   const location = useLocation();
   const auth = useAuth();
   const [redirecting, setRedirecting] = useState(false);
-  const [recoverySilentlyAttempted, setRecoverySilentlyAttempted] = useState(true); // Set to true to disable automatic recovery
+  const initialCheckDone = useRef(false);
 
   useEffect(() => {
+    // Skip if we're already redirecting or have completed the initial check
+    if (redirecting || (initialCheckDone.current && auth.isAuthenticated)) {
+      return;
+    }
+    
     console.log("🔐 useRequireAuth running on:", location.pathname);
     console.log("🔐 Auth state:", { 
       loading: auth.loading, 
@@ -22,6 +27,7 @@ export function useRequireAuth(navigate: NavigateFunction) {
 
     // Skip auth check on public routes or if we're already on an auth route
     if (location.pathname.startsWith("/auth")) {
+      initialCheckDone.current = true;
       return;
     }
 
@@ -31,11 +37,8 @@ export function useRequireAuth(navigate: NavigateFunction) {
       return;
     }
 
-    // Prevent multiple redirects
-    if (redirecting) {
-      console.log("🔄 Already redirecting, skipping...");
-      return;
-    }
+    // Mark that we've completed the initial check
+    initialCheckDone.current = true;
 
     // Handle unauthenticated users - Check both isAuthenticated and session/user for safety
     if (!auth.isAuthenticated || !auth.user) {
@@ -88,7 +91,7 @@ export function useRequireAuth(navigate: NavigateFunction) {
       return;
     }
 
-  }, [auth.loading, auth.isAuthenticated, auth.user, auth.orgSlug, location.pathname, navigate, redirecting]);
+  }, [auth.loading, auth.isAuthenticated, auth.user, auth.orgSlug, location.pathname, navigate]);
 
   // Return all the auth state plus the orgSlug explicitly
   return {

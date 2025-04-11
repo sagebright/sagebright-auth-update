@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { useSessionInit } from './hooks/useSessionInit';
 import { useOrgContext } from './hooks/useOrgContext';
 import { useUserData } from './hooks/useUserData';
+import { useEffect } from 'react';
 
 export function useAuthProvider() {
   const location = useLocation();
@@ -44,6 +45,29 @@ export function useAuthProvider() {
     setOrgId, 
     fetchOrgDetails
   );
+
+  // Ensure we attempt to recover org context if needed
+  useEffect(() => {
+    if (isAuthenticated && userId && !orgId && !isRecoveringOrgContext) {
+      console.log("🔍 No orgId detected, attempting recovery...");
+      const attemptRecovery = async () => {
+        await recoverOrgContext();
+      };
+      attemptRecovery();
+    }
+  }, [isAuthenticated, userId, orgId, isRecoveringOrgContext]);
+
+  // For debugging
+  useEffect(() => {
+    if (isAuthenticated) {
+      console.log("🔐 Auth provider state:", { 
+        userId, 
+        orgId, 
+        orgSlug,
+        userMetadata: user?.user_metadata
+      });
+    }
+  }, [isAuthenticated, userId, orgId, orgSlug, user]);
 
   // Combined setter for current user to update both contexts
   const setCurrentUser = (userData: any | null) => {

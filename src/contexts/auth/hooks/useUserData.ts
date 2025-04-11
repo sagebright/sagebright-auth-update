@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 
 export function useUserData(
@@ -9,46 +9,60 @@ export function useUserData(
   fetchOrgDetails: (orgId: string) => Promise<void>
 ) {
   const [currentUser, setCurrentUser] = useState<any | null>(null);
+  const fetchInProgressRef = useRef(false);
+  const hasAttemptedFetchRef = useRef(false);
 
   // Function to explicitly fetch user data when needed
   const fetchUserData = async () => {
-    if (!userId || !isAuthenticated) {
+    if (!userId || !isAuthenticated || fetchInProgressRef.current) {
       return null;
     }
     
+    // Set flag to prevent multiple simultaneous fetches
+    fetchInProgressRef.current = true;
+    hasAttemptedFetchRef.current = true;
+    
     try {
+      console.log("🔍 Fetching user data from auth for ID:", userId);
+      
       // Get user metadata directly from Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.getUser();
       
       if (authError || !authData?.user) {
         console.error('❌ Error fetching auth user:', authError);
+        fetchInProgressRef.current = false;
         return null;
       }
       
       // Extract essential user data from auth metadata
       const userRole = authData.user.user_metadata?.role || 'user';
+      const orgIdFromMetadata = authData.user.user_metadata?.org_id;
+      
       const userData = {
         id: authData.user.id,
         email: authData.user.email,
         role: userRole,
         full_name: authData.user.user_metadata?.full_name || authData.user.email?.split('@')[0] || 'User',
-        org_id: authData.user.user_metadata?.org_id || null
+        org_id: orgIdFromMetadata || null
       };
       
       setCurrentUser(userData);
       
       // If org_id is present in user metadata, use it to set org context
-      if (userData.org_id) {
-        setOrgId(userData.org_id);
-        await fetchOrgDetails(userData.org_id);
+      if (orgIdFromMetadata) {
+        console.log("✅ Found org_id in user metadata:", orgIdFromMetadata);
+        setOrgId(orgIdFromMetadata);
+        await fetchOrgDetails(orgIdFromMetadata);
       } else {
-        // If not in metadata, try database
+        // If not in metadata, try database only if we haven't found it yet
         await fetchUserFromDatabase(userId);
       }
       
+      fetchInProgressRef.current = false;
       return userData;
     } catch (err) {
       console.error('Error loading user data:', err);
+      fetchInProgressRef.current = false;
       return null;
     }
   };
@@ -92,9 +106,9 @@ export function useUserData(
     }
   };
 
-  // Load user from auth metadata as the primary source of truth
+  // Load user data only once when component mounts and userId/auth state changes
   useEffect(() => {
-    if (!userId || !isAuthenticated) {
+    if (!userId || !isAuthenticated || hasAttemptedFetchRef.current) {
       return;
     }
     
@@ -102,8 +116,9 @@ export function useUserData(
     
     const loadUserFromAuth = async () => {
       try {
-        const userData = await fetchUserData();
-        if (!isMounted || !userData) return;
+        if (isMounted) {
+          await fetchUserData();
+        }
       } catch (err) {
         console.error('Error loading user from auth:', err);
       }
@@ -114,7 +129,7 @@ export function useUserData(
     return () => {
       isMounted = false;
     };
-  }, [userId, isAuthenticated, setOrgId, fetchOrgDetails]);
+  }, [userId, isAuthenticated]);
 
   return {
     currentUser,
