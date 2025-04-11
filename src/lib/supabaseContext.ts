@@ -11,12 +11,31 @@ export async function insertOrgContext(data: any) {
 }
 
 export async function getOrgContext(orgId: string) {
-  const { data, error } = await supabase
-    .from('org_context')
-    .select('*')
-    .eq('org_id', orgId)
-    .single()
+  if (!orgId) {
+    console.warn("⚠️ Cannot fetch org context: No orgId provided");
+    return null;
+  }
+  
+  try {
+    const { data, error } = await supabase
+      .from('org_context')
+      .select('*')
+      .eq('org_id', orgId)
+      .maybeSingle()
 
-  if (error) throw error
-  return data
+    if (error) {
+      console.warn('⚠️ Error fetching org_context:', error.message);
+      return null;
+    }
+
+    if (!data) {
+      console.warn(`⚠️ No org_context found for orgId: ${orgId}. This is expected during development.`);
+      return null;
+    }
+
+    return data;
+  } catch (err) {
+    console.warn('⚠️ Exception in getOrgContext:', err);
+    return null;
+  }
 }
