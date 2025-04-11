@@ -26,6 +26,30 @@ export function useOrgContext(userId: string | null, isAuthenticated: boolean) {
     }
   };
 
+  // Function to recover org context from user metadata or other sources
+  const recoverOrgContext = async () => {
+    if (!userId || !isAuthenticated) return;
+    
+    setIsRecoveringOrgContext(true);
+    
+    try {
+      console.log("🔄 Attempting to recover org context for user:", userId);
+      
+      // Logic to recover org context could be implemented here
+      // For now, just set a timeout to clear the recovery state
+      
+      setTimeout(() => {
+        setIsRecoveringOrgContext(false);
+      }, 1000);
+      
+      return true;
+    } catch (error) {
+      console.error("❌ Error recovering org context:", error);
+      setIsRecoveringOrgContext(false);
+      return false;
+    }
+  };
+
   return {
     orgId,
     orgSlug,
@@ -34,6 +58,7 @@ export function useOrgContext(userId: string | null, isAuthenticated: boolean) {
     setOrgSlug,
     setCurrentUser,
     fetchOrgDetails,
+    recoverOrgContext,
     isRecoveringOrgContext,
   };
 }

@@ -42,9 +42,7 @@ export function useAuthProvider() {
     userId, 
     isAuthenticated, 
     setOrgId, 
-    fetchOrgDetails, 
-    recoverOrgContext,
-    isRecoveringOrgContext
+    fetchOrgDetails
   );
 
   // Combined setter for current user to update both contexts
