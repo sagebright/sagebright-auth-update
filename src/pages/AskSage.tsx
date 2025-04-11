@@ -15,15 +15,17 @@ import { useChat } from '@/hooks/use-chat';
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from '@/lib/supabaseClient';
 import { Button } from '@/components/ui/button';
+import { Loader2 } from "lucide-react";
 
 const AskSage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user, userId, loading: authLoading } = useRequireAuth(navigate);
+  const { user, userId, orgId, loading: authLoading } = useRequireAuth(navigate);
   const isMobile = useIsMobile();
   
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isRecoveryVisible, setIsRecoveryVisible] = useState(false);
+  const [isRecovering, setIsRecovering] = useState(false);
   
   // Get voice parameter from searchParams
   const voiceParam = React.useMemo(() => {
@@ -37,8 +39,18 @@ const AskSage = () => {
     showReflection,
     setShowReflection,
     handleSendMessage,
-    handleFeedback
+    handleFeedback,
+    isRecoveringOrg
   } = useChat();
+
+  useEffect(() => {
+    // Show recovery dialog if user is authenticated but missing org context
+    if (!authLoading && userId && !orgId && !isRecoveringOrg) {
+      setIsRecoveryVisible(true);
+    } else {
+      setIsRecoveryVisible(false);
+    }
+  }, [userId, orgId, authLoading, isRecoveringOrg]);
 
   const handleReflectionSubmit = (data: ReflectionData) => {
     console.log('Reflection submitted:', data);
@@ -54,6 +66,17 @@ const AskSage = () => {
         title: "Authentication Error",
         description: "Please ensure you're logged in to use Sage."
       });
+      return;
+    }
+
+    if (!orgId) {
+      console.error("❌ Cannot send message - missing orgId");
+      toast({
+        variant: "destructive",
+        title: "Organization Error",
+        description: "Your account is not linked to an organization. Try the 'Try to Recover' option."
+      });
+      setIsRecoveryVisible(true);
       return;
     }
 
@@ -88,6 +111,65 @@ const AskSage = () => {
     }
   };
 
+  const handleTryRecover = async () => {
+    setIsRecovering(true);
+    try {
+      console.log("🔄 Manually attempting recovery of organization context");
+      
+      // Try to refresh session first
+      await supabase.auth.refreshSession();
+      
+      // Try to get user from database
+      const { data, error } = await supabase
+        .from('users')
+        .select('org_id')
+        .eq('id', userId)
+        .single();
+      
+      if (error) {
+        console.error("❌ Error fetching user data:", error);
+        throw new Error("Failed to fetch user data");
+      }
+      
+      if (data?.org_id) {
+        console.log("✅ Found org_id in database:", data.org_id);
+        
+        // Update user metadata with org_id
+        const { error: updateError } = await supabase.auth.updateUser({
+          data: { org_id: data.org_id }
+        });
+        
+        if (updateError) {
+          console.error("❌ Error updating user metadata:", updateError);
+          throw new Error("Failed to update user metadata");
+        }
+        
+        // Force refresh session to get updated metadata
+        await supabase.auth.refreshSession();
+        
+        toast({
+          title: "Recovery Successful",
+          description: "Your organization context has been restored."
+        });
+        
+        // Reload the page to pick up the new org context
+        window.location.reload();
+      } else {
+        console.error("❌ No org_id found for user in database");
+        throw new Error("No organization found for your account");
+      }
+    } catch (error) {
+      console.error("Recovery error:", error);
+      toast({
+        variant: "destructive",
+        title: "Recovery Failed",
+        description: "Unable to recover your organization context. Please contact support."
+      });
+    } finally {
+      setIsRecovering(false);
+    }
+  };
+
   if (authLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -98,7 +180,6 @@ const AskSage = () => {
   }
 
   // If the user is authenticated but doesn't have the expected data
-  // Show a simpler authentication error instead of the full recovery UI
   if (!authLoading && !userId) {
     return (
       <div className="container mx-auto max-w-md py-16 px-4">
@@ -108,6 +189,44 @@ const AskSage = () => {
           <Button onClick={() => navigate('/auth/login')} className="w-full">
             Go to Login
           </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Show recovery UI if user is missing organization context
+  if (!authLoading && userId && !orgId && !isRecoveringOrg) {
+    return (
+      <div className="container mx-auto max-w-md py-16 px-4">
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h2 className="text-2xl font-bold mb-4">Account Recovery Required</h2>
+          <p className="mb-6">Your account needs to be connected to an organization to use Sage.</p>
+          
+          <div className="space-y-4">
+            <Button 
+              onClick={handleTryRecover} 
+              className="w-full" 
+              disabled={isRecovering}
+            >
+              {isRecovering ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Recovering...
+                </>
+              ) : (
+                'Try to Recover'
+              )}
+            </Button>
+            
+            <Button 
+              onClick={handleSignOut} 
+              variant="outline" 
+              className="w-full"
+              disabled={isRecovering}
+            >
+              Sign Out
+            </Button>
+          </div>
         </div>
       </div>
     );

@@ -67,5 +67,7 @@ export function useAuthProvider() {
     setLoading,
     setAccessToken,
     isRecoveringOrgContext,
+    recoverOrgContext,
+    fetchUserData
   };
 }

@@ -41,11 +41,53 @@ export function useUserData(
       if (userData.org_id) {
         setOrgId(userData.org_id);
         await fetchOrgDetails(userData.org_id);
+      } else {
+        // If not in metadata, try database
+        await fetchUserFromDatabase(userId);
       }
       
       return userData;
     } catch (err) {
       console.error('Error loading user data:', err);
+      return null;
+    }
+  };
+  
+  // Try to fetch user data from database if not in metadata
+  const fetchUserFromDatabase = async (userId: string) => {
+    try {
+      console.log('🔍 Fetching user data from database for ID:', userId);
+      
+      const { data, error } = await supabase
+        .from('users')
+        .select('id, email, full_name, role, org_id')
+        .eq('id', userId)
+        .single();
+      
+      if (error) {
+        console.warn('⚠️ User not found in database:', userId);
+        return null;
+      }
+      
+      if (data && data.org_id) {
+        console.log('✅ Found user with org_id in database:', data.org_id);
+        setOrgId(data.org_id);
+        await fetchOrgDetails(data.org_id);
+        
+        // Update user metadata with org_id for faster access next time
+        try {
+          await supabase.auth.updateUser({
+            data: { org_id: data.org_id }
+          });
+          console.log('✅ Updated user metadata with org_id from database');
+        } catch (updateError) {
+          console.warn('⚠️ Could not update user metadata:', updateError);
+        }
+      }
+      
+      return data;
+    } catch (err) {
+      console.error('Error fetching user from database:', err);
       return null;
     }
   };
