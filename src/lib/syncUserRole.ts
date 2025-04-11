@@ -9,16 +9,26 @@ import { toast } from '@/hooks/use-toast';
  * @returns Promise with the sync result or error
  */
 export async function syncUserRole(userId: string): Promise<any> {
-  // Add unique identifiers for logging and tracking
-  const requestId = crypto.randomUUID();
-  const startTime = Date.now();
-  
   try {
-    console.log('🔄 Manually syncing user role for:', userId, 'requestId:', requestId);
+    console.log('🔄 Manually syncing user role for:', userId);
     
-    // Simplified approach - just try the direct fetch and skip edge functions
-    // This bypasses the CORS issues with edge functions
+    // First, try to call the sync-user-role edge function
     try {
+      const { data, error } = await supabase.functions.invoke('sync-user-role', {
+        body: { userId }
+      });
+      
+      if (error) {
+        console.error('❌ Edge function error:', error);
+        throw error;
+      }
+      
+      console.log('✅ User role synchronized via edge function:', data);
+      return data;
+    } catch (edgeFunctionError) {
+      console.warn('⚠️ Edge function failed, falling back to direct access:', edgeFunctionError);
+      
+      // Fall back to direct auth data access
       const { data: userData, error: authError } = await supabase.auth.getUser();
       
       if (authError || !userData) {
@@ -33,15 +43,11 @@ export async function syncUserRole(userId: string): Promise<any> {
         role: userData.user.user_metadata?.role || 'user',
         directAccess: true 
       };
-    } catch (directAccessError) {
-      console.error('❌ Direct access attempt failed:', directAccessError);
-      throw new Error('Failed to retrieve authentication data');
     }
   } catch (error: any) {
     // Handle overall errors and provide user feedback
     const errorMessage = error.message || 'Unknown error during role synchronization';
-    
-    console.error('❌ Role sync completely failed after', Date.now() - startTime, 'ms:', errorMessage);
+    console.error('❌ Role sync failed:', errorMessage);
     
     // Use handleApiError with silent option for background operations
     handleApiError(error, { 
@@ -63,15 +69,6 @@ export async function syncUserRole(userId: string): Promise<any> {
 export async function syncUserRoleQuietly(userId: string): Promise<any> {
   try {
     const result = await syncUserRole(userId);
-    
-    // Only show success message if this was a recovery operation
-    if (result?.recoveryOperation) {
-      toast({
-        title: "Account Recovery",
-        description: "Successfully recovered your account access.",
-      });
-    }
-    
     return result;
   } catch (error) {
     // Log but don't show error to user
