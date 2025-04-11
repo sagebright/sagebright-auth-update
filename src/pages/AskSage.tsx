@@ -13,33 +13,22 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useChat } from '@/hooks/use-chat';
 import { toast } from "@/components/ui/use-toast";
-import { syncUserRole } from '@/lib/syncUserRole';
 import { supabase } from '@/lib/supabaseClient';
 import { Button } from '@/components/ui/button';
-import AuthRecovery from '@/components/auth/AuthRecovery';
 
 const AskSage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user, userId, orgId, loading: authLoading } = useRequireAuth(navigate);
+  const { user, userId, loading: authLoading } = useRequireAuth(navigate);
   const isMobile = useIsMobile();
   
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isRecoveryVisible, setIsRecoveryVisible] = useState(false);
   
   // Get voice parameter from searchParams
   const voiceParam = React.useMemo(() => {
     return searchParams.get('voice') || 'default';
   }, [searchParams]);
-
-  // Log auth state when component loads
-  useEffect(() => {
-    console.log("🔒 AskSage auth state:", { 
-      authenticated: !!user, 
-      userId, 
-      orgId,
-      loading: authLoading 
-    });
-  }, [user, userId, orgId, authLoading]);
 
   const {
     messages,
@@ -58,17 +47,16 @@ const AskSage = () => {
 
   // Send message using the useChat hook
   const sendMessageToSage = async (content: string) => {
-    if (!userId || !orgId) {
-      console.error("❌ Cannot send message - missing userId or orgId", { userId, orgId });
+    if (!userId) {
+      console.error("❌ Cannot send message - missing userId");
       toast({
         variant: "destructive",
         title: "Authentication Error",
-        description: "Please ensure you're logged in with an organization."
+        description: "Please ensure you're logged in to use Sage."
       });
       return;
     }
 
-    console.log("📝 Sending message to Sage:", { content, userId, orgId });
     try {
       await handleSendMessage(content);
     } catch (error) {
@@ -109,16 +97,18 @@ const AskSage = () => {
     );
   }
 
-  // Add additional check for userId and orgId
-  if (!authLoading && (!userId || !orgId)) {
-    console.error("⚠️ User authenticated but missing userId or orgId:", { userId, orgId });
+  // If the user is authenticated but doesn't have the expected data
+  // Show a simpler authentication error instead of the full recovery UI
+  if (!authLoading && !userId) {
     return (
-      <div className="container mx-auto max-w-4xl py-8 px-4">
-        <AuthRecovery
-          userId={user?.id}
-          variant="page"
-          error="Your account is missing organization context. This is required to use the application."
-        />
+      <div className="container mx-auto max-w-md py-16 px-4">
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h2 className="text-2xl font-bold mb-4">Authentication Required</h2>
+          <p className="mb-6">You need to be logged in to use Sage.</p>
+          <Button onClick={() => navigate('/auth/login')} className="w-full">
+            Go to Login
+          </Button>
+        </div>
       </div>
     );
   }

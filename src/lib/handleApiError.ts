@@ -31,25 +31,34 @@ export function handleApiError(
     silent = false
   } = options;
   
+  // For background operations or expected errors (like permission issues)
+  // we want to log them but not necessarily show them to the user
+  const isSilentOperation = silent || 
+    (typeof error === 'object' && 
+     error !== null && 
+     'message' in error && 
+     typeof error.message === 'string' && 
+     (
+       error.message.includes('permission denied') || 
+       error.message.includes('insufficient role') || 
+       error.message.includes('forbidden') ||
+       error.message.includes('Forbidden')
+     )
+    );
+  
   // Always log the error with context for debugging
-  console.error(`[Error${context ? `: ${context}` : ""}]`, error);
+  if (!isSilentOperation || context.includes('critical')) {
+    console.error(`[Error${context ? `: ${context}` : ""}]`, error);
+  } else {
+    // For expected permission errors, just log as warning
+    console.warn(`[Warning${context ? `: ${context}` : ""}]`, error);
+  }
   
   // Extract error message
   const errorMessage = extractErrorMessage(error) || fallbackMessage;
   
-  // Check if this is a permissions/role error
-  const isPermissionError = 
-    errorMessage.includes("insufficient role") ||
-    errorMessage.includes("permission denied") || 
-    errorMessage.includes("forbidden") ||
-    errorMessage.includes("Forbidden");
-    
-  // Don't show permission errors to users if they're accessing something they don't have access to
-  // This is a common case and not an actual application error
-  const shouldShowToastForThisError = showToast && !(silent || isPermissionError);
-  
   // Show toast notification if enabled and not silenced
-  if (shouldShowToastForThisError) {
+  if (showToast && !isSilentOperation) {
     toast({
       title: "Error",
       description: errorMessage,
@@ -129,4 +138,3 @@ export function showInfo(message: string, duration: number = 5000): void {
     duration,
   });
 }
-

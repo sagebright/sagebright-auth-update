@@ -1,52 +1,16 @@
 
 import { useState, useEffect } from 'react';
-import { getUsers } from '@/lib/backendApi';
-import { useLocation } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/lib/supabaseClient';
 
 export function useUserData(
   userId: string | null, 
   isAuthenticated: boolean, 
   setOrgId: (orgId: string | null) => void,
-  fetchOrgDetails: (orgId: string) => Promise<void>,
-  recoverOrgContext: (userId: string) => Promise<void>,
-  isRecoveringOrgContext: boolean
+  fetchOrgDetails: (orgId: string) => Promise<void>
 ) {
   const [currentUser, setCurrentUser] = useState<any | null>(null);
-  const location = useLocation();
-  const { toast } = useToast();
 
-  // Function to fetch user data from backend
-  const fetchUserData = async (uid: string) => {
-    try {
-      console.log("🔍 Fetching user data for ID:", uid);
-      const users = await getUsers();
-      
-      const match = users.find(u => u.id === uid);
-      
-      if (match) {
-        console.log("👤 User found in database:", match.id);
-        if (match.org_id) {
-          console.log("🏢 User has org_id:", match.org_id);
-          setOrgId(match.org_id);
-          
-          // Get org slug once we have the org ID
-          await fetchOrgDetails(match.org_id);
-        } else {
-          console.warn("⚠️ User found but no org assigned:", uid);
-        }
-        return match;
-      } else {
-        console.warn("⚠️ User not found in database:", uid);
-        return null;
-      }
-    } catch (err) {
-      console.error('❌ Error loading current user:', err);
-      return null;
-    }
-  };
-
-  // Load user from backend once userId is known
+  // Load user from auth metadata as the primary source of truth
   useEffect(() => {
     if (!userId || !isAuthenticated) {
       return;
@@ -54,39 +18,49 @@ export function useUserData(
     
     let isMounted = true;
     
-    const loadUserData = async () => {
+    const loadUserFromAuth = async () => {
       try {
-        const userData = await fetchUserData(userId);
+        // Get user metadata directly from Supabase Auth
+        const { data: authData, error: authError } = await supabase.auth.getUser();
+        
+        if (authError || !authData?.user) {
+          console.error('❌ Error fetching auth user:', authError);
+          return;
+        }
+        
         if (!isMounted) return;
         
-        setCurrentUser(userData || null);
+        // Extract essential user data from auth metadata
+        const userRole = authData.user.user_metadata?.role || 'user';
+        const userData = {
+          id: authData.user.id,
+          email: authData.user.email,
+          role: userRole,
+          full_name: authData.user.user_metadata?.full_name || authData.user.email?.split('@')[0] || 'User',
+          org_id: authData.user.user_metadata?.org_id || null
+        };
         
-        // If we have a user but no org, there might be an issue with the user's org assignment
-        if (userData && !userData.org_id && !isRecoveringOrgContext) {
-          // Show user feedback if we're on a protected page
-          if (!['/auth/login', '/auth/signup', '/auth/forgot-password'].includes(location.pathname)) {
-            toast({
-              variant: "destructive",
-              title: "Organization Context Issue",
-              description: "Unable to retrieve your organization context. Some features may be limited."
-            });
-          }
+        setCurrentUser(userData);
+        
+        // If org_id is present in user metadata, use it to set org context
+        if (userData.org_id) {
+          setOrgId(userData.org_id);
+          await fetchOrgDetails(userData.org_id);
         }
       } catch (err) {
-        console.error('Error loading current user:', err);
+        console.error('Error loading user from auth:', err);
       }
     };
     
-    loadUserData();
+    loadUserFromAuth();
     
     return () => {
       isMounted = false;
     };
-  }, [userId, isAuthenticated, isRecoveringOrgContext, location.pathname, toast, setOrgId, fetchOrgDetails]);
+  }, [userId, isAuthenticated, setOrgId, fetchOrgDetails]);
 
   return {
     currentUser,
-    setCurrentUser,
-    fetchUserData
+    setCurrentUser
   };
 }
