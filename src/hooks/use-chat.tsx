@@ -1,82 +1,21 @@
-import { useState, useEffect, useRef } from 'react';
-import { Message } from '@/components/ask-sage/ChatMessage';
+
+import { useState, useEffect } from 'react';
+import { Message } from '@/types/chat';
 import { buildSageContext } from '@/lib/buildSageContext';
 import { callOpenAI } from '@/lib/api';
 import { useAuth } from "@/contexts/auth/AuthContext";
 import { toast } from '@/components/ui/use-toast';
-import { supabase } from '@/lib/supabaseClient';
-
-const SUGGESTED_QUESTIONS = [
-  "Who's who on my team",
-  "How to set up my development environment", 
-  "What high performers here do differently",
-  "How I can add value right away",
-  "Our team's biggest goals right now"
-];
+import { SUGGESTED_QUESTIONS } from '@/data/suggestedQuestions';
+import { useOrgRecovery } from './use-org-recovery';
 
 export const useChat = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [showReflection, setShowReflection] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [isRecoveringOrg, setIsRecoveringOrg] = useState(false);
-  const [hasRecoveredOrgId, setHasRecoveredOrgId] = useState(false);
   const { userId, orgId, currentUser, isAuthenticated } = useAuth();
+  const { isRecoveringOrg } = useOrgRecovery(userId, orgId, isAuthenticated);
 
   console.log("🔍 useChat hook initializing with", { userId, orgId, isAuthenticated });
-  
-  useEffect(() => {
-    if (isAuthenticated && userId && !orgId && !isRecoveringOrg && !hasRecoveredOrgId) {
-      const fetchOrgData = async () => {
-        setIsRecoveringOrg(true);
-        try {
-          console.log("🔍 Trying to fetch missing org ID from users table");
-          
-          const { data: sessionData } = await supabase.auth.getSession();
-          const metadataOrgId = sessionData?.session?.user?.user_metadata?.org_id;
-          
-          if (metadataOrgId) {
-            console.log("✅ Found org ID in user metadata:", metadataOrgId);
-            setIsRecoveringOrg(false);
-            setHasRecoveredOrgId(true);
-            return;
-          }
-          
-          const { data, error } = await supabase
-            .from('users')
-            .select('org_id')
-            .eq('id', userId)
-            .single();
-            
-          if (error) {
-            console.warn("⚠️ Error fetching user org data:", error);
-            setIsRecoveringOrg(false);
-            setHasRecoveredOrgId(true);
-            return;
-          }
-          
-          if (data?.org_id) {
-            console.log("✅ Found org ID in database:", data.org_id);
-            
-            await supabase.auth.updateUser({
-              data: { org_id: data.org_id }
-            });
-            
-            await supabase.auth.refreshSession();
-            console.log("✅ Updated user metadata with org_id and refreshed session");
-          } else {
-            console.warn("⚠️ No org ID found for user");
-          }
-        } catch (err) {
-          console.error("❌ Error recovering org data:", err);
-        } finally {
-          setIsRecoveringOrg(false);
-          setHasRecoveredOrgId(true);
-        }
-      };
-      
-      fetchOrgData();
-    }
-  }, [userId, orgId, isAuthenticated, isRecoveringOrg, hasRecoveredOrgId]);
   
   useEffect(() => {
     if (messages.length === 0) {
