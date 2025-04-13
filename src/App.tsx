@@ -31,7 +31,6 @@ const FormComponentsExample = lazy(() => import("@/pages/FormComponentsExample")
 const ErrorHandlingExample = lazy(() => import("@/pages/ErrorHandlingExample"));
 const SkeletonPreview = lazy(() => import("@/pages/SkeletonPreview"));
 const ImageComponentPreview = lazy(() => import("./pages/ImageComponentPreview"));
-const VoiceTestPage = lazy(() => import("./pages/VoiceTest"));
 
 // Loading fallback component
 const PageLoadingFallback = () => (
@@ -133,8 +132,6 @@ const App = () => {
                         </ProtectedRoute>
                       }
                     />
-                    
-                    <Route path="/voice-test" element={<VoiceTestPage />} />
                     
                     <Route path="/design-system" element={<DesignSystem />} />
                     <Route path="/dev-debug" element={<DevDebugPage />} />

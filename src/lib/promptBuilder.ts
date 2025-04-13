@@ -10,24 +10,16 @@ import { voiceprints, sageFramework } from './voiceprints';
  * @returns Complete system prompt string for OpenAI
  */
 export function getBasePrompt(context: SageContext, voice: string = 'default'): string {
-  // Ensure voice is a string
-  const safeVoice = typeof voice === 'string' ? voice : 'default';
-  
-  // Validate voice parameter and get the selected voice tone
-  const validVoice = safeVoice in voiceprints ? safeVoice : 'default';
-  
-  // Get the voice tone from voiceprints
-  const tone = voiceprints[validVoice];
+  // Get the selected voice tone or fall back to default
+  const tone = voiceprints[voice] || voiceprints['default'];
   
   // Log warning if voice is invalid and we're falling back
-  if (validVoice !== safeVoice) {
-    console.warn(`⚠️ Unknown voiceprint key: "${safeVoice}" - falling back to default.`);
-  } else {
-    console.log(`✅ Using validated voice: "${validVoice}"`);
+  if (!voiceprints[voice]) {
+    console.warn("⚠️ Unknown voiceprint key:", voice, "- falling back to default.");
   }
   
   // Start with the core framework and personality
-  let prompt = `\n${sageFramework}\n\n${tone}\n\nYou are Sage, an expert onboarding guide. Your job is to answer questions and provide helpful advice tailored to each user's role and company culture.\n`;
+  let prompt = `${sageFramework}\n\n${tone}\n\nYou are Sage, an expert onboarding guide. Your job is to answer questions and provide helpful advice tailored to each user's role and company culture.\n`;
 
   // Add organization context if available
   if (context.org) {
@@ -58,7 +50,7 @@ export function getBasePrompt(context: SageContext, voice: string = 'default'): 
     prompt += `\n---\n🔹 USER CONTEXT: Limited information available\n`;
   }
 
-  // Add placeholders for knowledge sections
+  // Add unstructured knowledge placeholder
   prompt += `
 ---
 📄 UNSTRUCTURED ORG KNOWLEDGE:
@@ -72,8 +64,17 @@ Q2 Product Goals:
 - Integrate with 2 smart home platforms  
 `;
 
+  // Add knowledge base placeholder
   prompt += `\n---\n📚 KNOWLEDGE BASE: Available on request. Ask Sage about specific company policies, processes, or tools.\n`;
 
+  // Log the final prompt for debugging
+  console.log(`🧠 Final system prompt for voice "${voice}"`, { 
+    promptLength: prompt.length,
+    voice,
+    hasVoiceprintContent: !!tone,
+    voiceprintContentStart: tone.substring(0, 50) + "..."
+  });
+  
   return prompt;
 }
 
@@ -84,25 +85,18 @@ Q2 Product Goals:
  * @returns Complete system prompt
  */
 export function getCompleteSystemPrompt(context: SageContext, voice: string = 'default'): string {
-  // Ensure voice is a valid string
-  const safeVoice = typeof voice === 'string' ? voice : 'default';
-  
-  // Get the base prompt with validated voice
-  const basePrompt = getBasePrompt(context, safeVoice);
-  
-  // Debug log for voiceprint validation
-  const voiceprintValid = safeVoice in voiceprints;
-  const voiceExcerpt = voiceprints[safeVoice in voiceprints ? safeVoice : 'default']?.substring(0, 50) + "...";
+  const basePrompt = getBasePrompt(context, voice);
+  const finalPrompt = basePrompt;
   
   // Debug log the full system prompt for troubleshooting voice injection issues
   console.log("🧠 Final system prompt content:", {
-    promptLength: basePrompt.length,
-    voice: safeVoice,
-    voiceInjection: safeVoice !== 'default' ? 'applied' : 'default',
-    contentPreview: basePrompt.substring(0, 200) + "...",
-    voiceprintUsed: voiceprintValid,
-    voiceprintExcerpt: voiceExcerpt
+    promptLength: finalPrompt.length,
+    voice,
+    voiceInjection: voice !== 'default' ? 'applied' : 'default',
+    contentPreview: finalPrompt.substring(0, 200) + "...",
+    voiceprintUsed: voiceprints[voice] ? true : false,
+    voiceprintExcerpt: voiceprints[voice]?.substring(0, 50) + "..." || 'N/A'
   });
   
-  return basePrompt;
+  return finalPrompt;
 }
