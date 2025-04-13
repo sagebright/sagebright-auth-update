@@ -1,5 +1,6 @@
 
 import { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Message, SageContext } from '@/types/chat';
 import { buildSageContext } from '@/lib/buildSageContext';
 import { callOpenAI } from '@/lib/api';
@@ -20,6 +21,7 @@ export function useSendMessage(
   currentUser: any | null
 ) {
   const [isLoading, setIsLoading] = useState(false);
+  const { search } = useLocation();
 
   const handleSendMessage = async (content: string) => {
     if (!content.trim()) {
@@ -82,12 +84,12 @@ export function useSendMessage(
         return;
       }
       
-      // Get voice parameter from URL
-      const voice = getVoiceFromUrl();
+      // Get voice parameter from URL using React Router's useLocation
+      const voice = getVoiceFromUrl(search);
       
       // Validate voice parameter against available voices
       const isValidVoice = voice in voiceprints;
-      console.log("🔊 Parsed voice param:", voice, "Valid:", isValidVoice);
+      console.log("🔊 Using voice:", voice, "Valid:", isValidVoice);
       
       // Use the validated voice or fall back to 'default'
       const finalVoice = isValidVoice ? voice : 'default';

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { DashboardContainer } from '@/components/layout/DashboardContainer';
 import { ChatHeader } from '@/components/ask-sage/ChatHeader';
@@ -13,9 +14,11 @@ import { OrgRecoveryUI } from '@/components/ask-sage/OrgRecoveryUI';
 import { LoadingUI } from '@/components/ask-sage/LoadingUI';
 import { useAskSagePage } from '@/hooks/use-ask-sage-page';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { useLocation } from 'react-router-dom';
 
 const AskSage = () => {
   const isMobile = useIsMobile();
+  const location = useLocation();
   const {
     userId,
     orgId,
@@ -39,6 +42,15 @@ const AskSage = () => {
     
     isRecoveringOrg
   } = useAskSagePage();
+
+  // Log the search params for debugging
+  React.useEffect(() => {
+    console.log("🔍 AskSage route location:", {
+      pathname: location.pathname,
+      search: location.search,
+      hash: location.hash
+    });
+  }, [location]);
 
   if (authLoading) {
     return <LoadingUI />;
