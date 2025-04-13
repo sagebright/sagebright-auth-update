@@ -1,4 +1,4 @@
-
+import { supabase } from './supabaseClient';
 import { SageContext } from '@/types/chat';
 
 /**
@@ -12,12 +12,16 @@ function logApiActivity(
     voice?: string; 
     truncateContent?: boolean;
     error?: any;
+    apiUrl?: string;  // New optional parameter for API URL
   }
 ) {
   const timestamp = new Date().toISOString();
-  const { voice = 'default', truncateContent = true } = options || {};
+  const { 
+    voice = 'default', 
+    truncateContent = true,
+    apiUrl = 'Unknown Endpoint'  // Default fallback
+  } = options || {};
   
-  // Only truncate large content in normal logs, not error logs
   const contentPreview = (content: string) => {
     if (!content) return 'null or empty';
     return truncateContent ? `${content.substring(0, 100)}... (${content.length} chars)` : content;
@@ -26,6 +30,9 @@ function logApiActivity(
   switch (stage) {
     case 'request':
       console.groupCollapsed(`📤 OpenAI API Request [${timestamp}] voice=${voice}`);
+      
+      // Add API URL logging
+      console.log('🌐 API Endpoint:', apiUrl);
       
       // Log important request metadata
       console.log('🔑 Request Key Data:', {
@@ -52,6 +59,9 @@ function logApiActivity(
     case 'response':
       console.groupCollapsed(`📥 OpenAI API Response [${timestamp}] voice=${voice}`);
       
+      // Add API URL logging
+      console.log('🌐 API Endpoint:', apiUrl);
+      
       // Log response metadata
       console.log('✅ Response Key Data:', {
         timestamp,
@@ -74,6 +84,9 @@ function logApiActivity(
       
     case 'error':
       console.group(`❌ OpenAI API Error [${timestamp}] voice=${voice}`);
+      
+      // Add API URL logging
+      console.log('🌐 API Endpoint:', apiUrl);
       
       // Log error details
       console.error('🚨 Error Details:', {
@@ -116,12 +129,12 @@ export async function callOpenAI({
     // Generate the complete system prompt with voiceprint
     const systemPrompt = getCompleteSystemPrompt(context, voice);
     
-    // Get API URL from environment or fallback
+    // Determine the full API URL, preserving existing logic
     const apiUrl = import.meta.env.VITE_OPENAI_PROXY_URL || '/api/openai';
     
     // Build the complete request payload
     const requestPayload = {
-      model: import.meta.env.VITE_OPENAI_MODEL || 'gpt-4',
+      model: import.meta.env.VITE_OPENAI_MODEL || 'gpt-4o-mini',
       messages: [
         {
           role: 'system',
@@ -138,7 +151,7 @@ export async function callOpenAI({
     };
     
     // Log detailed request information before making API call
-    logApiActivity('request', requestPayload, { voice });
+    logApiActivity('request', requestPayload, { voice, apiUrl });
     
     // Record request start time for performance monitoring
     const requestStartTime = performance.now();
@@ -157,11 +170,11 @@ export async function callOpenAI({
 
     if (!response.ok) {
       const errorData = await response.json();
-      console.error("❌ OpenAI API error:", errorData);
       
       // Log detailed error information
       logApiActivity('error', requestPayload, { 
         voice, 
+        apiUrl,
         error: {
           ...errorData,
           status: response.status,
@@ -181,7 +194,7 @@ export async function callOpenAI({
     };
     
     // Log detailed response information
-    logApiActivity('response', enrichedData, { voice });
+    logApiActivity('response', enrichedData, { voice, apiUrl });
     
     return data.choices[0].message.content;
   } catch (error) {
