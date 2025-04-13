@@ -13,6 +13,11 @@ export function getBasePrompt(context: SageContext, voice: string = 'default'): 
   // Get the selected voice tone or fall back to default
   const tone = voiceprints[voice] || voiceprints['default'];
   
+  // Log warning if voice is invalid and we're falling back
+  if (!voiceprints[voice]) {
+    console.warn("⚠️ Unknown voiceprint key:", voice, "- falling back to default.");
+  }
+  
   // Start with the core framework and personality
   let prompt = `${sageFramework}\n\n${tone}\n\nYou are Sage, an expert onboarding guide. Your job is to answer questions and provide helpful advice tailored to each user's role and company culture.\n`;
 
