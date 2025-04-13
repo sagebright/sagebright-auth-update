@@ -30,6 +30,24 @@ export async function buildSageContext(userId: string, orgId: string) {
       userContextExists: !!userContext 
     });
 
+    // Defensive logging for incomplete org context
+    if (orgContext && !orgContext.name) {
+      console.warn("⚠️ Incomplete org context: Missing name field", { 
+        orgId, 
+        userId,
+        orgFields: Object.keys(orgContext || {})
+      });
+    }
+
+    // Defensive logging for incomplete user context
+    if (userContext && !userContext.role) {
+      console.warn("⚠️ Incomplete user context: Missing role field", { 
+        userId, 
+        orgId,
+        userFields: Object.keys(userContext || {})
+      });
+    }
+
     if (!orgContext) {
       console.warn("No organization context found for orgId:", orgId);
       return {
