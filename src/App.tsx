@@ -28,6 +28,7 @@ const Signup = lazy(() => import("./pages/auth/Signup"));
 const ForgotPassword = lazy(() => import("./pages/auth/ForgotPassword"));
 const RecoveryPage = lazy(() => import("./pages/auth/RecoveryPage"));
 const DevDebugPage = lazy(() => import("@/pages/dev-debug"));
+const ApiDebug = lazy(() => import("@/pages/ApiDebug"));
 const DesignSystem = lazy(() => import("@/pages/DesignSystem"));
 const FormComponentsExample = lazy(() => import("@/pages/FormComponentsExample"));
 const ErrorHandlingExample = lazy(() => import("@/pages/ErrorHandlingExample"));
@@ -145,8 +146,10 @@ const App = () => {
                       }
                     />
                     
+                    {/* Development and debugging routes */}
                     <Route path="/design-system" element={<DesignSystem />} />
                     <Route path="/dev-debug" element={<DevDebugPage />} />
+                    <Route path="/api-debug" element={<ApiDebug />} />
                     <Route path="/form-components-example" element={<FormComponentsExample />} />
                     <Route path="/error-handling-example" element={<ErrorHandlingExample />} />
                     <Route path="/skeleton-preview" element={<SkeletonPreview />} />

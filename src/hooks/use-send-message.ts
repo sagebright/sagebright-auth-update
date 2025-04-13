@@ -18,7 +18,12 @@ export function useSendMessage(
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>,
   userId: string | null,
   orgId: string | null,
-  currentUser: any | null
+  currentUser: any | null,
+  debugOptions?: {
+    setRequestLoading?: () => void;
+    setRequestSuccess?: (responseTime: number) => void;
+    setRequestError?: (error: string) => void;
+  }
 ) {
   const [isLoading, setIsLoading] = useState(false);
   // Use our custom hook to get the voice parameter
@@ -67,6 +72,11 @@ export function useSendMessage(
     const userMessage = createUserMessage(content, currentUser?.avatar_url);
     setMessages(prev => [...prev, userMessage]);
     setIsLoading(true);
+    
+    // Update debug panel if available
+    if (debugOptions?.setRequestLoading) {
+      debugOptions.setRequestLoading();
+    }
 
     try {
       console.log(`🔍 Building context for userId: ${userId}, orgId: ${orgId}, voice: ${voice}`);
@@ -82,24 +92,36 @@ export function useSendMessage(
       // Check if context.org exists before accessing its properties
       if (!context.org) {
         handleMissingOrgContext(setMessages, setIsLoading);
+        if (debugOptions?.setRequestError) {
+          debugOptions.setRequestError("Missing organization context");
+        }
         return;
       }
       
       // Check if context.org.name exists
       if (!context.org.name) {
         handleMissingOrgContext(setMessages, setIsLoading);
+        if (debugOptions?.setRequestError) {
+          debugOptions.setRequestError("Invalid organization context: missing name");
+        }
         return;
       }
       
       // Check if context.user exists before accessing its properties
       if (!context.user) {
         handleMissingUserContext(setMessages, setIsLoading);
+        if (debugOptions?.setRequestError) {
+          debugOptions.setRequestError("Missing user context");
+        }
         return;
       }
       
       // Check if context.user.role exists
       if (!context.user.role) {
         handleMissingUserContext(setMessages, setIsLoading);
+        if (debugOptions?.setRequestError) {
+          debugOptions.setRequestError("Invalid user context: missing role");
+        }
         return;
       }
       
@@ -118,16 +140,32 @@ export function useSendMessage(
       // Log the final voice being sent to OpenAI
       console.log(`🎙️ Sending final voice to OpenAI: "${finalVoice}"`);
       
+      // Record request start time for performance monitoring
+      const requestStartTime = performance.now();
+      
       const answer = await callOpenAI({ 
         question: content, 
         context, 
         voice: finalVoice 
       });
       console.log("Received answer from OpenAI");
+      
+      // Calculate response time
+      const responseTime = Math.round(performance.now() - requestStartTime);
+      
+      // Update debug panel with success
+      if (debugOptions?.setRequestSuccess) {
+        debugOptions.setRequestSuccess(responseTime);
+      }
 
       const sageMessage = createSageMessage(answer);
       setMessages(prev => [...prev, sageMessage]);
     } catch (err) {
+      // Update debug panel with error
+      if (debugOptions?.setRequestError) {
+        debugOptions.setRequestError((err as Error).message);
+      }
+      
       handleChatError(err, setMessages, setIsLoading);
     } finally {
       setIsLoading(false);

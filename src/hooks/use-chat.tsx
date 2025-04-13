@@ -9,7 +9,7 @@ import { useSendMessage } from './use-send-message';
 import { useReflection } from './use-reflection';
 import { createSageMessage } from '@/utils/messageUtils';
 
-export const useChat = (): ChatHookReturn => {
+export const useChat = (debugPanel?: ReturnType<typeof import('./use-debug-panel').useDebugPanel>): ChatHookReturn => {
   const { userId, orgId, user, currentUser, isAuthenticated } = useAuth();
   const { isRecoveringOrg } = useOrgRecovery(userId, orgId, isAuthenticated);
   
@@ -19,13 +19,18 @@ export const useChat = (): ChatHookReturn => {
   // Initialize reflection system
   const { showReflection, setShowReflection } = useReflection(userId, messages.length);
   
-  // Initialize message sending system
+  // Initialize message sending system with debug panel options
   const { isLoading, handleSendMessage } = useSendMessage(
     messages,
     setMessages,
     userId,
     orgId,
-    user || currentUser // Use whatever user data is available
+    user || currentUser, // Use whatever user data is available
+    debugPanel ? {
+      setRequestLoading: debugPanel.setRequestLoading,
+      setRequestSuccess: debugPanel.setRequestSuccess,
+      setRequestError: debugPanel.setRequestError
+    } : undefined
   );
 
   // Log comprehensive auth state for debugging

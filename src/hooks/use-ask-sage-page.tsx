@@ -5,6 +5,7 @@ import { useRequireAuth } from '@/hooks/useRequireAuth';
 import { useChat } from '@/hooks/use-chat';
 import { ReflectionData } from '@/components/ask-sage/ReflectionForm';
 import { useVoiceParam } from '@/hooks/use-voice-param';
+import { useDebugPanel } from '@/hooks/use-debug-panel';
 
 export const useAskSagePage = () => {
   const navigate = useNavigate();
@@ -18,10 +19,14 @@ export const useAskSagePage = () => {
   // Use our custom hook to get the voice parameter
   const voiceParam = useVoiceParam();
   
+  // Get debug panel state and functions
+  const debugPanel = useDebugPanel();
+  
   useEffect(() => {
     console.log("🎤 AskSagePage current voice parameter:", voiceParam);
   }, [voiceParam]);
 
+  // Modify useChat to pass debug panel options
   const {
     messages,
     isLoading,
@@ -31,7 +36,7 @@ export const useAskSagePage = () => {
     handleSendMessage,
     handleFeedback,
     isRecoveringOrg
-  } = useChat();
+  } = useChat(debugPanel);
 
   // Initialize page after auth is done loading (only need basic auth, not full currentUser)
   useEffect(() => {
@@ -118,6 +123,9 @@ export const useAskSagePage = () => {
     
     // Other
     isRecoveringOrg,
-    voiceParam
+    voiceParam,
+    
+    // Debug panel
+    debugPanel
   };
 };

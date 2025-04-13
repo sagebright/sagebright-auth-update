@@ -16,6 +16,7 @@ import { useAskSagePage } from '@/hooks/use-ask-sage-page';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/auth/AuthContext';
+import { DebugPanel } from '@/components/debug/DebugPanel';
 
 const AskSage = () => {
   const isMobile = useIsMobile();
@@ -44,7 +45,9 @@ const AskSage = () => {
     handleFeedback,
     
     isRecoveringOrg,
-    voiceParam
+    voiceParam,
+    
+    debugPanel
   } = useAskSagePage();
 
   useEffect(() => {
@@ -147,6 +150,9 @@ const AskSage = () => {
             />
           </DialogContent>
         </Dialog>
+        
+        {/* Add Debug Panel */}
+        <DebugPanel />
       </div>
     </DashboardContainer>
   );
