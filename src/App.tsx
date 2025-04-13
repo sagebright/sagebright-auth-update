@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -18,6 +19,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 const Index = lazy(() => import("./pages/Index"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const HRDashboard = lazy(() => import("./pages/HRDashboard"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const AskSage = lazy(() => import("./pages/AskSage"));
 const ContactUs = lazy(() => import("./pages/ContactUs"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -120,6 +122,16 @@ const App = () => {
                       element={
                         <ProtectedRoute requiredRole="admin">
                           <HRDashboard />
+                        </ProtectedRoute>
+                      }
+                    />
+                    
+                    {/* New Admin Dashboard Route */}
+                    <Route
+                      path="/admin-dashboard"
+                      element={
+                        <ProtectedRoute requiredRole="admin">
+                          <AdminDashboard />
                         </ProtectedRoute>
                       }
                     />
