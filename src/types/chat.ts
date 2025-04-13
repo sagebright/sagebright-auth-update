@@ -9,6 +9,8 @@ export interface Message {
   avatar_url?: string;
   liked?: boolean;
   disliked?: boolean;
+  isLoading?: boolean;
+  isError?: boolean;
 }
 
 export interface SageContext {

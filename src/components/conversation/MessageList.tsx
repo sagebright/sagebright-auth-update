@@ -2,9 +2,10 @@
 import React, { useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { ChatBubble, ChatBubbleProps } from "./ChatBubble";
+import { Message } from "@/types/chat";
 
 interface MessageListProps {
-  messages: Omit<ChatBubbleProps, "avatarFallback">[];
+  messages: (Omit<ChatBubbleProps, "avatarFallback"> | Message)[];
   className?: string;
   isTyping?: boolean;
   sageAvatarUrl?: string;
@@ -30,16 +31,22 @@ export function MessageList({
 
   return (
     <div className={cn("flex flex-col w-full overflow-y-auto py-4", className)}>
-      {messages.map((message, index) => (
-        <ChatBubble
-          key={index}
-          content={message.content}
-          sender={message.sender}
-          timestamp={message.timestamp}
-          avatarUrl={message.sender === "sage" ? sageAvatarUrl : message.avatarUrl || userAvatarUrl}
-          avatarFallback={message.sender === "sage" ? "SB" : "U"}
-        />
-      ))}
+      {messages.map((message, index) => {
+        // Handle both the Message type and the ChatBubbleProps type
+        const isMessage = 'id' in message;
+        
+        return (
+          <ChatBubble
+            key={isMessage ? message.id : index}
+            content={message.content}
+            sender={message.sender}
+            timestamp={isMessage ? message.timestamp : undefined}
+            avatarUrl={message.sender === "sage" ? sageAvatarUrl : (isMessage ? message.avatar_url : userAvatarUrl)}
+            avatarFallback={message.sender === "sage" ? "SB" : "U"}
+            isTyping={isMessage && message.isLoading}
+          />
+        );
+      })}
       
       {isTyping && (
         <ChatBubble

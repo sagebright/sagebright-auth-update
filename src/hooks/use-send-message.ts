@@ -7,6 +7,7 @@ import { useVoiceParam } from './use-voice-param';
 import { buildSageContext } from '@/lib/buildSageContext';
 import { callOpenAI } from '@/lib/api';
 import { toast } from '@/components/ui/use-toast';
+import { createUserMessage, createSageMessage, createLoadingMessage, createSageErrorMessage } from '@/utils/messageUtils';
 
 interface DebugPanelHandlers {
   setRequestLoading: () => void;
@@ -73,12 +74,7 @@ export const useSendMessage = (
 
     try {
       // Create a new user message
-      const userMessage: Message = {
-        id: `user-${Date.now()}`,
-        content,
-        sender: 'user',
-        timestamp: new Date(), 
-      };
+      const userMessage = createUserMessage(content);
 
       // Update messages state with the new user message
       setMessages((prevMessages) => [...prevMessages, userMessage]);
@@ -87,13 +83,7 @@ export const useSendMessage = (
       const context = await buildSageContext(userId, orgId);
       
       // Prepare loading message for better UX
-      const loadingMessage: Message = {
-        id: `sage-loading-${Date.now()}`,
-        content: "Thinking...",
-        sender: 'sage',
-        timestamp: new Date(),
-        isLoading: true
-      };
+      const loadingMessage = createLoadingMessage("Thinking...");
       
       setMessages((prevMessages) => [...prevMessages, loadingMessage]);
       
@@ -105,15 +95,10 @@ export const useSendMessage = (
       });
       
       // Replace loading message with the actual response
-      const sageMessage: Message = {
-        id: `sage-${Date.now()}`,
-        content: responseContent,
-        sender: 'sage',
-        timestamp: new Date(),
-      };
+      const sageMessage = createSageMessage(responseContent);
 
       setMessages((prevMessages) => 
-        prevMessages.filter(msg => msg.id !== loadingMessage.id).concat(sageMessage)
+        prevMessages.filter(msg => !msg.isLoading).concat(sageMessage)
       );
       
       const responseTime = Date.now() - startTime;
@@ -127,13 +112,9 @@ export const useSendMessage = (
       
       // Remove loading message and add error message
       setMessages((prevMessages) => 
-        prevMessages.filter(msg => !msg.isLoading).concat({
-          id: `sage-error-${Date.now()}`,
-          content: "I'm sorry, I encountered an error processing your request. Please try again.",
-          sender: 'sage',
-          timestamp: new Date(),
-          isError: true
-        })
+        prevMessages.filter(msg => !msg.isLoading).concat(
+          createSageErrorMessage("I'm sorry, I encountered an error processing your request. Please try again.")
+        )
       );
       
       toast({
