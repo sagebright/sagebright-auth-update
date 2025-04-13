@@ -107,15 +107,32 @@ export function useSendMessage(
       // Log the final voice being sent to OpenAI
       console.log(`🎙️ Sending final voice to OpenAI: "${finalVoice}"`);
       
-      const answer = await callOpenAI({ 
-        question: content, 
-        context, 
-        voice: finalVoice 
-      });
-      console.log("Received answer from OpenAI");
+      try {
+        const answer = await callOpenAI({ 
+          question: content, 
+          context, 
+          voice: finalVoice 
+        });
+        console.log("Received answer from OpenAI");
 
-      const sageMessage = createSageMessage(answer);
-      setMessages(prev => [...prev, sageMessage]);
+        const sageMessage = createSageMessage(answer);
+        setMessages(prev => [...prev, sageMessage]);
+      } catch (apiError) {
+        console.error("❌ API call failed:", apiError);
+        
+        // Create a more user-friendly error message
+        const errorMessage = createSageMessage(
+          "I'm sorry, I encountered an issue connecting to my knowledge base. Please try again in a moment or contact support if the problem persists."
+        );
+        
+        setMessages(prev => [...prev, errorMessage]);
+        
+        toast({
+          variant: "destructive",
+          title: "Connection Error",
+          description: "Failed to connect to Sage's knowledge base. Please try again."
+        });
+      }
     } catch (err) {
       handleChatError(err, setMessages, setIsLoading);
     } finally {

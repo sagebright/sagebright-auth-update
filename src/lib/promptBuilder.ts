@@ -10,16 +10,19 @@ import { voiceprints, sageFramework } from './voiceprints';
  * @returns Complete system prompt string for OpenAI
  */
 export function getBasePrompt(context: SageContext, voice: string = 'default'): string {
-  // Get the selected voice tone or fall back to default
-  const tone = voiceprints[voice] || voiceprints['default'];
+  // Validate voice parameter and get the selected voice tone
+  const validVoice = voice in voiceprints ? voice : 'default';
+  const tone = voiceprints[validVoice];
   
   // Log warning if voice is invalid and we're falling back
-  if (!voiceprints[voice]) {
-    console.warn("⚠️ Unknown voiceprint key:", voice, "- falling back to default.");
+  if (validVoice !== voice) {
+    console.warn(`⚠️ Unknown voiceprint key: "${voice}" - falling back to default.`);
+  } else {
+    console.log(`✅ Using validated voice: "${validVoice}"`);
   }
   
   // Start with the core framework and personality
-  let prompt = `${sageFramework}\n\n${tone}\n\nYou are Sage, an expert onboarding guide. Your job is to answer questions and provide helpful advice tailored to each user's role and company culture.\n`;
+  let prompt = `\n${sageFramework}\n\n${tone}\n\nYou are Sage, an expert onboarding guide. Your job is to answer questions and provide helpful advice tailored to each user's role and company culture.\n`;
 
   // Add organization context if available
   if (context.org) {
@@ -68,9 +71,9 @@ Q2 Product Goals:
   prompt += `\n---\n📚 KNOWLEDGE BASE: Available on request. Ask Sage about specific company policies, processes, or tools.\n`;
 
   // Log the final prompt for debugging
-  console.log(`🧠 Final system prompt for voice "${voice}"`, { 
+  console.log(`🧠 Final system prompt for voice "${validVoice}"`, { 
     promptLength: prompt.length,
-    voice,
+    voice: validVoice,
     hasVoiceprintContent: !!tone,
     voiceprintContentStart: tone.substring(0, 50) + "..."
   });

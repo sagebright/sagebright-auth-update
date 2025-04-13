@@ -34,7 +34,7 @@ export async function callOpenAI({
     // Get API URL from environment or fallback
     const apiUrl = import.meta.env.VITE_OPENAI_PROXY_URL || '/api/openai';
     
-    // Make the API call
+    // Make the API call with better error handling
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
@@ -58,14 +58,35 @@ export async function callOpenAI({
       }),
     });
 
+    // Check if response is not ok
     if (!response.ok) {
-      const errorData = await response.json();
-      console.error("❌ OpenAI API error:", errorData);
-      throw new Error(`API error: ${response.status} ${response.statusText}`);
+      // Check if the response is JSON or not
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        const errorData = await response.json();
+        console.error("❌ OpenAI API error (JSON):", errorData);
+        throw new Error(`API error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
+      } else {
+        // Handle non-JSON responses like HTML error pages
+        const errorText = await response.text();
+        console.error("❌ OpenAI API error (non-JSON):", {
+          status: response.status, 
+          statusText: response.statusText,
+          responsePreview: errorText.substring(0, 200) + '...'
+        });
+        throw new Error(`API error: ${response.status} ${response.statusText} - Non-JSON response received`);
+      }
     }
 
-    const data = await response.json();
-    return data.choices[0].message.content;
+    // Parse the successful JSON response
+    const responseText = await response.text();
+    try {
+      const data = JSON.parse(responseText);
+      return data.choices[0].message.content;
+    } catch (parseError) {
+      console.error("❌ Error parsing JSON response:", parseError, "Response text:", responseText.substring(0, 200) + '...');
+      throw new Error("Failed to parse API response as JSON");
+    }
   } catch (error) {
     console.error("❌ Error calling OpenAI:", error);
     throw error;
