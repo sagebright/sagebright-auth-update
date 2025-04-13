@@ -6,6 +6,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MessageSquare, Clipboard, BarChart3, Plus, Calendar } from 'lucide-react';
 import { QuestionBankEditor } from './questions/QuestionBankEditor';
 import { QuestionRotationEditor } from './questions/QuestionRotationEditor';
+import { SectionWrapper } from '../SectionWrapper';
+import { EmptyState } from '../EmptyState';
 
 export function EngagementQuestionsPanel() {
   // Sample question categories
@@ -46,9 +48,14 @@ export function EngagementQuestionsPanel() {
   ];
 
   const [activeTab, setActiveTab] = useState('question-bank');
+  const [hasQuestions, setHasQuestions] = useState(true); // Toggle this for empty state demo
 
   return (
-    <div className="space-y-6">
+    <SectionWrapper
+      title="Engagement Questions"
+      description="Create, manage, and schedule engagement questions for your team"
+      id="engagement-questions-section"
+    >
       <Tabs 
         defaultValue="question-bank" 
         value={activeTab}
@@ -75,11 +82,34 @@ export function EngagementQuestionsPanel() {
         </TabsList>
 
         <TabsContent value="question-bank" className="space-y-6">
-          <QuestionBankEditor />
+          {hasQuestions ? (
+            <QuestionBankEditor />
+          ) : (
+            <EmptyState
+              icon={MessageSquare}
+              title="Your question bank is empty"
+              description="Add questions to your bank to start engaging with your team members."
+              actionLabel="Add First Question"
+              onAction={() => setHasQuestions(true)}
+            />
+          )}
         </TabsContent>
 
         <TabsContent value="rotation" className="space-y-6">
-          <QuestionRotationEditor />
+          {hasQuestions ? (
+            <QuestionRotationEditor />
+          ) : (
+            <EmptyState
+              icon={Calendar}
+              title="No questions in rotation"
+              description="Add questions from your question bank to create a rotation schedule."
+              actionLabel="Set Up Rotation"
+              onAction={() => {
+                setHasQuestions(true);
+                setActiveTab('question-bank');
+              }}
+            />
+          )}
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-6">
@@ -203,6 +233,6 @@ export function EngagementQuestionsPanel() {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
+    </SectionWrapper>
   );
 }

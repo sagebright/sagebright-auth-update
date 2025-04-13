@@ -1,10 +1,16 @@
+
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Users, UserPlus, UserCheck, UserX } from 'lucide-react';
 import { UserFormPanel } from './UserFormPanel';
 import { UserTable, UserTableRow } from '../UserTable';
 import { UserTableFilters } from '../UserTableFilters';
+import { EmptyState } from '../EmptyState';
+import { SectionWrapper } from '../SectionWrapper';
+import { BulkActions } from '../BulkActions';
+import { StatsRow } from '../StatsRow';
 
 const mockUsers: UserTableRow[] = [
   {
@@ -73,6 +79,7 @@ export function UsersPanel() {
   const [isAddingUser, setIsAddingUser] = useState(false);
   const [users, setUsers] = useState<UserTableRow[]>(mockUsers);
   const [filters, setFilters] = useState({});
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
 
   const handleFilterChange = (newFilters: any) => {
     console.log('Filters changed:', newFilters);
@@ -81,6 +88,26 @@ export function UsersPanel() {
     // For the demo, we'll just log the filters and keep the original data
     // In a real app, this would filter the data based on the criteria
     // setUsers(filteredUsers);
+  };
+
+  const handleSelectAll = () => {
+    if (selectedUsers.length === users.length) {
+      setSelectedUsers([]);
+    } else {
+      setSelectedUsers(users.map(user => user.id));
+    }
+  };
+
+  const handleSelectUser = (userId: string) => {
+    if (selectedUsers.includes(userId)) {
+      setSelectedUsers(selectedUsers.filter(id => id !== userId));
+    } else {
+      setSelectedUsers([...selectedUsers, userId]);
+    }
+  };
+
+  const clearSelection = () => {
+    setSelectedUsers([]);
   };
 
   if (isAddingUser) {
@@ -99,54 +126,42 @@ export function UsersPanel() {
     );
   }
 
+  // Stats for the users section
+  const userStats = [
+    {
+      title: "Total Users",
+      value: "1,274",
+      icon: Users,
+      change: "+12% from last month"
+    },
+    {
+      title: "Active Users",
+      value: "892",
+      icon: UserCheck,
+      change: "+5% from last month"
+    },
+    {
+      title: "New Users",
+      value: "45",
+      icon: UserPlus,
+      change: "+16% from last month"
+    },
+    {
+      title: "Inactive Users",
+      value: "382",
+      icon: UserX,
+      change: "-3% from last month"
+    }
+  ];
+
   return (
-    <div className="space-y-6">
+    <SectionWrapper
+      title="Users"
+      description="Manage user accounts and onboarding processes"
+      id="users-section"
+    >
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Users</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">1,274</div>
-            <p className="text-xs text-muted-foreground">+12% from last month</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Active Users</CardTitle>
-            <UserCheck className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">892</div>
-            <p className="text-xs text-muted-foreground">+5% from last month</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">New Users</CardTitle>
-            <UserPlus className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">45</div>
-            <p className="text-xs text-muted-foreground">+16% from last month</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Inactive Users</CardTitle>
-            <UserX className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">382</div>
-            <p className="text-xs text-muted-foreground">-3% from last month</p>
-          </CardContent>
-        </Card>
-      </div>
+      <StatsRow stats={userStats} />
       
       {/* User Management Table */}
       <Card>
@@ -174,10 +189,69 @@ export function UsersPanel() {
           <div className="space-y-4">
             <UserTableFilters onFilterChange={handleFilterChange} />
             
-            <UserTable users={users} />
+            {users.length > 0 ? (
+              <>
+                <BulkActions
+                  selectedItems={selectedUsers}
+                  onSelectAll={handleSelectAll}
+                  allSelected={selectedUsers.length === users.length && users.length > 0}
+                  onClearSelection={clearSelection}
+                  totalItems={users.length}
+                />
+                
+                <div className="rounded-md border">
+                  <table className="w-full caption-bottom text-sm">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
+                          <Checkbox 
+                            checked={selectedUsers.length === users.length && users.length > 0}
+                            onCheckedChange={handleSelectAll}
+                          />
+                        </th>
+                        <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Name</th>
+                        <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Role</th>
+                        <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Days Remaining</th>
+                        <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Progress</th>
+                        <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Status</th>
+                        <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {users.map(user => (
+                        <tr key={user.id} className="border-b">
+                          <td className="p-4 align-middle">
+                            <Checkbox 
+                              checked={selectedUsers.includes(user.id)}
+                              onCheckedChange={() => handleSelectUser(user.id)}
+                            />
+                          </td>
+                          <td className="p-4 align-middle">{user.name}</td>
+                          <td className="p-4 align-middle">{user.role}</td>
+                          <td className="p-4 align-middle">{user.daysRemaining} days</td>
+                          <td className="p-4 align-middle">{user.percentComplete}%</td>
+                          <td className="p-4 align-middle">{user.status}</td>
+                          <td className="p-4 align-middle">
+                            <Button variant="ghost" size="sm">View</Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            ) : (
+              <EmptyState
+                icon={Users}
+                title="No users yet"
+                description="You can create a user to get started with onboarding and user management."
+                actionLabel="Create User"
+                onAction={() => setIsAddingUser(true)}
+              />
+            )}
           </div>
         </CardContent>
       </Card>
-    </div>
+    </SectionWrapper>
   );
 }
