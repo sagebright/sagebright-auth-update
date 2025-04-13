@@ -107,15 +107,38 @@ export function useSendMessage(
       // Log the final voice being sent to OpenAI
       console.log(`🎙️ Sending final voice to OpenAI: "${finalVoice}"`);
       
-      const answer = await callOpenAI({ 
-        question: content, 
-        context, 
-        voice: finalVoice 
-      });
-      console.log("Received answer from OpenAI");
+      try {
+        const answer = await callOpenAI({ 
+          question: content, 
+          context, 
+          voice: finalVoice 
+        });
+        console.log("✅ Received answer from OpenAI:", { 
+          length: answer.length,
+          preview: answer.substring(0, 50) + '...'
+        });
 
-      const sageMessage = createSageMessage(answer);
-      setMessages(prev => [...prev, sageMessage]);
+        const sageMessage = createSageMessage(answer);
+        setMessages(prev => [...prev, sageMessage]);
+      } catch (apiError: any) {
+        console.error("❌ OpenAI API error:", apiError);
+        
+        // Create a more specific error message
+        const errorMessage = apiError.message?.includes('<!DOCTYPE') || apiError.message?.includes('<html')
+          ? "There was a problem connecting to the AI service. This may be due to a network issue or server maintenance."
+          : "There was a problem getting a response from Sage. Please try again in a moment.";
+        
+        const sageMessage = createSageMessage(
+          `I'm sorry, I couldn't process your request. ${errorMessage}`
+        );
+        setMessages(prev => [...prev, sageMessage]);
+        
+        toast({
+          variant: "destructive",
+          title: "AI Service Error",
+          description: errorMessage
+        });
+      }
     } catch (err) {
       handleChatError(err, setMessages, setIsLoading);
     } finally {
