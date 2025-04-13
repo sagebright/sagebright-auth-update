@@ -7,6 +7,7 @@ import { toast } from '@/components/ui/use-toast';
 import { createUserMessage, createSageMessage } from '@/utils/messageUtils';
 import { handleMissingOrgContext, handleMissingUserContext, handleChatError } from '@/utils/sageErrorUtils';
 import { getVoiceFromUrl } from '@/lib/utils';
+import { voiceprints } from '@/lib/voiceprints';
 
 /**
  * Hook for handling the message sending functionality
@@ -81,13 +82,23 @@ export function useSendMessage(
         return;
       }
       
+      // Get voice parameter from URL
       const voice = getVoiceFromUrl();
-      console.log("Using voice:", voice);
+      
+      // Validate voice parameter against available voices
+      const isValidVoice = voice in voiceprints;
+      console.log("🔊 Parsed voice param:", voice, "Valid:", isValidVoice);
+      
+      // Use the validated voice or fall back to 'default'
+      const finalVoice = isValidVoice ? voice : 'default';
+      if (!isValidVoice && voice !== 'default') {
+        console.warn(`⚠️ Invalid voice "${voice}" requested, falling back to default`);
+      }
       
       const answer = await callOpenAI({ 
         question: content, 
         context, 
-        voice 
+        voice: finalVoice 
       });
       console.log("Received answer from OpenAI");
 
@@ -105,4 +116,3 @@ export function useSendMessage(
     handleSendMessage
   };
 }
-
