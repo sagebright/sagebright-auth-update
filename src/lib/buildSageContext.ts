@@ -7,6 +7,56 @@ import { validateContextIds, validateOrgContext, validateUserContext } from '@/l
 import { createOrgContextFallback, logContextBuildingError } from '@/lib/contextErrorHandling';
 
 /**
+ * Dev fallback context for testing without Supabase
+ */
+const DEV_ORG_CONTEXT = {
+  orgId: "00000000-0000-0000-0000-000000000000",
+  name: "Riverbend Solar",
+  mission: "Accelerate clean energy adoption through innovative financing and technology solutions",
+  values: ["Sustainability", "Innovation", "Customer-first", "Transparency"],
+  onboarding_processes: "Mentorship program, department rotation, weekly check-ins",
+  tools_and_systems: "Salesforce, HubSpot, Asana, Slack, Google Workspace",
+  glossary: {
+    "PPA": "Power Purchase Agreement",
+    "ITC": "Investment Tax Credit",
+    "LCOE": "Levelized Cost of Energy"
+  },
+  policies: {
+    "Remote Work": "Hybrid schedule with 2 days in office required",
+    "PTO": "Unlimited with minimum 20 days encouraged"
+  },
+  known_pain_points: ["Complex approval workflows", "Slow document processing"],
+  learning_culture: "Quarterly learning budgets and monthly knowledge sharing sessions",
+  leadership_style: "Collaborative with clear decision ownership",
+  executives: [
+    { name: "Maya Johnson", title: "CEO", background: "Former Tesla Energy executive" },
+    { name: "David Chen", title: "CTO", background: "Previously led engineering at Sunrun" }
+  ],
+  history: "Founded in 2019 to simplify residential solar financing and installation",
+  culture: "Fast-paced, impact-driven culture with emphasis on work-life balance",
+};
+
+const DEV_USER_CONTEXT = {
+  user_id: "00000000-0000-0000-0000-000000000000",
+  org_id: "00000000-0000-0000-0000-000000000000",
+  start_date: "2023-01-15",
+  goals: {
+    "30 day": "Complete product training and shadow 3 customer calls",
+    "60 day": "Develop first partnership proposal",
+    "90 day": "Successfully close first strategic partnership"
+  },
+  personality_notes: "Detail-oriented, prefers comprehensive information",
+  role: "Director of Strategic Partnerships",
+  department: "Sales",
+  manager_name: "Maya Johnson",
+  location: "San Francisco Bay Area",
+  timezone: "PST",
+  working_hours: "9am-5pm PST",
+  learning_style: "Visual and hands-on",
+  introvert_extrovert: "Ambivert"
+};
+
+/**
  * Constructs the full context for Sage based on the user and org.
  *
  * @param userId - ID of the current user
@@ -31,8 +81,26 @@ export async function buildSageContext(userId: string, orgId: string) {
       userContextExists: !!userContext 
     });
 
-    // Validate organization context
-    if (!validateOrgContext(orgContext, orgId)) {
+    // Apply development fallbacks if needed
+    let finalOrgContext = orgContext;
+    let finalUserContext = userContext;
+
+    // Use development fallbacks if context is missing and in development mode
+    const isDev = import.meta.env.DEV || import.meta.env.MODE === 'development';
+    if (isDev) {
+      if (!finalOrgContext) {
+        console.warn("⚠️ Using DEV_ORG_CONTEXT fallback for development");
+        finalOrgContext = DEV_ORG_CONTEXT;
+      }
+      
+      if (!finalUserContext) {
+        console.warn("⚠️ Using DEV_USER_CONTEXT fallback for development");
+        finalUserContext = DEV_USER_CONTEXT;
+      }
+    }
+
+    // Validate organization context (using the possibly fallback context)
+    if (!validateOrgContext(finalOrgContext, orgId)) {
       return {
         messages: [],
         org: null,
@@ -43,12 +111,12 @@ export async function buildSageContext(userId: string, orgId: string) {
     }
 
     // Validate user context (logged but not blocking)
-    validateUserContext(userContext, userId, orgId);
+    validateUserContext(finalUserContext, userId, orgId);
 
     return {
       messages: [],
-      org: orgContext,
-      user: userContext,
+      org: finalOrgContext,
+      user: finalUserContext,
       userId,
       orgId,
     };
