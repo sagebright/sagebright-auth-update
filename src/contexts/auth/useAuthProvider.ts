@@ -57,6 +57,14 @@ export function useAuthProvider() {
     }
   }, [isAuthenticated, userId, orgId, user, setOrgId]);
 
+  // Temporary fallback for missing orgSlug when orgId is present
+  useEffect(() => {
+    if (isAuthenticated && orgId && !orgSlug) {
+      console.warn("⚠️ orgSlug missing, applying fallback");
+      setOrgSlug("lumon"); // TEMP until dynamic slug lookup is implemented
+    }
+  }, [isAuthenticated, orgId, orgSlug, setOrgSlug]);
+
   // Ensure we attempt to recover org context ONLY if metadata is also missing
   useEffect(() => {
     if (
@@ -79,6 +87,13 @@ export function useAuthProvider() {
         orgId, 
         orgSlug,
         userMetadata: user?.user_metadata
+      });
+      
+      // Add additional log to trace final auth context before page rendering
+      console.log("🏷️ Final auth context before AskSage loads:", {
+        userId,
+        orgId,
+        orgSlug
       });
     }
   }, [isAuthenticated, userId, orgId, orgSlug, user]);
