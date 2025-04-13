@@ -100,7 +100,7 @@ export function QuestionRotationEditor() {
       
       dates.push({
         date: formattedDate,
-        displayDate: formatDate(date),
+        displayDate: formatDate(formattedDate),
         questions: questionsForDate
       });
     }

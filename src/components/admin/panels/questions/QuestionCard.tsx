@@ -1,12 +1,13 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Pencil, Trash2, Star, ThumbsUp, ThumbsDown } from 'lucide-react';
-import { Textarea } from '@/components/ui/textarea';
+import { Pencil, Trash2 } from 'lucide-react';
+import { PopularityRating } from './PopularityRating';
+import { EditDialog, DeleteDialog } from './QuestionDialogs';
+import { QuestionTypeBadge } from './QuestionTypeBadge';
+import { QuestionTags } from './QuestionTags';
 
 interface QuestionProps {
   question: {
@@ -58,29 +59,12 @@ export function QuestionCard({ question, typeColor, onUpdate }: QuestionProps) {
     });
   };
   
-  // Render stars for popularity rating
-  const renderPopularity = () => {
-    return (
-      <div className="flex items-center space-x-1">
-        {[...Array(5)].map((_, i) => (
-          <Star
-            key={i}
-            size={16}
-            className={i < question.popularity ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}
-          />
-        ))}
-      </div>
-    );
-  };
-  
   return (
     <>
       <Card className={`overflow-hidden ${!question.active ? 'opacity-70' : ''}`}>
         <CardContent className="p-4">
           <div className="flex justify-between items-start mb-3">
-            <Badge className={`${typeColor}`}>
-              {question.type.charAt(0).toUpperCase() + question.type.slice(1)}
-            </Badge>
+            <QuestionTypeBadge type={question.type} colorClass={typeColor} />
             <div className="flex items-center space-x-2">
               <Button variant="ghost" size="icon" onClick={() => setIsEditing(true)}>
                 <Pencil className="h-4 w-4" />
@@ -93,26 +77,17 @@ export function QuestionCard({ question, typeColor, onUpdate }: QuestionProps) {
           
           <p className="text-sm mb-3">{question.text}</p>
           
-          <div className="flex flex-wrap gap-1 mb-3">
-            {question.tags.map((tag) => (
-              <Badge key={tag} variant="outline" className="text-xs">
-                {tag}
-              </Badge>
-            ))}
+          <div className="mb-3">
+            <QuestionTags tags={question.tags} />
           </div>
           
           <div className="flex justify-between items-center pt-2 border-t border-gray-100">
             <div className="flex items-center space-x-1">
               <span className="text-xs text-muted-foreground">Popularity:</span>
-              <div className="flex items-center">
-                {renderPopularity()}
-                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleUpdatePopularity(1)}>
-                  <ThumbsUp className="h-3 w-3" />
-                </Button>
-                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleUpdatePopularity(-1)}>
-                  <ThumbsDown className="h-3 w-3" />
-                </Button>
-              </div>
+              <PopularityRating 
+                popularity={question.popularity} 
+                onUpdate={handleUpdatePopularity} 
+              />
             </div>
             
             <div className="flex items-center space-x-2">
@@ -126,37 +101,19 @@ export function QuestionCard({ question, typeColor, onUpdate }: QuestionProps) {
         </CardContent>
       </Card>
 
-      {/* Edit Dialog */}
-      <Dialog open={isEditing} onOpenChange={setIsEditing}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Question</DialogTitle>
-          </DialogHeader>
-          <Textarea
-            value={editedText}
-            onChange={(e) => setEditedText(e.target.value)}
-            className="min-h-[100px]"
-          />
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditing(false)}>Cancel</Button>
-            <Button onClick={handleEditSave}>Save Changes</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <EditDialog 
+        isOpen={isEditing}
+        onOpenChange={setIsEditing}
+        text={editedText}
+        onTextChange={setEditedText}
+        onSave={handleEditSave}
+      />
 
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={confirmDelete} onOpenChange={setConfirmDelete}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Confirm Deletion</DialogTitle>
-          </DialogHeader>
-          <p>Are you sure you want to delete this question? This action cannot be undone.</p>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setConfirmDelete(false)}>Cancel</Button>
-            <Button variant="destructive" onClick={handleDelete}>Delete</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DeleteDialog 
+        isOpen={confirmDelete}
+        onOpenChange={setConfirmDelete}
+        onDelete={handleDelete}
+      />
     </>
   );
 }
