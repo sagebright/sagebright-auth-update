@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Message, SageContext } from '@/types/chat';
 import { buildSageContext } from '@/lib/buildSageContext';
@@ -22,6 +22,17 @@ export function useSendMessage(
 ) {
   const [isLoading, setIsLoading] = useState(false);
   const { search } = useLocation();
+  
+  // Store the most recent valid search params to handle timing issues
+  const latestSearchRef = useRef(search);
+  
+  // Update the ref whenever search changes and is not empty
+  useEffect(() => {
+    if (search) {
+      console.log("🔄 Updating latest search ref:", search);
+      latestSearchRef.current = search;
+    }
+  }, [search]);
 
   const handleSendMessage = async (content: string) => {
     if (!content.trim()) {
@@ -85,7 +96,10 @@ export function useSendMessage(
       }
       
       // Get voice parameter from URL using React Router's useLocation
-      const voice = getVoiceFromUrl(search);
+      // Use the ref to ensure we have the most recent valid search params
+      const currentSearch = search || latestSearchRef.current;
+      console.log("🔍 Current search at message send time:", currentSearch);
+      const voice = getVoiceFromUrl(currentSearch);
       
       // Validate voice parameter against available voices
       const isValidVoice = voice in voiceprints;
