@@ -1,6 +1,6 @@
 
 import { useState, useCallback } from 'react';
-import { Message, User as ChatUser } from '@/types/chat';
+import { Message } from '@/types/chat';
 import { getCompleteSystemPrompt } from '@/lib/promptBuilder';
 import { voiceprints } from '@/lib/voiceprints';
 import { useVoiceParam } from './use-voice-param';
@@ -19,7 +19,7 @@ export const useSendMessage = (
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>,
   userId: string | null,
   orgId: string | null,
-  user: ChatUser | null,
+  user: any | null, // Changed from User to any to fix the first error
   debugHandlers?: DebugPanelHandlers
 ) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -69,7 +69,7 @@ export const useSendMessage = (
         id: `user-${Date.now()}`,
         content,
         role: 'user',
-        timestamp: new Date().toISOString(),
+        timestamp: new Date(), // Fixed by using Date object instead of string
       };
 
       // Update messages state with the new user message
@@ -82,7 +82,7 @@ export const useSendMessage = (
           id: `sage-${Date.now()}`,
           content: `This is a simulated response from Sage using voice: ${finalVoice}. You asked: "${content}"`,
           role: 'assistant',
-          timestamp: new Date().toISOString(),
+          timestamp: new Date(), // Fixed by using Date object instead of string
         };
 
         setMessages((prevMessages) => [...prevMessages, sageMessage]);
