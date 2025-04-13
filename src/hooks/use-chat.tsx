@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { Message } from '@/components/ask-sage/ChatMessage';
 import { buildSageContext } from '@/lib/buildSageContext';
@@ -7,7 +6,6 @@ import { useAuth } from "@/contexts/auth/AuthContext";
 import { toast } from '@/components/ui/use-toast';
 import { supabase } from '@/lib/supabaseClient';
 
-// Updated suggested questions order to prioritize the two required questions
 const SUGGESTED_QUESTIONS = [
   "Who's who on my team",
   "How to set up my development environment", 
@@ -26,7 +24,6 @@ export const useChat = () => {
 
   console.log("🔍 useChat hook initializing with", { userId, orgId, isAuthenticated });
   
-  // Try to fetch organization ID from user data if missing
   useEffect(() => {
     if (isAuthenticated && userId && !orgId && !isRecoveringOrg && !hasRecoveredOrgId) {
       const fetchOrgData = async () => {
@@ -34,19 +31,16 @@ export const useChat = () => {
         try {
           console.log("🔍 Trying to fetch missing org ID from users table");
           
-          // First try to get from current session metadata
           const { data: sessionData } = await supabase.auth.getSession();
           const metadataOrgId = sessionData?.session?.user?.user_metadata?.org_id;
           
           if (metadataOrgId) {
             console.log("✅ Found org ID in user metadata:", metadataOrgId);
-            // We don't need to set orgId here since AuthContext will pick it up from metadata
             setIsRecoveringOrg(false);
             setHasRecoveredOrgId(true);
             return;
           }
           
-          // If not in metadata, try users table
           const { data, error } = await supabase
             .from('users')
             .select('org_id')
@@ -63,12 +57,10 @@ export const useChat = () => {
           if (data?.org_id) {
             console.log("✅ Found org ID in database:", data.org_id);
             
-            // Update user metadata with org_id
             await supabase.auth.updateUser({
               data: { org_id: data.org_id }
             });
             
-            // Force session refresh to get updated metadata
             await supabase.auth.refreshSession();
             console.log("✅ Updated user metadata with org_id and refreshed session");
           } else {
@@ -86,7 +78,6 @@ export const useChat = () => {
     }
   }, [userId, orgId, isAuthenticated, isRecoveringOrg, hasRecoveredOrgId]);
   
-  // Add initial greeting from Sage if empty chat
   useEffect(() => {
     if (messages.length === 0) {
       if (!userId) {
@@ -94,7 +85,6 @@ export const useChat = () => {
         return;
       }
       
-      // Only add greeting if we're not in the middle of recovering org context
       if (!isRecoveringOrg) {
         setMessages([
           {
@@ -109,9 +99,7 @@ export const useChat = () => {
     }
   }, [messages.length, userId, isRecoveringOrg]);
 
-  // Randomly prompt for reflection after some time
   useEffect(() => {
-    // Only set reflection timer if we have valid auth context
     if (!userId) return;
     
     const timer = setTimeout(() => {
@@ -129,7 +117,6 @@ export const useChat = () => {
       return;
     }
 
-    // Added extra validation for userId with detailed console logs
     if (!userId) {
       console.error("❌ Missing userId, user might not be authenticated", { userId });
       toast({
@@ -168,7 +155,60 @@ export const useChat = () => {
       const { context } = await buildSageContext(userId, orgId);
       console.log("Context built:", context);
       
-      // Get voice from URL or use default
+      if (!context.org?.name) {
+        console.error("❌ Critical context missing: Organization name is required", { 
+          userId, 
+          orgId, 
+          context,
+          orgFields: context.org ? Object.keys(context.org) : []
+        });
+        
+        setIsLoading(false);
+        toast({
+          variant: "destructive",
+          title: "Incomplete Organization Data",
+          description: "Unable to personalize Sage's responses. Please contact support to complete your organization profile."
+        });
+        
+        const errorMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          content: "I'm sorry, but I don't have enough information about your organization to properly assist you. Please contact support to complete your organization profile.",
+          sender: 'sage',
+          timestamp: new Date(),
+          avatar_url: "/lovable-uploads/sage_avatar.png",
+        };
+        
+        setMessages(prev => [...prev, errorMessage]);
+        return;
+      }
+      
+      if (context.user && !context.user.role) {
+        console.error("❌ Critical context missing: User role is required", { 
+          userId, 
+          orgId, 
+          context,
+          userFields: context.user ? Object.keys(context.user) : []
+        });
+        
+        setIsLoading(false);
+        toast({
+          variant: "destructive",
+          title: "Incomplete User Profile",
+          description: "Unable to personalize Sage's responses. Please contact support to complete your user profile."
+        });
+        
+        const errorMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          content: "I'm sorry, but I don't have enough information about your role to properly assist you. Please contact support to complete your user profile.",
+          sender: 'sage',
+          timestamp: new Date(),
+          avatar_url: "/lovable-uploads/sage_avatar.png",
+        };
+        
+        setMessages(prev => [...prev, errorMessage]);
+        return;
+      }
+      
       const voice = new URLSearchParams(window.location.search).get('voice') || 'default';
       console.log("Using voice:", voice);
       
