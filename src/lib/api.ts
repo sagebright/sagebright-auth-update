@@ -37,19 +37,20 @@ export async function callOpenAI({
   // Use the centralized prompt builder to get the system prompt
   const systemPrompt = getBasePrompt(context, voice);
   
-  const model = "gpt-4";
+  // Update model to gpt-4o as requested
+  const model = "gpt-4o";
   const messages = [
     { role: "system", content: systemPrompt },
     { role: "user", content: question },
   ];
 
   try {
-    // Log the full request details
+    // Log the full request details (without truncation for debugging)
     console.log("📤 Sending to OpenAI:", { 
       model, 
       voice,
       messages: [
-        { role: "system", content: systemPrompt.substring(0, 100) + "... [truncated]" },
+        { role: "system", content: systemPrompt.substring(0, 100) + "... [truncated for log]" },
         { role: "user", content: question }
       ]
     });
@@ -65,10 +66,11 @@ export async function callOpenAI({
         model,
         messages,
         temperature: 0.7,
+        max_tokens: 1000, // Adding max_tokens as requested
       }),
     });
 
-    // Log the raw response status
+    // Log the raw response status immediately after await
     console.log("📥 OpenAI response status:", response.status, response.statusText);
 
     if (!response.ok) {
@@ -81,6 +83,7 @@ export async function callOpenAI({
       throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
     }
 
+    console.log("Parsing JSON response from OpenAI");
     const data = await response.json();
     console.log("✅ OpenAI response received:", {
       model: data.model, 
