@@ -1,12 +1,87 @@
-
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Users, UserPlus, UserCheck, UserX } from 'lucide-react';
 import { UserFormPanel } from './UserFormPanel';
+import { UserTable, UserTableRow } from '../UserTable';
+import { UserTableFilters } from '../UserTableFilters';
+
+const mockUsers: UserTableRow[] = [
+  {
+    id: '1',
+    name: 'Alex Johnson',
+    role: 'Software Engineer',
+    department: 'Engineering',
+    daysRemaining: 10,
+    percentComplete: 75,
+    startDate: '2025-03-01',
+    status: 'in-progress'
+  },
+  {
+    id: '2',
+    name: 'Sarah Williams',
+    role: 'Product Manager',
+    department: 'Product',
+    daysRemaining: 0,
+    percentComplete: 100,
+    startDate: '2025-02-15',
+    status: 'completed'
+  },
+  {
+    id: '3',
+    name: 'Michael Brown',
+    role: 'Marketing Specialist',
+    department: 'Marketing',
+    daysRemaining: 30,
+    percentComplete: 25,
+    startDate: '2025-04-01',
+    status: 'not-started'
+  },
+  {
+    id: '4',
+    name: 'Emily Davis',
+    role: 'HR Coordinator',
+    department: 'HR',
+    daysRemaining: -5,
+    percentComplete: 60,
+    startDate: '2025-03-10',
+    status: 'overdue'
+  },
+  {
+    id: '5',
+    name: 'James Wilson',
+    role: 'Sales Representative',
+    department: 'Sales',
+    daysRemaining: 20,
+    percentComplete: 40,
+    startDate: '2025-03-20',
+    status: 'in-progress'
+  },
+  {
+    id: '6',
+    name: 'Jennifer Moore',
+    role: 'Financial Analyst',
+    department: 'Finance',
+    daysRemaining: 5,
+    percentComplete: 85,
+    startDate: '2025-03-05',
+    status: 'in-progress'
+  }
+];
 
 export function UsersPanel() {
   const [isAddingUser, setIsAddingUser] = useState(false);
+  const [users, setUsers] = useState<UserTableRow[]>(mockUsers);
+  const [filters, setFilters] = useState({});
+
+  const handleFilterChange = (newFilters: any) => {
+    console.log('Filters changed:', newFilters);
+    setFilters(newFilters);
+    
+    // For the demo, we'll just log the filters and keep the original data
+    // In a real app, this would filter the data based on the criteria
+    // setUsers(filteredUsers);
+  };
 
   if (isAddingUser) {
     return (
@@ -73,7 +148,7 @@ export function UsersPanel() {
         </Card>
       </div>
       
-      {/* User Table Placeholder */}
+      {/* User Management Table */}
       <Card>
         <CardHeader>
           <CardTitle>User Management</CardTitle>
@@ -92,19 +167,14 @@ export function UsersPanel() {
               </Button>
             </div>
             <div className="flex space-x-2">
-              <Button variant="outline" size="sm">Filter</Button>
               <Button variant="outline" size="sm">Export</Button>
             </div>
           </div>
           
-          <div className="rounded-md border p-8 flex justify-center items-center">
-            <div className="text-center">
-              <Users className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-              <h3 className="text-lg font-medium">User Table Placeholder</h3>
-              <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                This is a placeholder for the user management table that would display user information, roles, and actions.
-              </p>
-            </div>
+          <div className="space-y-4">
+            <UserTableFilters onFilterChange={handleFilterChange} />
+            
+            <UserTable users={users} />
           </div>
         </CardContent>
       </Card>
