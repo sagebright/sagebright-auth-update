@@ -10,7 +10,7 @@ import { useReflection } from './use-reflection';
 import { createSageMessage } from '@/utils/messageUtils';
 
 export const useChat = (): ChatHookReturn => {
-  const { userId, orgId, currentUser, isAuthenticated } = useAuth();
+  const { userId, orgId, user, currentUser, isAuthenticated } = useAuth();
   const { isRecoveringOrg } = useOrgRecovery(userId, orgId, isAuthenticated);
   
   // Initialize feedback system
@@ -25,10 +25,17 @@ export const useChat = (): ChatHookReturn => {
     setMessages,
     userId,
     orgId,
-    currentUser
+    user || currentUser // Use whatever user data is available
   );
 
-  console.log("🔍 useChat hook initializing with", { userId, orgId, isAuthenticated });
+  console.log("🔍 useChat hook initializing with", { 
+    userId, 
+    orgId, 
+    isAuthenticated,
+    hasSessionUser: !!user,
+    hasCurrentUser: !!currentUser,
+    hasUserMetadata: user ? !!user.user_metadata : false 
+  });
   
   // Add initial greeting message if no messages exist
   useEffect(() => {
@@ -58,4 +65,3 @@ export const useChat = (): ChatHookReturn => {
     isRecoveringOrg
   };
 };
-

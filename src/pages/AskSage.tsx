@@ -15,10 +15,13 @@ import { LoadingUI } from '@/components/ask-sage/LoadingUI';
 import { useAskSagePage } from '@/hooks/use-ask-sage-page';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { useLocation } from 'react-router-dom';
+import { useAuth } from '@/contexts/auth/AuthContext';
 
 const AskSage = () => {
   const isMobile = useIsMobile();
   const location = useLocation();
+  const { user } = useAuth(); // Add direct access to auth context
+  
   const {
     userId,
     orgId,
@@ -57,16 +60,28 @@ const AskSage = () => {
       search: window.location.search,
       voiceFromWindowSearch: new URLSearchParams(window.location.search).get('voice')
     });
-  }, [location, voiceParam]);
+    
+    // Log auth state in AskSage to verify what's available
+    console.log("👤 AskSage user metadata check:", {
+      hasSessionUser: !!user,
+      hasUserMetadata: user ? !!user.user_metadata : false,
+      userId,
+      orgId,
+      voiceParam
+    });
+  }, [location, voiceParam, user, userId, orgId]);
 
+  // Only wait for basic auth checks, not full current user data
   if (authLoading) {
     return <LoadingUI />;
   }
 
+  // Check if user exists at all (even without full currentUser data)
   if (!authLoading && !userId) {
     return <AuthRequiredUI />;
   }
 
+  // Check if organization context is missing
   if (!authLoading && userId && !orgId && !isRecoveringOrg) {
     return <OrgRecoveryUI userId={userId} />;
   }
@@ -79,6 +94,9 @@ const AskSage = () => {
         {process.env.NODE_ENV === 'development' && (
           <div className="bg-secondary/10 px-4 py-1 text-xs text-charcoal">
             🎤 Voice: <strong>{voiceParam}</strong> | {location.search}
+            {!voiceParam && (
+              <span className="text-accent1"> (Missing voice param!)</span>
+            )}
           </div>
         )}
 

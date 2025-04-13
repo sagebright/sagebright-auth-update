@@ -139,13 +139,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await authActions.updateProfile(data);
   };
 
+  // Create a merged user object that prioritizes session metadata but includes currentUser data
+  const mergedUser = {
+    ...currentUser, // Base properties from currentUser
+    ...user, // Override with session user properties
+    user_metadata: {
+      ...(currentUser?.user_metadata || {}), // Include currentUser metadata if available
+      ...(user?.user_metadata || {}) // Prioritize session metadata
+    }
+  };
+
   const value: AuthContextType = {
     session,
-    user,
+    user: mergedUser, // Use the merged user object
     userId,
     orgId,
     orgSlug,
-    currentUser,
+    currentUser: mergedUser, // Also update currentUser for consistency
     loading,
     isAuthenticated,
     signUp,

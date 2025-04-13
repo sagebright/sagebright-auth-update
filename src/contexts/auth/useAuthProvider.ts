@@ -87,7 +87,9 @@ export function useAuthProvider() {
         orgId, 
         orgSlug,
         userMetadata: user?.user_metadata,
-        currentUserData: currentUser
+        currentUserData: currentUser,
+        sessionReady: !!user,
+        currentUserReady: !!currentUser
       });
       
       // Add additional log to trace final auth context before page rendering
@@ -96,7 +98,9 @@ export function useAuthProvider() {
         orgId,
         orgSlug,
         userMetadata: user?.user_metadata,
-        currentUserHasMetadata: currentUser ? !!currentUser.user_metadata : false
+        sessionUserReady: !!user,
+        currentUserReady: !!currentUser,
+        hasSessionMetadata: user ? !!user.user_metadata : false
       });
     }
   }, [isAuthenticated, userId, orgId, orgSlug, user, currentUser]);
