@@ -19,6 +19,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const location = useLocation();
   const { loading, isAuthenticated, user, orgId, orgSlug } = useRequireAuth(navigate);
   const [initialCheckComplete, setInitialCheckComplete] = useState(false);
+  const [redirectAttempted, setRedirectAttempted] = useState(false);
   
   // Track whether we've already attempted a redirection to prevent loops
   useEffect(() => {
@@ -41,12 +42,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return null;
   }
   
-  // Only attempt subdomain redirects if we've completed the initial check
+  // Only attempt subdomain redirects if we've completed the initial check and haven't tried already
   // This prevents multiple redirects
-  if (initialCheckComplete && orgSlug) {
+  if (initialCheckComplete && orgSlug && !redirectAttempted) {
     const currentOrgSlug = getOrgFromUrl();
     if (orgSlug && (!currentOrgSlug || currentOrgSlug !== orgSlug)) {
       console.log("🏢 ProtectedRoute redirecting to correct org subdomain:", orgSlug);
+      setRedirectAttempted(true); // Prevent further redirect attempts
       sessionStorage.setItem('lastAuthenticatedPath', location.pathname + location.search);
       redirectToOrgUrl(orgSlug);
       return null;
