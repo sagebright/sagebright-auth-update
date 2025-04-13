@@ -45,7 +45,21 @@ export function getBasePrompt(context: SageContext, voice: string = 'default'): 
     prompt += `\n---\n🔹 USER CONTEXT: Limited information available\n`;
   }
 
-  // Placeholder for future features
+  // Add unstructured knowledge placeholder
+  prompt += `
+---
+📄 UNSTRUCTURED ORG KNOWLEDGE:
+=== Unstructured Org Knowledge ===
+[This section contains product roadmaps, onboarding docs, or strategic memos]
+
+Example:  
+Q2 Product Goals:  
+- Expand residential battery incentives (TX, AZ)  
+- Pilot 2 financing models  
+- Integrate with 2 smart home platforms  
+`;
+
+  // Add knowledge base placeholder
   prompt += `\n---\n📚 KNOWLEDGE BASE: Available on request. Ask Sage about specific company policies, processes, or tools.\n`;
 
   return prompt;
