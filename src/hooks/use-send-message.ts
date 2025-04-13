@@ -4,6 +4,9 @@ import { Message } from '@/types/chat';
 import { getCompleteSystemPrompt } from '@/lib/promptBuilder';
 import { voiceprints } from '@/lib/voiceprints';
 import { useVoiceParam } from './use-voice-param';
+import { buildSageContext } from '@/lib/buildSageContext';
+import { callOpenAI } from '@/lib/api';
+import { toast } from '@/components/ui/use-toast';
 
 interface DebugPanelHandlers {
   setRequestLoading: () => void;
@@ -30,6 +33,11 @@ export const useSendMessage = (
   const handleSendMessage = useCallback(async (content: string) => {
     if (!userId || !orgId) {
       console.error("Cannot send message without userId and orgId");
+      toast({
+        variant: "destructive",
+        title: "Error sending message",
+        description: "User or organization information is missing. Please try again later."
+      });
       return;
     }
 
@@ -75,32 +83,70 @@ export const useSendMessage = (
       // Update messages state with the new user message
       setMessages((prevMessages) => [...prevMessages, userMessage]);
 
-      // TODO: Replace this with actual API call to the backend
-      // For now, we're just simulating a response
-      setTimeout(() => {
-        const sageMessage: Message = {
-          id: `sage-${Date.now()}`,
-          content: `This is a simulated response from Sage using voice: ${finalVoice}. You asked: "${content}"`,
-          sender: 'sage',
-          timestamp: new Date(),
-        };
+      // Build the context for Sage
+      const context = await buildSageContext(userId, orgId);
+      
+      // Prepare loading message for better UX
+      const loadingMessage: Message = {
+        id: `sage-loading-${Date.now()}`,
+        content: "Thinking...",
+        sender: 'sage',
+        timestamp: new Date(),
+        isLoading: true
+      };
+      
+      setMessages((prevMessages) => [...prevMessages, loadingMessage]);
+      
+      // Call the OpenAI API with the built context
+      const responseContent = await callOpenAI({
+        question: content,
+        context,
+        voice: finalVoice
+      });
+      
+      // Replace loading message with the actual response
+      const sageMessage: Message = {
+        id: `sage-${Date.now()}`,
+        content: responseContent,
+        sender: 'sage',
+        timestamp: new Date(),
+      };
 
-        setMessages((prevMessages) => [...prevMessages, sageMessage]);
-        setIsLoading(false);
-        
-        const responseTime = Date.now() - startTime;
-        if (debugHandlers) {
-          debugHandlers.setRequestSuccess(responseTime);
-        }
-        
-        console.log(`🎤 Message sent with voice: ${finalVoice} (response time: ${responseTime}ms)`);
-      }, 1500);
+      setMessages((prevMessages) => 
+        prevMessages.filter(msg => msg.id !== loadingMessage.id).concat(sageMessage)
+      );
+      
+      const responseTime = Date.now() - startTime;
+      if (debugHandlers) {
+        debugHandlers.setRequestSuccess(responseTime);
+      }
+      
+      console.log(`🎤 Message sent with voice: ${finalVoice} (response time: ${responseTime}ms)`);
     } catch (error) {
       console.error("Error sending message:", error);
-      setIsLoading(false);
+      
+      // Remove loading message and add error message
+      setMessages((prevMessages) => 
+        prevMessages.filter(msg => !msg.isLoading).concat({
+          id: `sage-error-${Date.now()}`,
+          content: "I'm sorry, I encountered an error processing your request. Please try again.",
+          sender: 'sage',
+          timestamp: new Date(),
+          isError: true
+        })
+      );
+      
+      toast({
+        variant: "destructive",
+        title: "Error sending message",
+        description: error instanceof Error ? error.message : "An unknown error occurred"
+      });
+      
       if (debugHandlers) {
         debugHandlers.setRequestError(error instanceof Error ? error.message : String(error));
       }
+    } finally {
+      setIsLoading(false);
     }
   }, [userId, orgId, voice, setMessages, debugHandlers]);
 

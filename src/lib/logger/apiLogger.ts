@@ -36,6 +36,7 @@ export function logApiActivity(
       
       // Add API URL logging
       console.log('🌐 API Endpoint:', apiUrl);
+      console.log(`📡 OpenAI fetch URL: ${apiUrl}`);
       
       // Log important request metadata
       console.log('🔑 Request Key Data:', {
