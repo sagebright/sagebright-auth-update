@@ -104,6 +104,9 @@ export function useSendMessage(
         console.warn(`⚠️ Invalid voice "${voice}" requested, falling back to default`);
       }
       
+      // Log the final voice being sent to OpenAI
+      console.log(`🎙️ Sending final voice to OpenAI: "${finalVoice}"`);
+      
       const answer = await callOpenAI({ 
         question: content, 
         context, 

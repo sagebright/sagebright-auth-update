@@ -67,5 +67,36 @@ Q2 Product Goals:
   // Add knowledge base placeholder
   prompt += `\n---\n📚 KNOWLEDGE BASE: Available on request. Ask Sage about specific company policies, processes, or tools.\n`;
 
+  // Log the final prompt for debugging
+  console.log(`🧠 Final system prompt for voice "${voice}"`, { 
+    promptLength: prompt.length,
+    voice,
+    hasVoiceprintContent: !!tone,
+    voiceprintContentStart: tone.substring(0, 50) + "..."
+  });
+  
   return prompt;
+}
+
+/**
+ * Get complete system prompt for OpenAI including all context and voiceprint
+ * @param context The context object with user and org info
+ * @param voice The voice personality to use
+ * @returns Complete system prompt
+ */
+export function getCompleteSystemPrompt(context: SageContext, voice: string = 'default'): string {
+  const basePrompt = getBasePrompt(context, voice);
+  const finalPrompt = basePrompt;
+  
+  // Debug log the full system prompt for troubleshooting voice injection issues
+  console.log("🧠 Final system prompt content:", {
+    promptLength: finalPrompt.length,
+    voice,
+    voiceInjection: voice !== 'default' ? 'applied' : 'default',
+    contentPreview: finalPrompt.substring(0, 200) + "...",
+    voiceprintUsed: voiceprints[voice] ? true : false,
+    voiceprintExcerpt: voiceprints[voice]?.substring(0, 50) + "..." || 'N/A'
+  });
+  
+  return finalPrompt;
 }
