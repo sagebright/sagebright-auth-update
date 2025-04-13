@@ -68,8 +68,8 @@ export const useSendMessage = (
       const userMessage: Message = {
         id: `user-${Date.now()}`,
         content,
-        role: 'user',
-        timestamp: new Date(), // Fixed by using Date object instead of string
+        sender: 'user',
+        timestamp: new Date(), 
       };
 
       // Update messages state with the new user message
@@ -81,8 +81,8 @@ export const useSendMessage = (
         const sageMessage: Message = {
           id: `sage-${Date.now()}`,
           content: `This is a simulated response from Sage using voice: ${finalVoice}. You asked: "${content}"`,
-          role: 'assistant',
-          timestamp: new Date(), // Fixed by using Date object instead of string
+          sender: 'sage',
+          timestamp: new Date(),
         };
 
         setMessages((prevMessages) => [...prevMessages, sageMessage]);
