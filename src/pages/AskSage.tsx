@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useEffect } from 'react';
 import { DashboardContainer } from '@/components/layout/DashboardContainer';
 import { ChatHeader } from '@/components/ask-sage/ChatHeader';
 import { ResourcesSidebar } from '@/components/ask-sage/ResourcesSidebar';
@@ -40,17 +39,24 @@ const AskSage = () => {
     handleSelectQuestion,
     handleFeedback,
     
-    isRecoveringOrg
+    isRecoveringOrg,
+    voiceParam
   } = useAskSagePage();
 
-  // Log the search params for debugging
-  React.useEffect(() => {
+  useEffect(() => {
     console.log("🔍 AskSage route location:", {
       pathname: location.pathname,
       search: location.search,
-      hash: location.hash
+      hash: location.hash,
+      voiceParam
     });
-  }, [location]);
+    
+    console.log("🌐 Window location:", {
+      href: window.location.href,
+      search: window.location.search,
+      voiceFromWindowSearch: new URLSearchParams(window.location.search).get('voice')
+    });
+  }, [location, voiceParam]);
 
   if (authLoading) {
     return <LoadingUI />;
@@ -68,6 +74,12 @@ const AskSage = () => {
     <DashboardContainer showSagePanel={false}>
       <div className="flex flex-col h-full -m-4 md:-m-8">
         <ChatHeader sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+
+        {process.env.NODE_ENV === 'development' && (
+          <div className="bg-secondary/10 px-4 py-1 text-xs text-charcoal">
+            🎤 Voice: <strong>{voiceParam}</strong> | {location.search}
+          </div>
+        )}
 
         <div className="flex flex-1 overflow-hidden">
           <div className="flex-1 flex flex-col min-w-0 h-full">

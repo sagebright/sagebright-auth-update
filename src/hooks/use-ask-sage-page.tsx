@@ -1,37 +1,24 @@
-
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
+import { useState, useEffect, useCallback } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
 import { useChat } from '@/hooks/use-chat';
 import { ReflectionData } from '@/components/ask-sage/ReflectionForm';
-import { getVoiceFromUrl } from '@/lib/utils';
+import { useVoiceParam } from '@/hooks/use-voice-param';
 
 export const useAskSagePage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const location = useLocation();
   const { user, userId, orgId, loading: authLoading, isAuthenticated } = useRequireAuth(navigate);
   
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isRecoveryVisible, setIsRecoveryVisible] = useState(false);
   const [pageInitialized, setPageInitialized] = useState(false);
   
-  // Track the most recent valid search string
-  const latestSearchRef = useRef(location.search);
-  
-  // Update the ref whenever search changes and is not empty
-  useEffect(() => {
-    if (location.search) {
-      console.log("🔄 AskSagePage updating latest search ref:", location.search);
-      latestSearchRef.current = location.search;
-    }
-  }, [location.search]);
-  
-  // Get voice parameter from current location or the latest stored value
-  const voiceParam = getVoiceFromUrl(location.search || latestSearchRef.current);
+  // Use our custom hook to get the voice parameter
+  const voiceParam = useVoiceParam();
   
   useEffect(() => {
-    console.log("🎤 Current voice parameter:", voiceParam);
+    console.log("🎤 AskSagePage current voice parameter:", voiceParam);
   }, [voiceParam]);
 
   const {
@@ -56,11 +43,10 @@ export const useAskSagePage = () => {
         userId, 
         orgId, 
         isRecoveringOrg,
-        currentSearch: location.search || latestSearchRef.current,
         voiceParam
       });
     }
-  }, [authLoading, isAuthenticated, userId, orgId, isRecoveringOrg, pageInitialized, location.search, voiceParam]);
+  }, [authLoading, isAuthenticated, userId, orgId, isRecoveringOrg, pageInitialized, voiceParam]);
 
   // Show recovery dialog if user is authenticated but missing org context
   useEffect(() => {

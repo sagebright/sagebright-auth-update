@@ -1,13 +1,12 @@
 
-import { useState, useEffect, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useState } from 'react';
 import { Message, SageContext } from '@/types/chat';
 import { buildSageContext } from '@/lib/buildSageContext';
 import { callOpenAI } from '@/lib/api';
 import { toast } from '@/components/ui/use-toast';
 import { createUserMessage, createSageMessage } from '@/utils/messageUtils';
 import { handleMissingOrgContext, handleMissingUserContext, handleChatError } from '@/utils/sageErrorUtils';
-import { getVoiceFromUrl } from '@/lib/utils';
+import { useVoiceParam } from '@/hooks/use-voice-param';
 import { voiceprints } from '@/lib/voiceprints';
 
 /**
@@ -21,18 +20,8 @@ export function useSendMessage(
   currentUser: any | null
 ) {
   const [isLoading, setIsLoading] = useState(false);
-  const { search } = useLocation();
-  
-  // Store the most recent valid search params to handle timing issues
-  const latestSearchRef = useRef(search);
-  
-  // Update the ref whenever search changes and is not empty
-  useEffect(() => {
-    if (search) {
-      console.log("🔄 Updating latest search ref:", search);
-      latestSearchRef.current = search;
-    }
-  }, [search]);
+  // Use our custom hook to get the voice parameter
+  const voice = useVoiceParam();
 
   const handleSendMessage = async (content: string) => {
     if (!content.trim()) {
@@ -95,15 +84,11 @@ export function useSendMessage(
         return;
       }
       
-      // Get voice parameter from URL using React Router's useLocation
-      // Use the ref to ensure we have the most recent valid search params
-      const currentSearch = search || latestSearchRef.current;
-      console.log("🔍 Current search at message send time:", currentSearch);
-      const voice = getVoiceFromUrl(currentSearch);
+      console.log("🎤 Using voice from hook:", voice);
       
-      // Validate voice parameter against available voices
+      // Validate voice parameter against available voices (redundant, but safe)
       const isValidVoice = voice in voiceprints;
-      console.log("🔊 Using voice:", voice, "Valid:", isValidVoice);
+      console.log("🔊 Voice validation check:", { voice, isValid: isValidVoice });
       
       // Use the validated voice or fall back to 'default'
       const finalVoice = isValidVoice ? voice : 'default';
