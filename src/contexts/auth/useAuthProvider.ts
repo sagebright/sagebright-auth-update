@@ -57,16 +57,19 @@ export function useAuthProvider() {
     }
   }, [isAuthenticated, userId, orgId, user, setOrgId]);
 
-  // Ensure we attempt to recover org context if needed
+  // Ensure we attempt to recover org context ONLY if metadata is also missing
   useEffect(() => {
-    if (isAuthenticated && userId && !orgId && !isRecoveringOrgContext) {
-      console.log("🔍 No orgId detected, attempting recovery...");
-      const attemptRecovery = async () => {
-        await recoverOrgContext();
-      };
-      attemptRecovery();
+    if (
+      isAuthenticated &&
+      userId &&
+      !orgId &&
+      !user?.user_metadata?.org_id &&
+      !isRecoveringOrgContext
+    ) {
+      console.log("🔍 No orgId found anywhere—attempting recovery...");
+      recoverOrgContext();
     }
-  }, [isAuthenticated, userId, orgId, isRecoveringOrgContext, recoverOrgContext]);
+  }, [isAuthenticated, userId, orgId, isRecoveringOrgContext, user, recoverOrgContext]);
 
   // For debugging
   useEffect(() => {
