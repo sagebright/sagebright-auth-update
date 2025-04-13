@@ -3,6 +3,7 @@
 
 import { SageContext } from '@/types/chat';
 import { getBasePrompt } from './promptBuilder';
+import { handleApiError } from './handleApiError';
 
 export async function callOpenAI({
   question,
@@ -35,8 +36,24 @@ export async function callOpenAI({
 
   // Use the centralized prompt builder to get the system prompt
   const systemPrompt = getBasePrompt(context, voice);
+  
+  const model = "gpt-4";
+  const messages = [
+    { role: "system", content: systemPrompt },
+    { role: "user", content: question },
+  ];
 
   try {
+    // Log the full request details
+    console.log("📤 Sending to OpenAI:", { 
+      model, 
+      voice,
+      messages: [
+        { role: "system", content: systemPrompt.substring(0, 100) + "... [truncated]" },
+        { role: "user", content: question }
+      ]
+    });
+    
     console.log("Sending request to OpenAI API");
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -45,27 +62,44 @@ export async function callOpenAI({
         Authorization: `Bearer ${import.meta.env.VITE_OPENAI_KEY}`,
       },
       body: JSON.stringify({
-        model: "gpt-4",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: question },
-        ],
+        model,
+        messages,
         temperature: 0.7,
       }),
     });
 
+    // Log the raw response status
+    console.log("📥 OpenAI response status:", response.status, response.statusText);
+
     if (!response.ok) {
-      const errorData = await response.json().catch(() => null);
-      console.error("OpenAI API error:", errorData || response.statusText);
+      const errorData = await response.json().catch((parseError) => {
+        console.error("Failed to parse error response:", parseError);
+        return { error: "Failed to parse error response" };
+      });
+      
+      console.error("❌ OpenAI API error:", JSON.stringify(errorData, null, 2));
       throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
     }
 
     const data = await response.json();
-    console.log("Received response from OpenAI");
+    console.log("✅ OpenAI response received:", {
+      model: data.model, 
+      usage: data.usage,
+      responseFirstTokens: data.choices?.[0]?.message?.content?.substring(0, 50) + "... [truncated]"
+    });
 
-    return data.choices?.[0]?.message?.content ?? "No response from Sage.";
+    if (!data.choices || data.choices.length === 0) {
+      console.error("❌ OpenAI returned no choices:", JSON.stringify(data, null, 2));
+      throw new Error("OpenAI API returned an empty response. Please try again.");
+    }
+
+    return data.choices[0].message.content ?? "No response from Sage.";
   } catch (error) {
-    console.error("Error in callOpenAI:", error);
+    // Comprehensive error logging
+    console.error("❌ Error in callOpenAI:", JSON.stringify(error, null, 2));
+    console.error("Error object:", error);
+    
+    // Rethrow the error to be handled by the caller
     throw error;
   }
 }
