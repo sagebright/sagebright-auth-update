@@ -1,10 +1,29 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Users, UserPlus, UserCheck, UserX } from 'lucide-react';
+import { UserFormPanel } from './UserFormPanel';
 
 export function UsersPanel() {
+  const [isAddingUser, setIsAddingUser] = useState(false);
+
+  if (isAddingUser) {
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-end">
+          <Button 
+            variant="outline" 
+            onClick={() => setIsAddingUser(false)}
+          >
+            Back to Users
+          </Button>
+        </div>
+        <UserFormPanel />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Summary Cards */}
@@ -63,7 +82,11 @@ export function UsersPanel() {
         <CardContent>
           <div className="mb-4 flex justify-between items-center">
             <div>
-              <Button variant="default" size="sm">
+              <Button 
+                variant="default" 
+                size="sm"
+                onClick={() => setIsAddingUser(true)}
+              >
                 <UserPlus className="h-4 w-4 mr-2" />
                 Add User
               </Button>
