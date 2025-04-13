@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Message } from '@/components/ask-sage/ChatMessage';
 import { buildSageContext } from '@/lib/buildSageContext';
 import { callOpenAI } from '@/lib/api';
@@ -21,13 +21,14 @@ export const useChat = () => {
   const [showReflection, setShowReflection] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isRecoveringOrg, setIsRecoveringOrg] = useState(false);
+  const [hasRecoveredOrgId, setHasRecoveredOrgId] = useState(false);
   const { userId, orgId, currentUser, isAuthenticated } = useAuth();
 
   console.log("🔍 useChat hook initializing with", { userId, orgId, isAuthenticated });
   
   // Try to fetch organization ID from user data if missing
   useEffect(() => {
-    if (isAuthenticated && userId && !orgId && !isRecoveringOrg) {
+    if (isAuthenticated && userId && !orgId && !isRecoveringOrg && !hasRecoveredOrgId) {
       const fetchOrgData = async () => {
         setIsRecoveringOrg(true);
         try {
@@ -41,6 +42,7 @@ export const useChat = () => {
             console.log("✅ Found org ID in user metadata:", metadataOrgId);
             // We don't need to set orgId here since AuthContext will pick it up from metadata
             setIsRecoveringOrg(false);
+            setHasRecoveredOrgId(true);
             return;
           }
           
@@ -54,6 +56,7 @@ export const useChat = () => {
           if (error) {
             console.warn("⚠️ Error fetching user org data:", error);
             setIsRecoveringOrg(false);
+            setHasRecoveredOrgId(true);
             return;
           }
           
@@ -75,12 +78,13 @@ export const useChat = () => {
           console.error("❌ Error recovering org data:", err);
         } finally {
           setIsRecoveringOrg(false);
+          setHasRecoveredOrgId(true);
         }
       };
       
       fetchOrgData();
     }
-  }, [userId, orgId, isAuthenticated, isRecoveringOrg]);
+  }, [userId, orgId, isAuthenticated, isRecoveringOrg, hasRecoveredOrgId]);
   
   // Add initial greeting from Sage if empty chat
   useEffect(() => {
