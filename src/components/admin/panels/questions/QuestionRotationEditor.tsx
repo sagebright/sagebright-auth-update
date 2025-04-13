@@ -63,7 +63,7 @@ const FREQUENCY_OPTIONS = [
 
 // Format date for display
 const formatDate = (dateString) => {
-  const options = { weekday: 'short', month: 'short', day: 'numeric' };
+  const options = { weekday: 'short' as const, month: 'short' as const, day: 'numeric' as const };
   return new Date(dateString).toLocaleDateString('en-US', options);
 };
 
@@ -178,7 +178,6 @@ export function QuestionRotationEditor() {
                                   <Switch
                                     checked={question.active}
                                     onCheckedChange={() => handleToggleActive(question.id)}
-                                    size="sm"
                                   />
                                   <span className="text-xs text-muted-foreground">
                                     {question.active ? 'Active' : 'Paused'}
