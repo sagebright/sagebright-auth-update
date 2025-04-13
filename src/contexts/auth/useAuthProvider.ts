@@ -86,20 +86,30 @@ export function useAuthProvider() {
         userId, 
         orgId, 
         orgSlug,
-        userMetadata: user?.user_metadata
+        userMetadata: user?.user_metadata,
+        currentUserData: currentUser
       });
       
       // Add additional log to trace final auth context before page rendering
-      console.log("🏷️ Final auth context before AskSage loads:", {
+      console.log("🏷️ Final auth context before rendering:", {
         userId,
         orgId,
-        orgSlug
+        orgSlug,
+        userMetadata: user?.user_metadata,
+        currentUserHasMetadata: currentUser ? !!currentUser.user_metadata : false
       });
     }
-  }, [isAuthenticated, userId, orgId, orgSlug, user]);
+  }, [isAuthenticated, userId, orgId, orgSlug, user, currentUser]);
 
   // Combined setter for current user to update both contexts
   const setCurrentUser = (userData: any | null) => {
+    // Ensure we don't lose user_metadata when updating user data
+    if (userData && user && user.user_metadata) {
+      if (!userData.user_metadata) {
+        userData.user_metadata = user.user_metadata;
+      }
+    }
+    
     setUserDataCurrentUser(userData);
     setOrgContextUser(userData);
   };

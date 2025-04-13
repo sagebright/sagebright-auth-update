@@ -11,6 +11,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const authState = useAuthProvider();
+  
   const {
     accessToken,
     session,
@@ -21,7 +23,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     currentUser,
     loading,
     isAuthenticated,
-  } = useAuthProvider();
+  } = authState;
+
+  // Debug log for the exact auth state being provided to context
+  console.log("🔄 Auth context values being provided:", {
+    hasUser: !!user,
+    hasUserMetadata: user ? !!user.user_metadata : false,
+    userId,
+    orgId,
+    isAuthenticated
+  });
 
   const signUp = async (email: string, password: string, fullName: string) => {
     try {

@@ -25,7 +25,15 @@ export function useSessionInit() {
         if (!isMounted) return;
         
         setSession(session);
-        setUser(session?.user ?? null);
+        
+        // Important: Preserve the entire user object with metadata
+        if (session?.user) {
+          console.log('🔑 User metadata in onAuthStateChange:', session.user.user_metadata);
+          setUser(session.user);
+        } else {
+          setUser(null);
+        }
+        
         setUserId(session?.user?.id ?? null);
         setAccessToken(session?.access_token ?? null);
         
@@ -45,6 +53,8 @@ export function useSessionInit() {
                 const { data: refreshData } = await supabase.auth.refreshSession();
                 if (refreshData.session && isMounted) {
                   setSession(refreshData.session);
+                  // Preserve the entire user object with metadata
+                  console.log('🔄 User metadata after refresh:', refreshData.session.user.user_metadata);
                   setUser(refreshData.session.user);
                 }
               } catch (refreshError) {
@@ -82,7 +92,15 @@ export function useSessionInit() {
         if (!isMounted) return;
   
         setSession(session);
-        setUser(session?.user ?? null);
+        
+        // Preserve the entire user object with metadata
+        if (session?.user) {
+          console.log('🔑 User metadata in getSession:', session.user.user_metadata);
+          setUser(session.user);
+        } else {
+          setUser(null);
+        }
+        
         setUserId(session?.user?.id ?? null);
         setAccessToken(session?.access_token ?? null);
         
