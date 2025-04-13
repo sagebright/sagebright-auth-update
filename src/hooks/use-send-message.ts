@@ -117,15 +117,23 @@ export function useSendMessage(
 
         const sageMessage = createSageMessage(answer);
         setMessages(prev => [...prev, sageMessage]);
-      } catch (apiError) {
+      } catch (apiError: any) {
         console.error("❌ API call failed:", apiError);
         
-        // Create a more user-friendly error message
-        const errorMessage = createSageMessage(
-          "I'm sorry, I encountered an issue connecting to my knowledge base. Please try again in a moment or contact support if the problem persists."
+        // Create a more specific error message based on the error
+        let errorMessage = "I'm sorry, I encountered an issue connecting to my knowledge base.";
+        
+        if (apiError.message?.includes('Non-JSON response')) {
+          errorMessage = "I'm having trouble connecting to the OpenAI service. The server might be returning an HTML error page instead of the expected JSON response.";
+        } else if (apiError.message?.includes('parse')) {
+          errorMessage = "I received an unexpected response format from my knowledge service.";
+        }
+        
+        const sageErrorMessage = createSageMessage(
+          `${errorMessage} Please try again in a moment or contact support if the problem persists.`
         );
         
-        setMessages(prev => [...prev, errorMessage]);
+        setMessages(prev => [...prev, sageErrorMessage]);
         
         toast({
           variant: "destructive",

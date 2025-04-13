@@ -88,17 +88,21 @@ Q2 Product Goals:
  * @returns Complete system prompt
  */
 export function getCompleteSystemPrompt(context: SageContext, voice: string = 'default'): string {
-  const basePrompt = getBasePrompt(context, voice);
+  // Ensure voice is a valid string
+  const safeVoice = typeof voice === 'string' ? voice : 'default';
+  
+  // Get the base prompt with validated voice
+  const basePrompt = getBasePrompt(context, safeVoice);
   const finalPrompt = basePrompt;
   
   // Debug log the full system prompt for troubleshooting voice injection issues
   console.log("🧠 Final system prompt content:", {
     promptLength: finalPrompt.length,
-    voice,
-    voiceInjection: voice !== 'default' ? 'applied' : 'default',
+    voice: safeVoice,
+    voiceInjection: safeVoice !== 'default' ? 'applied' : 'default',
     contentPreview: finalPrompt.substring(0, 200) + "...",
-    voiceprintUsed: voiceprints[voice] ? true : false,
-    voiceprintExcerpt: voiceprints[voice]?.substring(0, 50) + "..." || 'N/A'
+    voiceprintUsed: voiceprints[safeVoice] ? true : false,
+    voiceprintExcerpt: voiceprints[safeVoice]?.substring(0, 50) + "..." || 'N/A'
   });
   
   return finalPrompt;
