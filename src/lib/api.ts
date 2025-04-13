@@ -44,17 +44,31 @@ export async function callOpenAI({
     { role: "user", content: question },
   ];
 
+  // NEW: Add preflight validation and fingerprint
+  if (messages.length === 0) {
+    console.error("❌ CRITICAL ERROR: Messages array is empty in callOpenAI");
+    throw new Error("No messages to send to OpenAI. Please check the message construction.");
+  }
+
+  if (!messages[0]?.content) {
+    console.error("❌ CRITICAL ERROR: First message content is missing in callOpenAI");
+    throw new Error("System prompt is missing. Please check the prompt builder.");
+  }
+
+  // Definitive preflight fingerprint - placed immediately before OpenAI call
+  console.log("📤 Preflight OpenAI check:", {
+    model,
+    voice,
+    messagesLength: messages.length,
+    firstMessage: {
+      role: messages[0].role,
+      contentPreview: messages[0].content.substring(0, 300) + "...",
+      contentLength: messages[0].content.length
+    },
+    userMessagePreview: question.substring(0, 100) + "..."
+  });
+  
   try {
-    // Log the full request details (without truncation for debugging)
-    console.log("📤 Sending to OpenAI:", { 
-      model, 
-      voice,
-      messages: [
-        { role: "system", content: systemPrompt.substring(0, 100) + "... [truncated for log]" },
-        { role: "user", content: question }
-      ]
-    });
-    
     console.log("Sending request to OpenAI API");
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
