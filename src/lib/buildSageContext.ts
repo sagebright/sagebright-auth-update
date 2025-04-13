@@ -3,6 +3,8 @@
 
 import { fetchOrgContext } from '@/lib/fetchOrgContext';
 import { fetchUserContext } from '@/lib/fetchUserContext';
+import { validateContextIds, validateOrgContext, validateUserContext } from '@/lib/contextValidation';
+import { createOrgContextFallback, logContextBuildingError } from '@/lib/contextErrorHandling';
 
 /**
  * Constructs the full context for Sage based on the user and org.
@@ -14,12 +16,11 @@ import { fetchUserContext } from '@/lib/fetchUserContext';
 export async function buildSageContext(userId: string, orgId: string) {
   console.log("🔍 Building context for userId:", userId, "and orgId:", orgId);
   
-  if (!userId || !orgId) {
-    console.error("Missing userId or orgId:", { userId, orgId });
-    throw new Error("Missing userId or orgId");
-  }
-
   try {
+    // Validate input parameters
+    validateContextIds(userId, orgId);
+
+    // Fetch context data
     const [orgContext, userContext] = await Promise.all([
       fetchOrgContext(orgId),
       fetchUserContext(userId),
@@ -30,31 +31,13 @@ export async function buildSageContext(userId: string, orgId: string) {
       userContextExists: !!userContext 
     });
 
-    // Defensive logging for incomplete org context
-    if (orgContext && !orgContext.name) {
-      console.warn("⚠️ Incomplete org context: Missing name field", { 
-        orgId, 
-        userId,
-        orgFields: Object.keys(orgContext || {})
-      });
+    // Validate organization context
+    if (!validateOrgContext(orgContext, orgId)) {
+      return createOrgContextFallback(userId, orgId);
     }
 
-    // Defensive logging for incomplete user context
-    if (userContext && !userContext.role) {
-      console.warn("⚠️ Incomplete user context: Missing role field", { 
-        userId, 
-        orgId,
-        userFields: Object.keys(userContext || {})
-      });
-    }
-
-    if (!orgContext) {
-      console.warn("No organization context found for orgId:", orgId);
-      return {
-        messages: ["Sage couldn't find your organization's context."],
-        context: { userId, orgId },
-      };
-    }
+    // Validate user context (logged but not blocking)
+    validateUserContext(userContext, userId, orgId);
 
     return {
       messages: [],
@@ -66,7 +49,7 @@ export async function buildSageContext(userId: string, orgId: string) {
       },
     };
   } catch (error) {
-    console.error("Error building context:", error);
+    logContextBuildingError(error, userId, orgId);
     throw error;
   }
 }
