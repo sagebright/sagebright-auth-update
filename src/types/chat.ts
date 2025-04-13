@@ -11,6 +11,14 @@ export interface Message {
   disliked?: boolean;
 }
 
+export interface SageContext {
+  org: any | null;
+  user: any | null;
+  userId: string;
+  orgId: string;
+  messages?: string[];
+}
+
 export interface ChatHookReturn {
   messages: Message[];
   suggestedQuestions: string[];

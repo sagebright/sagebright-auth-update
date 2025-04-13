@@ -15,7 +15,10 @@ export function createOrgContextFallback(userId: string, orgId: string) {
   
   return {
     messages: ["Sage couldn't find your organization's context."],
-    context: { userId, orgId },
+    org: null,
+    user: null,
+    userId, 
+    orgId,
   };
 }
 

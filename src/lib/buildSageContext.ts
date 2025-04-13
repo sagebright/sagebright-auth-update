@@ -33,7 +33,13 @@ export async function buildSageContext(userId: string, orgId: string) {
 
     // Validate organization context
     if (!validateOrgContext(orgContext, orgId)) {
-      return createOrgContextFallback(userId, orgId);
+      return {
+        messages: [],
+        org: null,
+        user: null,
+        userId,
+        orgId,
+      };
     }
 
     // Validate user context (logged but not blocking)
@@ -41,15 +47,21 @@ export async function buildSageContext(userId: string, orgId: string) {
 
     return {
       messages: [],
-      context: {
-        org: orgContext,
-        user: userContext,
-        userId,
-        orgId,
-      },
+      org: orgContext,
+      user: userContext,
+      userId,
+      orgId,
     };
   } catch (error) {
     logContextBuildingError(error, userId, orgId);
-    throw error;
+    
+    // Return a consistent structure even in error cases
+    return {
+      messages: ["Error building context"],
+      org: null,
+      user: null,
+      userId,
+      orgId,
+    };
   }
 }

@@ -91,10 +91,38 @@ export const useChat = () => {
 
     try {
       console.log("Building context for userId:", userId, "orgId:", orgId);
-      const { context } = await buildSageContext(userId, orgId);
+      const context = await buildSageContext(userId, orgId);
       console.log("Context built:", context);
       
-      if (!context.org?.name) {
+      // Check if context.org exists before accessing its properties
+      if (!context.org) {
+        console.error("❌ Critical context missing: Organization data is required", { 
+          userId, 
+          orgId, 
+          contextKeys: Object.keys(context)
+        });
+        
+        setIsLoading(false);
+        toast({
+          variant: "destructive",
+          title: "Incomplete Organization Data",
+          description: "Unable to personalize Sage's responses. Please contact support to complete your organization profile."
+        });
+        
+        const errorMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          content: "I'm sorry, but I don't have enough information about your organization to properly assist you. Please contact support to complete your organization profile.",
+          sender: 'sage',
+          timestamp: new Date(),
+          avatar_url: "/lovable-uploads/sage_avatar.png",
+        };
+        
+        setMessages(prev => [...prev, errorMessage]);
+        return;
+      }
+      
+      // Check if context.org.name exists
+      if (!context.org.name) {
         console.error("❌ Critical context missing: Organization name is required", { 
           userId, 
           orgId, 
@@ -121,7 +149,35 @@ export const useChat = () => {
         return;
       }
       
-      if (context.user && !context.user.role) {
+      // Check if context.user exists before accessing its properties
+      if (!context.user) {
+        console.error("❌ Critical context missing: User data is required", { 
+          userId, 
+          orgId, 
+          contextKeys: Object.keys(context)
+        });
+        
+        setIsLoading(false);
+        toast({
+          variant: "destructive",
+          title: "Incomplete User Profile",
+          description: "Unable to personalize Sage's responses. Please complete your user profile."
+        });
+        
+        const errorMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          content: "I'm sorry, but I don't have enough information about your profile to properly assist you. Please complete your user profile.",
+          sender: 'sage',
+          timestamp: new Date(),
+          avatar_url: "/lovable-uploads/sage_avatar.png",
+        };
+        
+        setMessages(prev => [...prev, errorMessage]);
+        return;
+      }
+      
+      // Check if context.user.role exists
+      if (!context.user.role) {
         console.error("❌ Critical context missing: User role is required", { 
           userId, 
           orgId, 
