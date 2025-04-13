@@ -10,13 +10,18 @@ import { voiceprints, sageFramework } from './voiceprints';
  * @returns Complete system prompt string for OpenAI
  */
 export function getBasePrompt(context: SageContext, voice: string = 'default'): string {
+  // Ensure voice is a string
+  const safeVoice = typeof voice === 'string' ? voice : 'default';
+  
   // Validate voice parameter and get the selected voice tone
-  const validVoice = voice in voiceprints ? voice : 'default';
+  const validVoice = safeVoice in voiceprints ? safeVoice : 'default';
+  
+  // Get the voice tone from voiceprints
   const tone = voiceprints[validVoice];
   
   // Log warning if voice is invalid and we're falling back
-  if (validVoice !== voice) {
-    console.warn(`⚠️ Unknown voiceprint key: "${voice}" - falling back to default.`);
+  if (validVoice !== safeVoice) {
+    console.warn(`⚠️ Unknown voiceprint key: "${safeVoice}" - falling back to default.`);
   } else {
     console.log(`✅ Using validated voice: "${validVoice}"`);
   }
@@ -53,7 +58,7 @@ export function getBasePrompt(context: SageContext, voice: string = 'default'): 
     prompt += `\n---\n🔹 USER CONTEXT: Limited information available\n`;
   }
 
-  // Add unstructured knowledge placeholder
+  // Add placeholders for knowledge sections
   prompt += `
 ---
 📄 UNSTRUCTURED ORG KNOWLEDGE:
@@ -67,17 +72,8 @@ Q2 Product Goals:
 - Integrate with 2 smart home platforms  
 `;
 
-  // Add knowledge base placeholder
   prompt += `\n---\n📚 KNOWLEDGE BASE: Available on request. Ask Sage about specific company policies, processes, or tools.\n`;
 
-  // Log the final prompt for debugging
-  console.log(`🧠 Final system prompt for voice "${validVoice}"`, { 
-    promptLength: prompt.length,
-    voice: validVoice,
-    hasVoiceprintContent: !!tone,
-    voiceprintContentStart: tone.substring(0, 50) + "..."
-  });
-  
   return prompt;
 }
 
@@ -93,17 +89,20 @@ export function getCompleteSystemPrompt(context: SageContext, voice: string = 'd
   
   // Get the base prompt with validated voice
   const basePrompt = getBasePrompt(context, safeVoice);
-  const finalPrompt = basePrompt;
+  
+  // Debug log for voiceprint validation
+  const voiceprintValid = safeVoice in voiceprints;
+  const voiceExcerpt = voiceprints[safeVoice in voiceprints ? safeVoice : 'default']?.substring(0, 50) + "...";
   
   // Debug log the full system prompt for troubleshooting voice injection issues
   console.log("🧠 Final system prompt content:", {
-    promptLength: finalPrompt.length,
+    promptLength: basePrompt.length,
     voice: safeVoice,
     voiceInjection: safeVoice !== 'default' ? 'applied' : 'default',
-    contentPreview: finalPrompt.substring(0, 200) + "...",
-    voiceprintUsed: voiceprints[safeVoice] ? true : false,
-    voiceprintExcerpt: voiceprints[safeVoice]?.substring(0, 50) + "..." || 'N/A'
+    contentPreview: basePrompt.substring(0, 200) + "...",
+    voiceprintUsed: voiceprintValid,
+    voiceprintExcerpt: voiceExcerpt
   });
   
-  return finalPrompt;
+  return basePrompt;
 }

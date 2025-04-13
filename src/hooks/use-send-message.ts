@@ -120,17 +120,23 @@ export function useSendMessage(
       } catch (apiError: any) {
         console.error("❌ API call failed:", apiError);
         
-        // Create a more specific error message based on the error
+        // Create a more specific error message based on the error type
         let errorMessage = "I'm sorry, I encountered an issue connecting to my knowledge base.";
+        let errorDetails = "Please try again in a moment.";
         
-        if (apiError.message?.includes('Non-JSON response')) {
-          errorMessage = "I'm having trouble connecting to the OpenAI service. The server might be returning an HTML error page instead of the expected JSON response.";
+        if (apiError.message?.includes('HTML')) {
+          errorMessage = "I'm having trouble with the OpenAI service configuration.";
+          errorDetails = "The server is returning an HTML error page instead of the expected JSON response. This is likely a server-side issue.";
         } else if (apiError.message?.includes('parse')) {
           errorMessage = "I received an unexpected response format from my knowledge service.";
+          errorDetails = "There might be an issue with the API endpoint configuration.";
+        } else if (apiError.message?.includes('Network')) {
+          errorMessage = "I'm having connectivity issues with my knowledge service.";
+          errorDetails = "There might be network issues or the service might be temporarily unavailable.";
         }
         
         const sageErrorMessage = createSageMessage(
-          `${errorMessage} Please try again in a moment or contact support if the problem persists.`
+          `${errorMessage} ${errorDetails}\n\nIf this problem persists, please contact support.`
         );
         
         setMessages(prev => [...prev, sageErrorMessage]);
@@ -138,7 +144,7 @@ export function useSendMessage(
         toast({
           variant: "destructive",
           title: "Connection Error",
-          description: "Failed to connect to Sage's knowledge base. Please try again."
+          description: "Failed to connect to Sage's knowledge base. Please try again or check your API configuration."
         });
       }
     } catch (err) {

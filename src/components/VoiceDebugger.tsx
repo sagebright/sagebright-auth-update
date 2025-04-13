@@ -1,9 +1,11 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { testVoiceInjection, testApiErrorHandling } from '@/utils/testUtils';
 import { voiceprints } from '@/lib/voiceprints';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { useLocation } from 'react-router-dom';
 
 interface TestResult {
   voice: string;
@@ -22,35 +24,55 @@ export function VoiceDebugger() {
   const [results, setResults] = useState<TestResult[]>([]);
   const [apiTestResult, setApiTestResult] = useState<ApiTestResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [currentVoice, setCurrentVoice] = useState<string>('default');
+  const location = useLocation();
+
+  // Extract the current voice parameter from URL if any
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const voiceParam = params.get('voice');
+    if (voiceParam) {
+      setCurrentVoice(voiceParam);
+    }
+  }, [location.search]);
 
   const runVoiceTests = async () => {
     setIsLoading(true);
-    const voices = Object.keys(voiceprints);
-    const testResults = [];
     
-    // Add 'default' voice
-    const defaultResult = await testVoiceInjection('default');
-    testResults.push(defaultResult);
-    
-    // Add a few specific voices for testing
-    for (const voice of ['mirror', 'skeptic', 'professor']) {
-      const result = await testVoiceInjection(voice);
-      testResults.push(result);
+    try {
+      // Test default voice first
+      const defaultResult = await testVoiceInjection('default');
+      const testResults = [defaultResult];
+      
+      // Test all available voices from voiceprints
+      const voices = Object.keys(voiceprints).filter(v => v !== 'default');
+      for (const voice of voices) {
+        const result = await testVoiceInjection(voice);
+        testResults.push(result);
+      }
+      
+      // Add an invalid voice test
+      const invalidResult = await testVoiceInjection('nonexistent-voice');
+      testResults.push(invalidResult);
+      
+      setResults(testResults);
+    } catch (error) {
+      console.error("Error running voice tests:", error);
+    } finally {
+      setIsLoading(false);
     }
-    
-    // Add an invalid voice
-    const invalidResult = await testVoiceInjection('nonexistent-voice');
-    testResults.push(invalidResult);
-    
-    setResults(testResults);
-    setIsLoading(false);
   };
 
   const runApiErrorTest = async () => {
     setIsLoading(true);
-    const result = await testApiErrorHandling();
-    setApiTestResult(result);
-    setIsLoading(false);
+    try {
+      const result = await testApiErrorHandling();
+      setApiTestResult(result);
+    } catch (error) {
+      console.error("Error running API error test:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -62,8 +84,20 @@ export function VoiceDebugger() {
             Test the voice parameter handling in the Sage prompts system
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex gap-4">
+        
+        <CardContent className="space-y-6">
+          {currentVoice && (
+            <div className="bg-primary/10 p-4 rounded-md mb-4">
+              <p className="font-medium">Currently Active Voice Parameter: <span className="text-primary">{currentVoice}</span></p>
+              <p className="text-sm text-muted-foreground mt-1">
+                {voiceprints[currentVoice] 
+                  ? "This is a valid voice parameter" 
+                  : "This is not a recognized voice parameter - it should default to the 'default' voice"}
+              </p>
+            </div>
+          )}
+          
+          <div className="flex flex-wrap gap-4">
             <Button 
               onClick={runVoiceTests} 
               disabled={isLoading}
@@ -78,6 +112,24 @@ export function VoiceDebugger() {
               {isLoading ? 'Testing...' : 'Test API Error Handling'}
             </Button>
           </div>
+
+          <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="voiceprints">
+              <AccordionTrigger>Available Voiceprints</AccordionTrigger>
+              <AccordionContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {Object.keys(voiceprints).map((voice) => (
+                    <div key={voice} className="border p-3 rounded-md">
+                      <h3 className="font-medium mb-1">{voice}</h3>
+                      <p className="text-xs text-muted-foreground whitespace-pre-wrap">
+                        {voiceprints[voice].substring(0, 100)}...
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
 
           {results.length > 0 && (
             <div className="mt-6">
@@ -126,6 +178,27 @@ export function VoiceDebugger() {
               </div>
             </div>
           )}
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle>API Configuration Check</CardTitle>
+          <CardDescription>
+            Verify your OpenAI API configuration settings
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div>
+              <p className="font-medium">API Endpoint:</p>
+              <p className="text-muted-foreground">{import.meta.env.VITE_OPENAI_PROXY_URL || '/api/openai'} {!import.meta.env.VITE_OPENAI_PROXY_URL && "(Using default fallback)"}</p>
+            </div>
+            <div>
+              <p className="font-medium">Model:</p>
+              <p className="text-muted-foreground">{import.meta.env.VITE_OPENAI_MODEL || 'gpt-4'} {!import.meta.env.VITE_OPENAI_MODEL && "(Using default fallback)"}</p>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>

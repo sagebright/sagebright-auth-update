@@ -1,5 +1,6 @@
 
 import { SageContext } from '@/types/chat';
+import { handleApiError } from './handleApiError';
 
 /**
  * Calls the OpenAI API with the built context
@@ -58,10 +59,14 @@ export async function callOpenAI({
       }),
     });
 
+    // Debug response headers and status - helpful for troubleshooting
+    console.log(`🔍 API Response Status: ${response.status} ${response.statusText}`);
+    const contentType = response.headers.get('content-type');
+    console.log(`🔍 API Response Content-Type: ${contentType}`);
+
     // Check if response is not ok
     if (!response.ok) {
       // Check if the response is JSON or not
-      const contentType = response.headers.get('content-type');
       if (contentType && contentType.includes('application/json')) {
         const errorData = await response.json();
         console.error("❌ OpenAI API error (JSON):", errorData);
@@ -74,21 +79,46 @@ export async function callOpenAI({
           statusText: response.statusText,
           responsePreview: errorText.substring(0, 200) + '...'
         });
-        throw new Error(`API error: ${response.status} ${response.statusText} - Non-JSON response received`);
+        // The preview can help debug HTML error pages
+        handleApiError(new Error(`Received HTML instead of JSON: likely a server or proxy issue`), {
+          context: 'openai-api',
+          showToast: true,
+        });
+        throw new Error(`API error: ${response.status} ${response.statusText} - Non-JSON response received. Check your API endpoint configuration.`);
       }
     }
 
-    // Parse the successful JSON response
+    // Get raw response text for debugging
     const responseText = await response.text();
-    try {
-      const data = JSON.parse(responseText);
-      return data.choices[0].message.content;
-    } catch (parseError) {
-      console.error("❌ Error parsing JSON response:", parseError, "Response text:", responseText.substring(0, 200) + '...');
-      throw new Error("Failed to parse API response as JSON");
+    
+    // Add logging to see raw text response for debugging
+    console.log(`🔍 API Response Text Preview: ${responseText.substring(0, 100)}...`);
+    
+    // Parse only if it looks like JSON
+    if (responseText.trim().startsWith('{') || responseText.trim().startsWith('[')) {
+      try {
+        const data = JSON.parse(responseText);
+        return data.choices[0].message.content;
+      } catch (parseError) {
+        console.error("❌ Error parsing JSON response:", parseError, "Response text:", responseText.substring(0, 300) + '...');
+        throw new Error("Failed to parse API response as JSON. The response doesn't appear to be valid JSON.");
+      }
+    } else {
+      console.error("❌ Non-JSON response received:", responseText.substring(0, 300) + '...');
+      throw new Error("API returned non-JSON content. This could indicate a configuration issue with your API endpoint.");
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error("❌ Error calling OpenAI:", error);
+    
+    // Provide more specific error messages based on what went wrong
+    if (error.message?.includes('Network Error') || error.message?.includes('Failed to fetch')) {
+      throw new Error("Network error connecting to OpenAI. Please check your internet connection or if the API endpoint is accessible.");
+    }
+    
+    if (error.message?.includes('HTML')) {
+      throw new Error("Received HTML instead of JSON: This likely indicates a server-side issue or misconfiguration.");
+    }
+    
     throw error;
   }
 }
