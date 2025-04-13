@@ -36,6 +36,7 @@ export function useDebugPanel() {
       param: 'default',
       source: 'default',
       raw: '',
+      timestamp: new Date().toISOString() // Add the missing timestamp property
     },
     context: {
       userId: null,
