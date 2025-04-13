@@ -46,13 +46,30 @@ export function handleApiError(
      )
     );
   
-  // Always log the error with context for debugging
+  // Create a detailed logging group for easier debugging
+  console.group(`🚨 API Error${context ? ` [${context}]` : ''}`);
+  
+  // Log error details
   if (!isSilentOperation || context.includes('critical')) {
-    console.error(`[Error${context ? `: ${context}` : ""}]`, error);
+    console.error(`Error details:`, error);
+    
+    // Log additional metadata for OpenAI errors
+    if (context === 'openai' || context.includes('voice')) {
+      console.error('OpenAI context:', {
+        errorType: typeof error === 'object' && error !== null && 'type' in error 
+          ? error.type 
+          : 'unknown',
+        statusCode: typeof error === 'object' && error !== null && 'status' in error 
+          ? error.status 
+          : 'unknown'
+      });
+    }
   } else {
     // For expected permission errors, just log as warning
-    console.warn(`[Warning${context ? `: ${context}` : ""}]`, error);
+    console.warn(`Expected error:`, error);
   }
+  
+  console.groupEnd();
   
   // Extract error message
   const errorMessage = extractErrorMessage(error) || fallbackMessage;

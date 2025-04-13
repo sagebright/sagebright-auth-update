@@ -8,6 +8,7 @@ import { createUserMessage, createSageMessage } from '@/utils/messageUtils';
 import { handleMissingOrgContext, handleMissingUserContext, handleChatError } from '@/utils/sageErrorUtils';
 import { useVoiceParam } from '@/hooks/use-voice-param';
 import { voiceprints } from '@/lib/voiceprints';
+import { handleApiError } from '@/lib/handleApiError';
 
 /**
  * Hook for handling the message sending functionality
@@ -29,44 +30,54 @@ export function useSendMessage(
       return;
     }
 
-    // Log detailed user state before sending message
-    console.log("👤 SendMessage user check:", {
+    // Log detailed user state before sending message with improved formatting
+    console.group("👤 Send Message Context");
+    console.log("User state:", {
       userId,
       orgId,
       hasUser: !!currentUser,
-      hasUserMetadata: currentUser ? !!currentUser.user_metadata : false
+      hasUserMetadata: currentUser ? !!currentUser.user_metadata : false,
+      voice
     });
+    console.groupEnd();
 
     if (!userId) {
-      console.error("❌ Missing userId, user might not be authenticated", { userId });
-      toast({
-        variant: "destructive",
-        title: "Authentication Error",
-        description: "You need to be logged in to use Sage. Please sign in and try again."
+      handleApiError(new Error("Missing userId"), {
+        context: "authentication",
+        fallbackMessage: "You need to be logged in to use Sage. Please sign in and try again."
       });
       return;
     }
 
     if (!orgId) {
-      console.error("❌ Missing orgId. User might not be linked to an organization", { userId, orgId });
-      toast({
-        variant: "destructive",
-        title: "Organization Error",
-        description: "Your account is not linked to an organization. Try signing out and back in, or contact support."
+      handleApiError(new Error("Missing orgId"), {
+        context: "organization",
+        fallbackMessage: "Your account is not linked to an organization. Try signing out and back in, or contact support."
       });
       return;
     }
     
-    console.log("✅ Sending message with context:", { content, userId, orgId });
+    console.log("✅ Sending message with context:", { 
+      content, 
+      userId, 
+      orgId,
+      voiceParam: voice 
+    });
 
     const userMessage = createUserMessage(content, currentUser?.avatar_url);
     setMessages(prev => [...prev, userMessage]);
     setIsLoading(true);
 
     try {
-      console.log("Building context for userId:", userId, "orgId:", orgId);
+      console.log(`🔍 Building context for userId: ${userId}, orgId: ${orgId}, voice: ${voice}`);
       const context = await buildSageContext(userId, orgId);
-      console.log("Context built:", context);
+      
+      // Log the context building result with improved visibility
+      console.group("🧩 Context Building Result");
+      console.log("Context complete:", !!context.org && !!context.user);
+      console.log("Org context:", context.org ? "✅ Present" : "❌ Missing");
+      console.log("User context:", context.user ? "✅ Present" : "❌ Missing");
+      console.groupEnd();
       
       // Check if context.org exists before accessing its properties
       if (!context.org) {
@@ -94,7 +105,7 @@ export function useSendMessage(
       
       console.log("🎤 Using voice from hook:", voice);
       
-      // Validate voice parameter against available voices (redundant, but safe)
+      // Validate voice parameter against available voices
       const isValidVoice = voice in voiceprints;
       console.log("🔊 Voice validation check:", { voice, isValid: isValidVoice });
       
