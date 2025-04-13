@@ -70,17 +70,33 @@ export async function buildSageContext(userId: string, orgId: string) {
     // Validate input parameters
     validateContextIds(userId, orgId);
 
+    // TEMPORARILY OVERRIDE: Always use forced context
+    // Instead of fetching real context data, inject test data
+    let orgContext = { 
+      name: "Riverbend Solar", 
+      department: "Sales"
+    };
+    
+    let userContext = { 
+      name: "Jessie Tran", 
+      title: "Director of Strategic Partnerships", 
+      role: "admin"
+    };
+
+    /* COMMENTED OUT FOR TESTING - Real context fetch
     // Fetch context data
     const [orgContext, userContext] = await Promise.all([
       fetchOrgContext(orgId),
       fetchUserContext(userId),
     ]);
+    */
 
-    console.log("✅ Context fetched:", { 
-      orgContextExists: !!orgContext, 
-      userContextExists: !!userContext 
+    console.log("✅ Context forced for testing:", { 
+      orgContext, 
+      userContext 
     });
 
+    /* COMMENTED OUT FOR TESTING - Fallback and validation logic
     // Apply development fallbacks if needed
     let finalOrgContext = orgContext;
     let finalUserContext = userContext;
@@ -113,11 +129,12 @@ export async function buildSageContext(userId: string, orgId: string) {
 
     // Validate user context (logged but not blocking)
     validateUserContext(finalUserContext, userId, orgId);
+    */
 
     return {
       messages: [],
-      org: finalOrgContext,
-      user: finalUserContext,
+      org: orgContext,
+      user: userContext,
       userId,
       orgId,
     };
