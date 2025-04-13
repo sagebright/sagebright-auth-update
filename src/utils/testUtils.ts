@@ -3,40 +3,40 @@ import { SageContext } from '@/types/chat';
 
 /**
  * Mock API response for testing
+ * Creates a mock Response object that conforms to the Response interface
  */
-export function mockApiResponse(success: boolean, content?: string) {
+export function mockApiResponse(success: boolean, content?: string): Response {
+  const baseHeaders = new Headers({
+    'Content-Type': 'application/json'
+  });
+  
   if (success) {
-    return {
-      ok: true,
-      json: () => Promise.resolve({
-        choices: [
-          {
-            message: {
-              content: content || "This is a test response from the mock API."
-            }
+    const responseBody = JSON.stringify({
+      choices: [
+        {
+          message: {
+            content: content || "This is a test response from the mock API."
           }
-        ]
-      }),
-      text: () => Promise.resolve(JSON.stringify({
-        choices: [
-          {
-            message: {
-              content: content || "This is a test response from the mock API."
-            }
-          }
-        ]
-      }))
-    };
+        }
+      ]
+    });
+    
+    return new Response(responseBody, {
+      status: 200,
+      statusText: 'OK',
+      headers: baseHeaders
+    });
   } else {
     // Return a failed response
-    const errorResponse = {
-      ok: false,
+    const errorHtml = '<!DOCTYPE html><html><body>Error page</body></html>';
+    
+    return new Response(errorHtml, {
       status: 500,
       statusText: 'Internal Server Error',
-      json: () => Promise.reject(new Error('Invalid JSON')),
-      text: () => Promise.resolve('<!DOCTYPE html><html><body>Error page</body></html>')
-    };
-    return errorResponse;
+      headers: new Headers({
+        'Content-Type': 'text/html'
+      })
+    });
   }
 }
 
