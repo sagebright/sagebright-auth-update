@@ -86,7 +86,7 @@ export async function buildSageContext(userId: string, orgId: string) {
     let finalUserContext = userContext;
 
     // Use development fallbacks if context is missing and in development mode
-    const isDev = import.meta.env.DEV || import.meta.env.MODE === 'development';
+    const isDev = import.meta.env.MODE === 'development';
     if (isDev) {
       if (!finalOrgContext) {
         console.warn("⚠️ Using DEV_ORG_CONTEXT fallback for development");
@@ -100,7 +100,8 @@ export async function buildSageContext(userId: string, orgId: string) {
     }
 
     // Validate organization context (using the possibly fallback context)
-    if (!validateOrgContext(finalOrgContext, orgId)) {
+    // Only return early if we're not in development mode
+    if (!validateOrgContext(finalOrgContext, orgId) && import.meta.env.MODE !== 'development') {
       return {
         messages: [],
         org: null,
