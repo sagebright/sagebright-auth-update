@@ -13,9 +13,10 @@ interface Category {
 
 interface CategoryListProps {
   categories: Category[];
+  onAddCategory?: () => void;
 }
 
-export function CategoryList({ categories }: CategoryListProps) {
+export function CategoryList({ categories, onAddCategory }: CategoryListProps) {
   return (
     <Card>
       <CardHeader>
@@ -38,7 +39,7 @@ export function CategoryList({ categories }: CategoryListProps) {
         </div>
       </CardContent>
       <CardFooter>
-        <Button variant="outline" size="sm" className="w-full">
+        <Button variant="outline" size="sm" className="w-full" onClick={onAddCategory}>
           <Plus className="h-4 w-4 mr-2" />
           Add Category
         </Button>
