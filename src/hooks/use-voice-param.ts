@@ -12,40 +12,38 @@ export function useVoiceParam(): string {
   const location = useLocation();
   const [voice, setVoice] = useState<string>('default');
   
-  // Store the raw search string for debugging
+  // Store the raw search string and previous search for comparison
   const searchRef = useRef<string>(location.search);
+  const prevSearchRef = useRef<string>('');
   
-  // Update the search ref and parse voice param whenever location changes
   useEffect(() => {
-    // Only process if we have a search string
-    if (location.search) {
+    // Only process if search string has changed
+    if (location.search !== prevSearchRef.current) {
+      prevSearchRef.current = location.search;
       searchRef.current = location.search;
+      
       console.log("🎤 useVoiceParam: Raw search string:", location.search);
       
-      // Parse the search params
-      const searchParams = new URLSearchParams(location.search);
-      const voiceParam = searchParams.get('voice');
+      // Multiple fallback mechanisms for voice param extraction
+      const voiceParams = [
+        () => new URLSearchParams(location.search).get('voice'),
+        () => new URLSearchParams(window.location.search).get('voice'),
+        () => new URL(window.location.href).searchParams.get('voice')
+      ];
+      
+      const voiceParam = voiceParams.reduce((found, extractor) => {
+        return found || extractor();
+      }, null);
       
       console.log("🎤 useVoiceParam: Parsed voice param:", voiceParam);
       
-      // Validate the voice parameter
+      // Validate the voice parameter with more detailed logging
       if (voiceParam && voiceprints[voiceParam]) {
         console.log("🎤 useVoiceParam: Valid voice selected:", voiceParam);
         setVoice(voiceParam);
       } else if (voiceParam) {
-        console.log("⚠️ useVoiceParam: Invalid voice requested, using default");
+        console.warn("⚠️ useVoiceParam: Invalid voice requested, using default");
         setVoice('default');
-      }
-    } else if (window.location.search) {
-      // Fallback to window.location.search if React Router's location.search is empty
-      // This can happen during initial loads and some redirects
-      console.log("🎤 useVoiceParam: Falling back to window.location.search:", window.location.search);
-      const searchParams = new URLSearchParams(window.location.search);
-      const voiceParam = searchParams.get('voice');
-      
-      if (voiceParam && voiceprints[voiceParam]) {
-        console.log("🎤 useVoiceParam: Valid voice from fallback:", voiceParam);
-        setVoice(voiceParam);
       }
     }
   }, [location.search]);
