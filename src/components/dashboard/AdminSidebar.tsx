@@ -1,5 +1,6 @@
+
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { 
   SidebarContent, SidebarMenu, SidebarMenuItem, 
   SidebarMenuButton, SidebarHeader, SidebarFooter 
@@ -14,6 +15,14 @@ import { useAuth } from "@/contexts/auth/AuthContext";
 export default function AdminSidebar() {
   const { signOut } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
+
+  // Enhanced navigation handler that prevents default and uses navigate
+  const handleNavigation = (e: React.MouseEvent, path: string) => {
+    e.preventDefault();
+    console.log(`🧭 Navigating to: ${path} from current path: ${location.pathname}`);
+    navigate(path);
+  };
 
   return (
     <>
@@ -38,10 +47,14 @@ export default function AdminSidebar() {
               data-[active=true]:!bg-sagebright-accent/25 data-[active=true]:!text-sagebright-green 
               hover:!bg-sagebright-accent/25 hover:!text-sagebright-green hover:scale-[1.02]"
             >
-              <Link to="/hr-dashboard" className="flex items-center">
+              <a 
+                href="/hr-dashboard" 
+                className="flex items-center"
+                onClick={(e) => handleNavigation(e, "/hr-dashboard")}
+              >
                 <LayoutDashboard className="text-charcoal/70 group-hover:text-sagebright-green" />
                 <span>Admin Dashboard</span>
-              </Link>
+              </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
           
@@ -54,10 +67,14 @@ export default function AdminSidebar() {
               hover:!bg-sagebright-accent/25 hover:!text-sagebright-green hover:scale-[1.02]
               data-[active=true]:!bg-sagebright-accent/25 data-[active=true]:!text-sagebright-green"
             >
-              <Link to="/ask-sage" className="flex items-center">
+              <a 
+                href="/ask-sage" 
+                className="flex items-center"
+                onClick={(e) => handleNavigation(e, "/ask-sage")}
+              >
                 <HelpCircle className="text-charcoal/70 group-hover:text-sagebright-green" />
                 <span>Ask Sage</span>
-              </Link>
+              </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
           
@@ -68,10 +85,10 @@ export default function AdminSidebar() {
               className="text-charcoal/70 font-normal transition-all duration-200
               hover:!bg-sagebright-accent/25 hover:!text-sagebright-green hover:scale-[1.02]"
             >
-              <Link to="#" className="flex items-center">
+              <a href="#" className="flex items-center">
                 <ListChecks className="text-charcoal/70 group-hover:text-sagebright-green" />
                 <span>Reports</span>
-              </Link>
+              </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
           
@@ -82,10 +99,10 @@ export default function AdminSidebar() {
               className="text-charcoal/70 font-normal transition-all duration-200
               hover:!bg-sagebright-accent/25 hover:!text-sagebright-green hover:scale-[1.02]"
             >
-              <Link to="#" className="flex items-center">
+              <a href="#" className="flex items-center">
                 <Calendar className="text-charcoal/70 group-hover:text-sagebright-green" />
                 <span>Schedules</span>
-              </Link>
+              </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
           
@@ -96,10 +113,10 @@ export default function AdminSidebar() {
               className="text-charcoal/70 font-normal transition-all duration-200
               hover:!bg-sagebright-accent/25 hover:!text-sagebright-green hover:scale-[1.02]"
             >
-              <Link to="#" className="flex items-center">
+              <a href="#" className="flex items-center">
                 <Users className="text-charcoal/70 group-hover:text-sagebright-green" />
                 <span>People</span>
-              </Link>
+              </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
           
@@ -110,10 +127,10 @@ export default function AdminSidebar() {
               className="text-charcoal/70 font-normal transition-all duration-200
               hover:!bg-sagebright-accent/25 hover:!text-sagebright-green hover:scale-[1.02]"
             >
-              <Link to="#" className="flex items-center">
+              <a href="#" className="flex items-center">
                 <Settings className="text-charcoal/70 group-hover:text-sagebright-green" />
                 <span>Settings</span>
-              </Link>
+              </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

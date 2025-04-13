@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
 import { getOrgFromUrl, redirectToOrgUrl } from '@/lib/subdomainUtils';
@@ -18,6 +18,14 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const navigate = useNavigate();
   const location = useLocation();
   const { loading, isAuthenticated, user, orgId, orgSlug } = useRequireAuth(navigate);
+  const [initialCheckComplete, setInitialCheckComplete] = useState(false);
+  
+  // Track whether we've already attempted a redirection to prevent loops
+  useEffect(() => {
+    if (!loading && !initialCheckComplete) {
+      setInitialCheckComplete(true);
+    }
+  }, [loading, initialCheckComplete]);
   
   if (loading) {
     return (
@@ -33,8 +41,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return null;
   }
   
-  // Handle subdomain mismatch if we have org context
-  if (orgSlug) {
+  // Only attempt subdomain redirects if we've completed the initial check
+  // This prevents multiple redirects
+  if (initialCheckComplete && orgSlug) {
     const currentOrgSlug = getOrgFromUrl();
     if (orgSlug && (!currentOrgSlug || currentOrgSlug !== orgSlug)) {
       console.log("🏢 ProtectedRoute redirecting to correct org subdomain:", orgSlug);

@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
 import { DashboardContainer } from '@/components/layout/DashboardContainer';
@@ -20,12 +20,13 @@ import { Loader2 } from "lucide-react";
 const AskSage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user, userId, orgId, loading: authLoading } = useRequireAuth(navigate);
+  const { user, userId, orgId, loading: authLoading, isAuthenticated } = useRequireAuth(navigate);
   const isMobile = useIsMobile();
   
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isRecoveryVisible, setIsRecoveryVisible] = useState(false);
   const [isRecovering, setIsRecovering] = useState(false);
+  const [pageInitialized, setPageInitialized] = useState(false);
   
   // Get voice parameter from searchParams
   const voiceParam = React.useMemo(() => {
@@ -43,14 +44,30 @@ const AskSage = () => {
     isRecoveringOrg
   } = useChat();
 
+  // Initialize page after auth is done loading
   useEffect(() => {
-    // Show recovery dialog if user is authenticated but missing org context
-    if (!authLoading && userId && !orgId && !isRecoveringOrg) {
+    if (!authLoading && isAuthenticated && !pageInitialized) {
+      // Mark the page as initialized to prevent repeated initialization
+      setPageInitialized(true);
+      
+      // Log authentication state for debugging
+      console.log("🔍 AskSage page initialized with auth state:", { 
+        userId, 
+        orgId, 
+        isRecoveringOrg 
+      });
+    }
+  }, [authLoading, isAuthenticated, userId, orgId, isRecoveringOrg, pageInitialized]);
+
+  // Show recovery dialog if user is authenticated but missing org context
+  useEffect(() => {
+    if (pageInitialized && userId && !orgId && !isRecoveringOrg) {
+      console.log("⚠️ Missing org context, showing recovery dialog");
       setIsRecoveryVisible(true);
-    } else {
+    } else if (pageInitialized) {
       setIsRecoveryVisible(false);
     }
-  }, [userId, orgId, authLoading, isRecoveringOrg]);
+  }, [userId, orgId, authLoading, isRecoveringOrg, pageInitialized]);
 
   const handleReflectionSubmit = (data: ReflectionData) => {
     console.log('Reflection submitted:', data);
@@ -58,7 +75,7 @@ const AskSage = () => {
   };
 
   // Send message using the useChat hook
-  const sendMessageToSage = async (content: string) => {
+  const sendMessageToSage = useCallback(async (content: string) => {
     if (!userId) {
       console.error("❌ Cannot send message - missing userId");
       toast({
@@ -90,12 +107,12 @@ const AskSage = () => {
         description: "Failed to send your message. Please try again.",
       });
     }
-  };
+  }, [userId, orgId, handleSendMessage]);
 
-  const handleSelectQuestion = (question: string) => {
+  const handleSelectQuestion = useCallback((question: string) => {
     console.log("Selected suggested question:", question);
     sendMessageToSage(question);
-  };
+  }, [sendMessageToSage]);
 
   const handleSignOut = async () => {
     try {
@@ -170,6 +187,7 @@ const AskSage = () => {
     }
   };
 
+  // Show loading state while auth is still being checked
   if (authLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
