@@ -85,11 +85,8 @@ Q2 Product Goals:
  * @returns Complete system prompt
  */
 export function getCompleteSystemPrompt(context: SageContext, voice: string = 'default'): string {
-  // Get base prompt and ensure it includes the voiceprint
   const basePrompt = getBasePrompt(context, voice);
-  
-  // Add a special separator to help identify where voice instructions end
-  const finalPrompt = basePrompt + `\n\n---\nVOICE: ${voice}\n---\n`;
+  const finalPrompt = basePrompt;
   
   // Debug log the full system prompt for troubleshooting voice injection issues
   console.log("🧠 Final system prompt content:", {

@@ -34,8 +34,6 @@ export async function callOpenAI({
     // Get API URL from environment or fallback
     const apiUrl = import.meta.env.VITE_OPENAI_PROXY_URL || '/api/openai';
     
-    console.log("🔌 Making API request to:", apiUrl);
-    
     // Make the API call
     const response = await fetch(apiUrl, {
       method: 'POST',
@@ -60,42 +58,13 @@ export async function callOpenAI({
       }),
     });
 
-    // Check if response is OK and log detailed info either way
     if (!response.ok) {
-      console.error("❌ OpenAI API error response:", {
-        status: response.status,
-        statusText: response.statusText,
-        headers: Object.fromEntries([...response.headers.entries()])
-      });
-      
-      // Try to get the response text to see what's being returned
-      const responseText = await response.text();
-      console.error("❌ OpenAI API error response body:", responseText.substring(0, 500) + (responseText.length > 500 ? '...' : ''));
-      
-      // If it looks like HTML, log a specific warning
-      if (responseText.includes('<!DOCTYPE') || responseText.includes('<html')) {
-        console.error("❌ Received HTML instead of JSON. This usually indicates a network issue, incorrect URL, or server error.");
-      }
-      
+      const errorData = await response.json();
+      console.error("❌ OpenAI API error:", errorData);
       throw new Error(`API error: ${response.status} ${response.statusText}`);
     }
 
-    // Try parsing the JSON more defensively
-    let data;
-    try {
-      const responseText = await response.text();
-      console.log("✅ Received response from OpenAI, length:", responseText.length);
-      data = JSON.parse(responseText);
-    } catch (parseError) {
-      console.error("❌ Failed to parse JSON response:", parseError);
-      throw new Error("Invalid JSON response from API");
-    }
-
-    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-      console.error("❌ Unexpected response structure:", data);
-      throw new Error("Unexpected response structure from API");
-    }
-
+    const data = await response.json();
     return data.choices[0].message.content;
   } catch (error) {
     console.error("❌ Error calling OpenAI:", error);
