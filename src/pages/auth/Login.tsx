@@ -1,4 +1,3 @@
-
 import React, { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/auth/AuthContext";
@@ -27,7 +26,12 @@ export default function Login() {
     // Store the current search parameters if coming from a page with voice param
     if (location.search && location.search.includes('voice=') && !localStorage.getItem("preserveSearchParams")) {
       localStorage.setItem("preserveSearchParams", location.search);
-      console.log("📝 Stored search params for post-login redirect:", location.search);
+      const timestamp = new Date().toISOString();
+      console.log(`📝 [${timestamp}] Stored search params for post-login redirect:`, {
+        search: location.search,
+        storedPath: localStorage.getItem("redirectAfterLogin"),
+        voiceParam: new URLSearchParams(location.search).get('voice')
+      });
     }
     
     // If auth is still loading, don't do anything yet
@@ -38,7 +42,8 @@ export default function Login() {
 
     // If user is already authenticated, redirect them appropriately
     if (isAuthenticated && user) {
-      console.log("✅ User already authenticated on login page, redirecting to dashboard");
+      const timestamp = new Date().toISOString();
+      console.log(`✅ [${timestamp}] User already authenticated on login page, redirecting to dashboard`);
       
       // Check the role specifically from user_metadata
       const role = user.user_metadata?.role || 'user';
@@ -52,11 +57,15 @@ export default function Login() {
         const searchParams = localStorage.getItem("preserveSearchParams");
         if (searchParams && !targetPath.includes('?')) {
           targetPath += searchParams;
-          console.log("🔄 Restoring search params to redirect:", targetPath);
+          console.log(`🔄 [${timestamp}] Restoring search params to redirect:`, {
+            targetPath,
+            originalSearch: searchParams,
+            voiceParam: new URLSearchParams(searchParams).get('voice')
+          });
         }
       }
       
-      console.log("🎯 Redirecting to:", targetPath, "based on role:", role);
+      console.log(`🎯 [${timestamp}] Redirecting to:`, targetPath, "based on role:", role);
       
       // Show a toast for redirection
       toast({

@@ -32,8 +32,9 @@ export function useVoiceParam(): string {
       ];
       
       const voiceParam = voiceParams.reduce((found, extractor) => {
-        return found || extractor();
-      }, null);
+        if (found) return found;
+        return extractor();
+      }, null as string | null);
       
       console.log("🎤 useVoiceParam: Parsed voice param:", voiceParam);
       

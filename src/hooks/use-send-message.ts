@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Message, SageContext } from '@/types/chat';
 import { buildSageContext } from '@/lib/buildSageContext';
@@ -35,14 +34,17 @@ export function useSendMessage(
       return;
     }
 
-    // Log detailed user state before sending message with improved formatting
-    console.group("👤 Send Message Context");
+    // Log detailed user state before sending message with improved formatting and timing
+    const timestamp = new Date().toISOString();
+    console.group(`👤 Send Message Context (timestamp: ${timestamp})`);
     console.log("User state:", {
       userId,
       orgId,
       hasUser: !!currentUser,
       hasUserMetadata: currentUser ? !!currentUser.user_metadata : false,
-      voice
+      voice,
+      currentURL: window.location.href,
+      urlSearch: window.location.search
     });
     console.groupEnd();
 
@@ -62,11 +64,12 @@ export function useSendMessage(
       return;
     }
     
-    console.log("✅ Sending message with context:", { 
+    console.log("✅ Sending message with context (timestamp: %s):", timestamp, { 
       content, 
       userId, 
       orgId,
-      voiceParam: voice 
+      voiceParam: voice,
+      urlVoiceParam: new URLSearchParams(window.location.search).get('voice')
     });
 
     const userMessage = createUserMessage(content, currentUser?.avatar_url);
@@ -79,7 +82,7 @@ export function useSendMessage(
     }
 
     try {
-      console.log(`🔍 Building context for userId: ${userId}, orgId: ${orgId}, voice: ${voice}`);
+      console.log(`🔍 Building context for userId: ${userId}, orgId: ${orgId}, voice: ${voice}, timestamp: ${timestamp}`);
       const context = await buildSageContext(userId, orgId);
       
       // Log the context building result with improved visibility
@@ -125,20 +128,24 @@ export function useSendMessage(
         return;
       }
       
-      console.log("🎤 Using voice from hook:", voice);
+      console.log("🎤 Using voice from hook (timestamp: %s): %s", timestamp, voice);
       
       // Validate voice parameter against available voices
       const isValidVoice = voice in voiceprints;
-      console.log("🔊 Voice validation check:", { voice, isValid: isValidVoice });
+      console.log("🔊 Voice validation check (timestamp: %s):", timestamp, { 
+        voice, 
+        isValid: isValidVoice,
+        availableVoices: Object.keys(voiceprints)
+      });
       
       // Use the validated voice or fall back to 'default'
       const finalVoice = isValidVoice ? voice : 'default';
       if (!isValidVoice && voice !== 'default') {
-        console.warn(`⚠️ Invalid voice "${voice}" requested, falling back to default`);
+        console.warn(`⚠️ Invalid voice "${voice}" requested, falling back to default (timestamp: ${timestamp})`);
       }
       
       // Log the final voice being sent to OpenAI
-      console.log(`🎙️ Sending final voice to OpenAI: "${finalVoice}"`);
+      console.log(`🎙️ Sending final voice to OpenAI (timestamp: ${timestamp}): "${finalVoice}"`);
       
       // Record request start time for performance monitoring
       const requestStartTime = performance.now();

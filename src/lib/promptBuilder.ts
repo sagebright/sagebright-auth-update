@@ -1,4 +1,3 @@
-
 import { SageContext } from '@/types/chat';
 import { voiceprints, sageFramework } from './voiceprints';
 
@@ -10,13 +9,22 @@ import { voiceprints, sageFramework } from './voiceprints';
  * @returns Complete system prompt string for OpenAI
  */
 export function getBasePrompt(context: SageContext, voice: string = 'default'): string {
+  const timestamp = new Date().toISOString();
+  
   // Get the selected voice tone or fall back to default
   const tone = voiceprints[voice] || voiceprints['default'];
   
   // Log warning if voice is invalid and we're falling back
   if (!voiceprints[voice]) {
-    console.warn("⚠️ Unknown voiceprint key:", voice, "- falling back to default.");
+    console.warn(`⚠️ [${timestamp}] Unknown voiceprint key: ${voice} - falling back to default.`);
   }
+  
+  console.log(`🎙️ [${timestamp}] Prompt builder received voice parameter:`, {
+    voice,
+    exists: voice in voiceprints,
+    voiceprintLength: tone ? tone.length : 0,
+    allVoices: Object.keys(voiceprints)
+  });
   
   // Start with the core framework and personality
   let prompt = `${sageFramework}\n\n${tone}\n\nYou are Sage, an expert onboarding guide. Your job is to answer questions and provide helpful advice tailored to each user's role and company culture.\n`;
@@ -68,7 +76,7 @@ Q2 Product Goals:
   prompt += `\n---\n📚 KNOWLEDGE BASE: Available on request. Ask Sage about specific company policies, processes, or tools.\n`;
 
   // Log the final prompt for debugging
-  console.log(`🧠 Final system prompt for voice "${voice}"`, { 
+  console.log(`🧠 [${timestamp}] Final system prompt for voice "${voice}"`, { 
     promptLength: prompt.length,
     voice,
     hasVoiceprintContent: !!tone,
@@ -85,11 +93,14 @@ Q2 Product Goals:
  * @returns Complete system prompt
  */
 export function getCompleteSystemPrompt(context: SageContext, voice: string = 'default'): string {
+  const timestamp = new Date().toISOString();
+  console.log(`📝 [${timestamp}] Building complete system prompt with voice:`, voice);
+  
   const basePrompt = getBasePrompt(context, voice);
   const finalPrompt = basePrompt;
   
   // Debug log the full system prompt for troubleshooting voice injection issues
-  console.log("🧠 Final system prompt content:", {
+  console.log(`🧠 [${timestamp}] Final system prompt content:`, {
     promptLength: finalPrompt.length,
     voice,
     voiceInjection: voice !== 'default' ? 'applied' : 'default',

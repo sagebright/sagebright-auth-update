@@ -9,6 +9,7 @@ interface DebugInfo {
     param: string;
     source: 'url' | 'default' | 'fallback';
     raw: string;
+    timestamp: string;
   };
   context: {
     userId: string | null;
@@ -58,17 +59,29 @@ export function useDebugPanel() {
   // Determine if we're in development mode
   const isDev = process.env.NODE_ENV === 'development';
   
-  // Update voice debug info
+  // Update voice debug info with more detailed tracking
   useEffect(() => {
     if (!isDev) return;
     
     // Determine the source of the voice parameter
     let source: 'url' | 'default' | 'fallback' = 'default';
-    if (new URLSearchParams(location.search).get('voice')) {
+    const urlVoice = new URLSearchParams(location.search).get('voice');
+    const windowVoice = new URLSearchParams(window.location.search).get('voice');
+    
+    if (urlVoice) {
       source = 'url';
-    } else if (window.location.search.includes('voice=')) {
+    } else if (!urlVoice && windowVoice) {
       source = 'fallback';
     }
+    
+    console.log("🔍 Debug panel tracking voice (timestamp: %s):", new Date().toISOString(), {
+      voice,
+      source,
+      urlVoice,
+      windowVoice,
+      location: location.search,
+      windowLocation: window.location.search
+    });
     
     setDebugInfo(prev => ({
       ...prev,
@@ -76,6 +89,7 @@ export function useDebugPanel() {
         param: voice,
         source,
         raw: location.search,
+        timestamp: new Date().toISOString()
       }
     }));
   }, [voice, location.search, isDev]);

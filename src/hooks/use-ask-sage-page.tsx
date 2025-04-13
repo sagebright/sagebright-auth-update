@@ -23,7 +23,15 @@ export const useAskSagePage = () => {
   const debugPanel = useDebugPanel();
   
   useEffect(() => {
-    console.log("🎤 AskSagePage current voice parameter:", voiceParam);
+    console.log("🎤 AskSagePage voice parameter (timestamp: %s): %s", 
+                new Date().toISOString(), 
+                voiceParam);
+    console.log("🌐 Current URL state:", { 
+      pathname: window.location.pathname,
+      search: window.location.search,
+      href: window.location.href,
+      historyLength: window.history.length
+    });
   }, [voiceParam]);
 
   // Modify useChat to pass debug panel options
@@ -44,13 +52,15 @@ export const useAskSagePage = () => {
       // Mark the page as initialized to prevent repeated initialization
       setPageInitialized(true);
       
-      // Log authentication state for debugging
-      console.log("🔍 AskSage page initialized with auth state:", { 
+      // Log authentication state for debugging with timestamps
+      console.log("🔍 AskSage page initialized (timestamp: %s) with auth state:", 
+                  new Date().toISOString(), { 
         userId, 
         orgId, 
         isRecoveringOrg,
         hasSessionMetadata: user ? !!user.user_metadata : false,
-        voiceParam
+        voiceParam,
+        urlSearch: window.location.search
       });
     }
   }, [authLoading, isAuthenticated, userId, orgId, isRecoveringOrg, pageInitialized, voiceParam, user]);
