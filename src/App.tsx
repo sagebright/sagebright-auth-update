@@ -1,12 +1,13 @@
+
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { ThemeProvider } from "@/components/theme-provider"
-import { LanguageProvider } from '@/contexts/LanguageContext';
-import { QueryClient, QueryClientProvider } from 'react-query';
+import { ThemeProvider } from "./components/theme-provider";
+import { LanguageProvider } from "./contexts/language/LanguageContext";
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '@/contexts/auth/AuthContext';
 import NotFound from '@/pages/NotFound';
 import AskSage from '@/pages/AskSage';
-import AuthRoutes from '@/pages/AuthRoutes';
+import AuthRoutes from './pages/AuthRoutes';
 import VoiceTestPage from '@/pages/VoiceTest';
 import { Toaster } from '@/components/ui/toaster';
 
