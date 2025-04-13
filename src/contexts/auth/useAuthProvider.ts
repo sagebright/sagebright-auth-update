@@ -46,6 +46,17 @@ export function useAuthProvider() {
     fetchOrgDetails
   );
 
+  // Prioritize metadata-based hydration of orgId
+  useEffect(() => {
+    if (isAuthenticated && userId && !orgId) {
+      const metadataOrgId = user?.user_metadata?.org_id;
+      if (metadataOrgId) {
+        console.log("✅ Hydrating orgId from session metadata:", metadataOrgId);
+        setOrgId(metadataOrgId);
+      }
+    }
+  }, [isAuthenticated, userId, orgId, user, setOrgId]);
+
   // Ensure we attempt to recover org context if needed
   useEffect(() => {
     if (isAuthenticated && userId && !orgId && !isRecoveringOrgContext) {
@@ -55,7 +66,7 @@ export function useAuthProvider() {
       };
       attemptRecovery();
     }
-  }, [isAuthenticated, userId, orgId, isRecoveringOrgContext]);
+  }, [isAuthenticated, userId, orgId, isRecoveringOrgContext, recoverOrgContext]);
 
   // For debugging
   useEffect(() => {
