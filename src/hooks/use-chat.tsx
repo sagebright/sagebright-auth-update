@@ -28,13 +28,14 @@ export const useChat = (): ChatHookReturn => {
     user || currentUser // Use whatever user data is available
   );
 
-  console.log("🔍 useChat hook initializing with", { 
-    userId, 
-    orgId, 
-    isAuthenticated,
-    hasSessionUser: !!user,
+  // Log comprehensive auth state for debugging
+  console.log("✅ Final Sage auth context:", {
+    userId,
+    orgId,
+    role: user?.user_metadata?.role || currentUser?.role || 'unknown',
+    hasSessionMetadata: user ? !!user.user_metadata : false,
     hasCurrentUser: !!currentUser,
-    hasUserMetadata: user ? !!user.user_metadata : false 
+    isAuthenticated
   });
   
   // Add initial greeting message if no messages exist

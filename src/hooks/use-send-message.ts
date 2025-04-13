@@ -29,6 +29,14 @@ export function useSendMessage(
       return;
     }
 
+    // Log detailed user state before sending message
+    console.log("👤 SendMessage user check:", {
+      userId,
+      orgId,
+      hasUser: !!currentUser,
+      hasUserMetadata: currentUser ? !!currentUser.user_metadata : false
+    });
+
     if (!userId) {
       console.error("❌ Missing userId, user might not be authenticated", { userId });
       toast({

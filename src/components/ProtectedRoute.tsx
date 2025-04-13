@@ -21,6 +21,15 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const [initialCheckComplete, setInitialCheckComplete] = useState(false);
   const [redirectAttempted, setRedirectAttempted] = useState(false);
   
+  // Store search parameters that need to be preserved across auth flow
+  useEffect(() => {
+    if (location.search && location.search.includes('voice=')) {
+      localStorage.setItem("preserveSearchParams", location.search);
+      localStorage.setItem("redirectAfterLogin", location.pathname + location.search);
+      console.log("📝 Stored voice param and redirect path:", location.pathname + location.search);
+    }
+  }, [location]);
+  
   // Track whether we've already attempted a redirection to prevent loops
   useEffect(() => {
     if (!loading && !initialCheckComplete) {

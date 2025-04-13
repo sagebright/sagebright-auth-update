@@ -17,9 +17,19 @@ export default function Login() {
   const { form, isLoading, authError, onSubmit } = useLoginForm();
   const { toast } = useToast();
   
+  // Get the stored redirect path or default to dashboard
   const redirectPath = localStorage.getItem("redirectAfterLogin") || "/user-dashboard";
+  
+  // Check if we need to preserve query parameters (e.g., voice param)
+  const preserveSearch = localStorage.getItem("preserveSearchParams") || "";
 
   useEffect(() => {
+    // Store the current search parameters if coming from a page with voice param
+    if (location.search && location.search.includes('voice=') && !localStorage.getItem("preserveSearchParams")) {
+      localStorage.setItem("preserveSearchParams", location.search);
+      console.log("📝 Stored search params for post-login redirect:", location.search);
+    }
+    
     // If auth is still loading, don't do anything yet
     if (loading) {
       console.log("⏳ Auth still loading on login page, waiting...");
@@ -32,7 +42,19 @@ export default function Login() {
       
       // Check the role specifically from user_metadata
       const role = user.user_metadata?.role || 'user';
-      const targetPath = role === 'admin' ? '/hr-dashboard' : '/user-dashboard';
+      let targetPath = role === 'admin' ? '/hr-dashboard' : '/user-dashboard';
+      
+      // Check if we should redirect to a stored path
+      if (localStorage.getItem("redirectAfterLogin")) {
+        targetPath = localStorage.getItem("redirectAfterLogin") || targetPath;
+        
+        // Append preserved search params if they exist
+        const searchParams = localStorage.getItem("preserveSearchParams");
+        if (searchParams && !targetPath.includes('?')) {
+          targetPath += searchParams;
+          console.log("🔄 Restoring search params to redirect:", targetPath);
+        }
+      }
       
       console.log("🎯 Redirecting to:", targetPath, "based on role:", role);
       
@@ -44,11 +66,12 @@ export default function Login() {
       
       // Clear any stored redirect paths to prevent loops
       localStorage.removeItem("redirectAfterLogin");
+      localStorage.removeItem("preserveSearchParams");
       
       // Redirect immediately to prevent login page flash
       navigate(targetPath, { replace: true });
     }
-  }, [user, isAuthenticated, loading, orgId, navigate, toast]);
+  }, [user, isAuthenticated, loading, orgId, navigate, toast, location.search]);
 
   // Handle Google sign-in
   const handleGoogleSignIn = async () => {

@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
@@ -32,7 +33,7 @@ export const useAskSagePage = () => {
     isRecoveringOrg
   } = useChat();
 
-  // Initialize page after auth is done loading
+  // Initialize page after auth is done loading (only need basic auth, not full currentUser)
   useEffect(() => {
     if (!authLoading && isAuthenticated && !pageInitialized) {
       // Mark the page as initialized to prevent repeated initialization
@@ -43,10 +44,11 @@ export const useAskSagePage = () => {
         userId, 
         orgId, 
         isRecoveringOrg,
+        hasSessionMetadata: user ? !!user.user_metadata : false,
         voiceParam
       });
     }
-  }, [authLoading, isAuthenticated, userId, orgId, isRecoveringOrg, pageInitialized, voiceParam]);
+  }, [authLoading, isAuthenticated, userId, orgId, isRecoveringOrg, pageInitialized, voiceParam, user]);
 
   // Show recovery dialog if user is authenticated but missing org context
   useEffect(() => {
