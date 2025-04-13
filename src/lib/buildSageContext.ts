@@ -5,6 +5,7 @@ import { fetchOrgContext } from '@/lib/fetchOrgContext';
 import { fetchUserContext } from '@/lib/fetchUserContext';
 import { validateContextIds, validateOrgContext, validateUserContext } from '@/lib/contextValidation';
 import { createOrgContextFallback, logContextBuildingError } from '@/lib/contextErrorHandling';
+import { validateSageContext } from './validation/contextSchema';
 
 /**
  * Dev fallback context for testing without Supabase
@@ -131,13 +132,24 @@ export async function buildSageContext(userId: string, orgId: string) {
     validateUserContext(finalUserContext, userId, orgId);
     */
 
-    return {
+    const context = {
       messages: [],
       org: orgContext,
       user: userContext,
       userId,
       orgId,
     };
+
+    // Validate the constructed context with Zod
+    try {
+      validateSageContext(context);
+    } catch (validationError) {
+      console.warn("⚠️ Built context failed Zod validation", validationError);
+      // We'll allow the context through for now, but log the validation failure
+      // This helps with debugging without breaking existing functionality
+    }
+
+    return context;
   } catch (error) {
     logContextBuildingError(error, userId, orgId);
     

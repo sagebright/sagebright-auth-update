@@ -1,5 +1,8 @@
+
 import { supabase } from './supabaseClient';
 import { SageContext } from '@/types/chat';
+import { validateOpenAIRequest } from './validation/contextSchema';
+import { handleApiError } from './handleApiError';
 
 /**
  * Detailed logger for OpenAI API requests and responses
@@ -122,6 +125,20 @@ export async function callOpenAI({
   try {
     // Log which voice is being used for this request
     console.log(`🎙️ Making OpenAI request with voice: ${voice}`);
+    
+    // Validate the request parameters before proceeding
+    try {
+      validateOpenAIRequest({ question, context, voice });
+    } catch (validationError) {
+      // Handle validation errors with our centralized error handler
+      handleApiError(validationError, {
+        context: "context-validation",
+        fallbackMessage: "Invalid context for OpenAI request. Check console for details.",
+        showToast: true
+      });
+      
+      throw new Error("Context validation failed");
+    }
     
     // Import the prompt builder function
     const { getCompleteSystemPrompt } = await import('./promptBuilder');
