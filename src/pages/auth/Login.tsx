@@ -1,5 +1,5 @@
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/auth/AuthContext";
 import AuthLayout from "@/components/auth/AuthLayout";
@@ -11,18 +11,28 @@ import { getOrgFromUrl } from "@/lib/subdomainUtils";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Login() {
-  const { signInWithGoogle, user, isAuthenticated, loading, orgId } = useAuth();
+  const { signInWithGoogle, user, isAuthenticated, loading, orgId, refreshSession } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { form, isLoading, authError, onSubmit } = useLoginForm();
   const { toast } = useToast();
   const hasRedirectedRef = useRef(false);
+  const redirectInProgressRef = useRef(false);
+  const [loginTimestamp, setLoginTimestamp] = useState<number | null>(null);
   
   // Get the stored redirect path or default to dashboard
   const redirectPath = localStorage.getItem("redirectAfterLogin") || "/ask-sage";
   
   // Check if we need to preserve query parameters (e.g., voice param)
   const preserveSearch = localStorage.getItem("preserveSearchParams") || "";
+  
+  // Force session refresh on login page load
+  useEffect(() => {
+    if (refreshSession && !loading) {
+      console.log("🔄 Login page forcing session refresh");
+      refreshSession("login page load");
+    }
+  }, [refreshSession, loading]);
 
   useEffect(() => {
     // Store the current search parameters if coming from a page with voice param
@@ -43,8 +53,14 @@ export default function Login() {
     }
 
     // If user is already authenticated, redirect them appropriately
-    if (isAuthenticated && user && !hasRedirectedRef.current) {
+    if (isAuthenticated && user && !hasRedirectedRef.current && !redirectInProgressRef.current) {
+      redirectInProgressRef.current = true;
       hasRedirectedRef.current = true;
+      
+      // Record login timestamp to detect potential redirect loops
+      const currentTime = Date.now();
+      setLoginTimestamp(currentTime);
+      
       const timestamp = new Date().toISOString();
       console.log(`✅ [${timestamp}] User already authenticated on login page, redirecting to dashboard`);
       
@@ -81,11 +97,13 @@ export default function Login() {
       localStorage.removeItem("preserveSearchParams");
       
       // Use setTimeout to ensure we're not redirecting within another React effect cycle
+      // Increased timeout to ensure auth state is settled
       setTimeout(() => {
         if (document.location.pathname.startsWith('/auth')) {
           navigate(targetPath, { replace: true });
+          redirectInProgressRef.current = false;
         }
-      }, 100);
+      }, 300);
     }
   }, [user, isAuthenticated, loading, orgId, navigate, toast, location.search]);
 

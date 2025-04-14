@@ -12,6 +12,33 @@ export function useRequireAuth(navigate: NavigateFunction) {
   const redirectAttempted = useRef(false);
   const lastRedirectPath = useRef<string | null>(null);
   const redirectDebounceTimer = useRef<number | null>(null);
+  const userDashboardRedirectBlocker = useRef<boolean>(false);
+  const locationRef = useRef(location.pathname);
+
+  // Update locationRef whenever location changes
+  useEffect(() => {
+    locationRef.current = location.pathname;
+  }, [location.pathname]);
+
+  useEffect(() => {
+    console.log("🔐 useRequireAuth locationRef current value:", locationRef.current);
+  }, []);
+
+  // Special route protection for /ask-sage to prevent unwanted redirects
+  useEffect(() => {
+    if (location.pathname === '/ask-sage') {
+      console.log("🛡️ Setting ask-sage protection flag");
+      userDashboardRedirectBlocker.current = true;
+      
+      // Clear this protection after 10 seconds to avoid permanent blocking
+      const timerId = setTimeout(() => {
+        userDashboardRedirectBlocker.current = false;
+        console.log("🛡️ Cleared ask-sage protection flag after timeout");
+      }, 10000);
+      
+      return () => clearTimeout(timerId);
+    }
+  }, [location.pathname]);
 
   useEffect(() => {
     // Clean up any pending redirect timer on unmount
@@ -24,15 +51,29 @@ export function useRequireAuth(navigate: NavigateFunction) {
 
   // Debounced redirect function to prevent multiple redirects
   const safeRedirect = (path: string, options: { replace?: boolean } = {}) => {
+    // Check if we're trying to redirect from /ask-sage to /user-dashboard and block if needed
+    if (locationRef.current === '/ask-sage' && 
+        path === '/user-dashboard' && 
+        userDashboardRedirectBlocker.current) {
+      console.log(`🛑 Blocked redirect from /ask-sage to /user-dashboard due to protection flag`);
+      return;
+    }
+    
     // Don't redirect to the same path multiple times
     if (path === lastRedirectPath.current) {
       console.log(`🚫 Prevented duplicate redirect to: ${path}`);
       return;
     }
+    
+    // Don't redirect to the current path
+    if (path === locationRef.current) {
+      console.log(`🚫 Prevented redirect to current path: ${path}`);
+      return;
+    }
 
     // Add timestamp to log for tracking race conditions
     const timestamp = new Date().toISOString();
-    console.log(`🚀 [${timestamp}] Initiating redirect to: ${path}`);
+    console.log(`🚀 [${timestamp}] Initiating redirect to: ${path} from ${locationRef.current}`);
     
     // Store the path we're redirecting to
     lastRedirectPath.current = path;
@@ -113,7 +154,7 @@ export function useRequireAuth(navigate: NavigateFunction) {
         console.log("🏢 Redirecting to correct org subdomain:", auth.orgSlug);
         
         // Store path for after subdomain redirect
-        const targetPath = userRole === 'admin' ? '/hr-dashboard' : '/user-dashboard';
+        const targetPath = userRole === 'admin' ? '/hr-dashboard' : '/ask-sage';
         console.log("🎯 Target path based on role:", targetPath);
         sessionStorage.setItem('lastAuthenticatedPath', targetPath);
         
@@ -138,7 +179,7 @@ export function useRequireAuth(navigate: NavigateFunction) {
       return;
     }
     
-  }, [auth.loading, auth.isAuthenticated, auth.user, auth.orgSlug, location.pathname, navigate]);
+  }, [auth.loading, auth.isAuthenticated, auth.user, auth.orgSlug, location.pathname, navigate, safeRedirect]);
 
   // Return all the auth state plus the orgSlug explicitly
   return {

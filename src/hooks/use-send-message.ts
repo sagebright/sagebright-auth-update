@@ -5,7 +5,7 @@ import { getCompleteSystemPrompt } from '@/lib/promptBuilder';
 import { voiceprints } from '@/lib/voiceprints';
 import { useVoiceParam } from './use-voice-param';
 import { buildSageContext } from '@/lib/buildSageContext';
-import { sendToOpenAI } from '@/lib/backendApi'; // 🔄 new function
+import { sendToOpenAI } from '@/lib/backendApi'; 
 import { toast } from '@/components/ui/use-toast';
 import { createUserMessage, createSageMessage, createLoadingMessage, createSageErrorMessage } from '@/utils/messageUtils';
 import { useAuth } from '@/contexts/auth/AuthContext';
@@ -26,25 +26,34 @@ export const useSendMessage = (
 ) => {
   const [isLoading, setIsLoading] = useState(false);
   const { refreshSession } = useAuth();
-  // Get the voice parameter from our custom hook
   const voice = useVoiceParam();
   
   // Track tab visibility to handle refocus issues
   const wasHiddenRef = useRef(false);
+  const lastVisibilityChangeTime = useRef(Date.now());
   
-  // Detect tab visibility changes
+  // Detect tab visibility changes with more robust handling
   useEffect(() => {
     const handleVisibilityChange = () => {
+      const currentTime = Date.now();
+      
       if (document.visibilityState === 'hidden') {
         wasHiddenRef.current = true;
+        lastVisibilityChangeTime.current = currentTime;
+        console.log('📱 Tab/window hidden at:', new Date(currentTime).toISOString());
       } else if (wasHiddenRef.current) {
         // Page has become visible after being hidden
+        const timeHidden = currentTime - lastVisibilityChangeTime.current;
         wasHiddenRef.current = false;
         
-        // Refresh session if we have the refresh function
+        console.log(`📱 Tab/window visible again after ${timeHidden}ms at:`, new Date(currentTime).toISOString());
+        
+        // Always refresh session on tab refocus, regardless of how long it was hidden
         if (refreshSession) {
-          console.log('📱 Message interface detected tab refocus, refreshing session');
-          refreshSession('message UI tab refocus');
+          console.log('🔄 Proactively refreshing session after tab refocus');
+          refreshSession('message UI tab refocus')
+            .then(() => console.log('✅ Session refresh successful after tab refocus'))
+            .catch(err => console.error('❌ Session refresh failed after tab refocus:', err));
         }
       }
     };
@@ -68,14 +77,17 @@ export const useSendMessage = (
       return;
     }
 
-    // Check if we need to refresh the session before sending (tab was hidden)
-    if (wasHiddenRef.current && refreshSession) {
-      console.log('🔄 Pre-message session refresh due to tab visibility change');
+    // More aggressive session refresh before sending message
+    let sessionRefreshed = false;
+    if (refreshSession) {
       try {
-        await refreshSession('pre-message tab change');
-        wasHiddenRef.current = false;
+        console.log('🔄 Pre-message session refresh - ALWAYS refreshing before sending');
+        await refreshSession('pre-message send');
+        sessionRefreshed = true;
+        console.log('✅ Pre-message session refresh successful');
       } catch (refreshError) {
-        console.error('Failed to refresh session before sending message:', refreshError);
+        console.error('❌ Failed to refresh session before sending message:', refreshError);
+        // Continue anyway, but log the failure
       }
     }
 
@@ -92,6 +104,7 @@ export const useSendMessage = (
     console.log("Initial voice param:", voice);
     console.log("Is valid voice:", isValidVoice);
     console.log("Final voice used:", finalVoice);
+    console.log("Session was refreshed before sending:", sessionRefreshed);
     console.groupEnd();
 
     try {
@@ -102,13 +115,17 @@ export const useSendMessage = (
       const loadingMessage = createLoadingMessage("Thinking...");
       setMessages(prev => [...prev, loadingMessage]);
 
-      const systemPrompt = getCompleteSystemPrompt(context, finalVoice); // 🧠 still using client scaffolding
+      const systemPrompt = getCompleteSystemPrompt(context, finalVoice);
 
+      console.log(`🚀 Sending message to OpenAI at ${new Date().toISOString()}`);
+      
       const data = await sendToOpenAI({
         systemPrompt,
         userPrompt: content,
         voice: finalVoice
       });
+
+      console.log(`✅ Received response from OpenAI at ${new Date().toISOString()}`);
 
       const responseContent = data?.choices?.[0]?.message?.content || 'No response content found.';
       const sageMessage = createSageMessage(responseContent);

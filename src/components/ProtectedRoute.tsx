@@ -20,6 +20,21 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const { loading, isAuthenticated, user, orgId, orgSlug } = useRequireAuth(navigate);
   const [initialCheckComplete, setInitialCheckComplete] = useState(false);
   const redirectAttempted = useRef(false);
+  const askSageProtectionActive = useRef(false);
+  
+  // Special protection for /ask-sage route
+  useEffect(() => {
+    if (location.pathname === '/ask-sage') {
+      askSageProtectionActive.current = true;
+      
+      // Reset protection after 10 seconds
+      const timer = setTimeout(() => {
+        askSageProtectionActive.current = false;
+      }, 10000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [location.pathname]);
   
   // Store search parameters that need to be preserved across auth flow
   useEffect(() => {
@@ -39,6 +54,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   
   // Prevent unwanted redirects between ask-sage and user-dashboard
   const shouldPreventRouteRedirect = (path: string): boolean => {
+    // Always block redirects from ask-sage to user-dashboard when protection is active
+    if (location.pathname === '/ask-sage' && path === '/user-dashboard' && askSageProtectionActive.current) {
+      console.log(`🛑 Preventing unwanted redirect: ${location.pathname} → ${path} (protection active)`);
+      return true;
+    }
+    
     // Don't bounce between these routes
     if ((location.pathname === '/ask-sage' && path === '/user-dashboard') ||
         (location.pathname === '/user-dashboard' && path === '/ask-sage')) {

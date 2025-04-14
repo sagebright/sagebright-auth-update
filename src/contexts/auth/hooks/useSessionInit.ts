@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabaseClient';
 import { syncUserRole } from '@/lib/syncUserRole';
@@ -14,23 +14,47 @@ export function useSessionInit() {
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const lastFocusTimeRef = useRef<number>(Date.now());
+  const isRefreshingRef = useRef<boolean>(false);
+  const refreshCountRef = useRef<number>(0);
 
-  // Function to refresh the session when needed
-  const refreshSession = async (reason: string) => {
+  // Function to refresh the session when needed, with debounce and error handling
+  const refreshSession = useCallback(async (reason: string) => {
+    // Prevent concurrent refresh calls
+    if (isRefreshingRef.current) {
+      console.log(`🔄 Session refresh already in progress (skipping - reason: ${reason})`);
+      return;
+    }
+    
+    isRefreshingRef.current = true;
+    const refreshCount = ++refreshCountRef.current;
+    
     try {
-      console.log(`🔄 Refreshing session (reason: ${reason})`);
-      const { data: { session } } = await supabase.auth.getSession();
+      console.log(`🔄 Refreshing session #${refreshCount} (reason: ${reason}) at ${new Date().toISOString()}`);
+      const { data, error } = await supabase.auth.getSession();
       
-      if (session) {
-        setSession(session);
-        setUser(session.user);
-        setUserId(session.user.id);
-        setAccessToken(session.access_token);
+      // Check if this refresh is still relevant (not superseded by a newer one)
+      if (refreshCount < refreshCountRef.current) {
+        console.log(`🔄 Refresh #${refreshCount} superseded by newer refresh, discarding result`);
+        isRefreshingRef.current = false;
+        return;
+      }
+      
+      if (error) {
+        throw error;
+      }
+      
+      if (data.session) {
+        setSession(data.session);
+        setUser(data.session.user);
+        setUserId(data.session.user.id);
+        setAccessToken(data.session.access_token);
         setIsAuthenticated(true);
-        console.log('✅ Session refreshed successfully');
+        console.log(`✅ Session #${refreshCount} refreshed successfully at ${new Date().toISOString()}`);
       } else if (user) {
         // We had a user before, but now session is gone - this is abnormal
         console.warn('⚠️ Session lost, but user state existed');
+        setIsAuthenticated(false);
+        
         toast({
           title: "Session expired",
           description: "Please refresh the page or sign in again.",
@@ -38,22 +62,32 @@ export function useSessionInit() {
         });
       }
     } catch (error) {
-      console.error('Error refreshing session:', error);
+      console.error(`❌ Error refreshing session #${refreshCount}:`, error);
+      
+      // If this is a critical operation, show a toast
+      if (reason.includes('critical')) {
+        toast({
+          title: "Authentication error",
+          description: "There was an issue with your session. Please try again.",
+          variant: "destructive"
+        });
+      }
+    } finally {
+      isRefreshingRef.current = false;
     }
-  };
+  }, [user]);
 
-  // Set up tab focus/blur event listeners
+  // Set up tab focus/blur event listeners with improved logic
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
         const timeSinceLastFocus = Date.now() - lastFocusTimeRef.current;
         lastFocusTimeRef.current = Date.now();
         
-        // If it's been more than 1 minute since last focus, refresh the session
-        if (timeSinceLastFocus > 60000) {
-          console.log(`👁️ Tab refocused after ${timeSinceLastFocus}ms, refreshing session`);
-          refreshSession('tab refocus');
-        }
+        console.log(`👁️ Tab visibility changed to visible after ${timeSinceLastFocus}ms at ${new Date().toISOString()}`);
+        
+        // Always refresh on tab visibility change, regardless of time elapsed
+        refreshSession('tab visibility change');
       }
     };
 
@@ -61,11 +95,10 @@ export function useSessionInit() {
       const timeSinceLastFocus = Date.now() - lastFocusTimeRef.current;
       lastFocusTimeRef.current = Date.now();
       
-      // If it's been more than 1 minute since last focus, refresh the session
-      if (timeSinceLastFocus > 60000) {
-        console.log(`🔍 Window refocused after ${timeSinceLastFocus}ms, refreshing session`);
-        refreshSession('window focus');
-      }
+      console.log(`🔍 Window focused after ${timeSinceLastFocus}ms at ${new Date().toISOString()}`);
+      
+      // Always refresh on window focus, regardless of time elapsed
+      refreshSession('window focus');
     };
 
     // Add event listeners
@@ -77,8 +110,9 @@ export function useSessionInit() {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('focus', handleWindowFocus);
     };
-  }, [user, isAuthenticated]);
+  }, [refreshSession]);
 
+  // Set up auth state change listener
   useEffect(() => {
     console.log("🔧 useSessionInit initializing");
     let isMounted = true;
@@ -86,7 +120,7 @@ export function useSessionInit() {
     // First set up the auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('🔥 Auth state changed:', event);
+        console.log('🔥 Auth state changed:', event, 'at', new Date().toISOString());
         
         if (!isMounted) return;
         
@@ -152,8 +186,13 @@ export function useSessionInit() {
     // Then check for an existing session
     const checkSession = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        console.log('🔥 Session in getSession():', session);
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          throw error;
+        }
+        
+        console.log('🔥 Session in getSession():', session ? 'Found' : 'Not found', 'at', new Date().toISOString());
   
         if (!isMounted) return;
   
