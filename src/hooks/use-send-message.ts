@@ -31,6 +31,8 @@ export const useSendMessage = (
   // Track tab visibility to handle refocus issues
   const wasHiddenRef = useRef(false);
   const lastVisibilityChangeTime = useRef(Date.now());
+  const sessionRefreshInProgress = useRef(false);
+  const sessionRefreshSuccessful = useRef(false);
   
   // Detect tab visibility changes with more robust handling
   useEffect(() => {
@@ -40,6 +42,7 @@ export const useSendMessage = (
       if (document.visibilityState === 'hidden') {
         wasHiddenRef.current = true;
         lastVisibilityChangeTime.current = currentTime;
+        sessionRefreshSuccessful.current = false;
         console.log('📱 Tab/window hidden at:', new Date(currentTime).toISOString());
       } else if (wasHiddenRef.current) {
         // Page has become visible after being hidden
@@ -48,20 +51,56 @@ export const useSendMessage = (
         
         console.log(`📱 Tab/window visible again after ${timeHidden}ms at:`, new Date(currentTime).toISOString());
         
-        // Always refresh session on tab refocus, regardless of how long it was hidden
-        if (refreshSession) {
+        // Force session refresh on tab refocus - this is critical to prevent stalled chat
+        if (refreshSession && !sessionRefreshInProgress.current) {
+          sessionRefreshInProgress.current = true;
           console.log('🔄 Proactively refreshing session after tab refocus');
+          
           refreshSession('message UI tab refocus')
-            .then(() => console.log('✅ Session refresh successful after tab refocus'))
-            .catch(err => console.error('❌ Session refresh failed after tab refocus:', err));
+            .then(() => {
+              console.log('✅ Session refresh successful after tab refocus');
+              sessionRefreshSuccessful.current = true;
+              sessionRefreshInProgress.current = false;
+            })
+            .catch(err => {
+              console.error('❌ Session refresh failed after tab refocus:', err);
+              sessionRefreshInProgress.current = false;
+              
+              // Show toast for session issues
+              toast({
+                variant: "destructive",
+                title: "Session refresh failed",
+                description: "You may need to sign in again to continue chatting."
+              });
+            });
         }
       }
     };
     
     document.addEventListener('visibilitychange', handleVisibilityChange);
     
+    // Also handle window focus events as a backup
+    const handleWindowFocus = () => {
+      if (!sessionRefreshSuccessful.current && !sessionRefreshInProgress.current && refreshSession) {
+        sessionRefreshInProgress.current = true;
+        console.log('🔄 Refreshing session on window focus');
+        
+        refreshSession('window focus')
+          .then(() => {
+            sessionRefreshSuccessful.current = true;
+            sessionRefreshInProgress.current = false;
+          })
+          .catch(() => {
+            sessionRefreshInProgress.current = false;
+          });
+      }
+    };
+    
+    window.addEventListener('focus', handleWindowFocus);
+    
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleWindowFocus);
     };
   }, [refreshSession]);
   
@@ -77,17 +116,34 @@ export const useSendMessage = (
       return;
     }
 
-    // More aggressive session refresh before sending message
+    // ALWAYS refresh session before sending - critical for reliability after tab changes
     let sessionRefreshed = false;
     if (refreshSession) {
       try {
         console.log('🔄 Pre-message session refresh - ALWAYS refreshing before sending');
+        
+        // Clear all previous status flags
+        sessionRefreshSuccessful.current = false;
+        sessionRefreshInProgress.current = true;
+        
         await refreshSession('pre-message send');
         sessionRefreshed = true;
+        sessionRefreshSuccessful.current = true;
         console.log('✅ Pre-message session refresh successful');
       } catch (refreshError) {
         console.error('❌ Failed to refresh session before sending message:', refreshError);
-        // Continue anyway, but log the failure
+        
+        // Show user-facing error for auth issues
+        toast({
+          variant: "destructive",
+          title: "Session error",
+          description: "There was an issue with your session. Try refreshing the page."
+        });
+        
+        // Gracefully abort the message send
+        return;
+      } finally {
+        sessionRefreshInProgress.current = false;
       }
     }
 

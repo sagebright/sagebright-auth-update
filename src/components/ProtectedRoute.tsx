@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
 import { getOrgFromUrl, redirectToOrgUrl } from '@/lib/subdomainUtils';
+import { toast } from '@/components/ui/use-toast';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -21,6 +22,16 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const [initialCheckComplete, setInitialCheckComplete] = useState(false);
   const redirectAttempted = useRef(false);
   const askSageProtectionActive = useRef(false);
+  const protectionPropsChecked = useRef(false);
+  
+  // Store search parameters that need to be preserved across auth flow
+  useEffect(() => {
+    if (location.search && location.search.includes('voice=')) {
+      localStorage.setItem("preserveSearchParams", location.search);
+      localStorage.setItem("redirectAfterLogin", location.pathname + location.search);
+      console.log("📝 Stored voice param and redirect path:", location.pathname + location.search);
+    }
+  }, [location]);
   
   // Special protection for /ask-sage route
   useEffect(() => {
@@ -35,15 +46,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       return () => clearTimeout(timer);
     }
   }, [location.pathname]);
-  
-  // Store search parameters that need to be preserved across auth flow
-  useEffect(() => {
-    if (location.search && location.search.includes('voice=')) {
-      localStorage.setItem("preserveSearchParams", location.search);
-      localStorage.setItem("redirectAfterLogin", location.pathname + location.search);
-      console.log("📝 Stored voice param and redirect path:", location.pathname + location.search);
-    }
-  }, [location]);
   
   // Track whether we've already attempted a redirection to prevent loops
   useEffect(() => {
@@ -69,6 +71,71 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return false;
   };
   
+  // Main role and permission checks
+  useEffect(() => {
+    // Skip until initial auth check is complete
+    if (!initialCheckComplete || protectionPropsChecked.current || !isAuthenticated || !user) {
+      return;
+    }
+    
+    // Only check these role requirements once per component mount to prevent redirect loops
+    protectionPropsChecked.current = true;
+    
+    // Only check required role if specified and after authentication is complete
+    if (requiredRole) {
+      const userRole = user?.user_metadata?.role || 'user';
+      
+      if (userRole !== requiredRole) {
+        console.log("🚫 User lacks required role:", requiredRole, "Current role:", userRole);
+        
+        // Show a toast to inform the user
+        toast({
+          variant: "destructive",
+          title: "Access denied",
+          description: `You need ${requiredRole} access for this page.`
+        });
+        
+        // Redirect to an appropriate page based on their actual role
+        const fallbackPath = userRole === 'admin' ? '/hr-dashboard' : '/ask-sage';
+        navigate(fallbackPath, { replace: true });
+        return;
+      }
+    }
+    
+    // Check for required permission
+    if (requiredPermission && 
+        (!user?.user_metadata?.permissions || 
+        !user.user_metadata.permissions.includes(requiredPermission))) {
+      console.log("🚫 User lacks required permission:", requiredPermission);
+      
+      toast({
+        variant: "destructive",
+        title: "Access denied",
+        description: "You don't have permission to access this page."
+      });
+      
+      // Redirect based on role
+      const userRole = user?.user_metadata?.role || 'user';
+      const fallbackPath = userRole === 'admin' ? '/hr-dashboard' : '/ask-sage';
+      navigate(fallbackPath, { replace: true });
+      return;
+    }
+    
+  }, [initialCheckComplete, isAuthenticated, user, requiredRole, requiredPermission, navigate]);
+  
+  // Subdomain check - ensure user is on correct org subdomain
+  useEffect(() => {
+    if (initialCheckComplete && orgSlug && !redirectAttempted.current) {
+      const currentOrgSlug = getOrgFromUrl();
+      if (orgSlug && (!currentOrgSlug || currentOrgSlug !== orgSlug)) {
+        console.log("🏢 ProtectedRoute redirecting to correct org subdomain:", orgSlug);
+        redirectAttempted.current = true; // Prevent further redirect attempts
+        sessionStorage.setItem('lastAuthenticatedPath', location.pathname + location.search);
+        redirectToOrgUrl(orgSlug);
+      }
+    }
+  }, [initialCheckComplete, orgSlug, location]);
+  
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -80,52 +147,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // If not authenticated, useRequireAuth will handle the redirect
   if (!isAuthenticated || !user) {
-    return null;
-  }
-  
-  // Only attempt subdomain redirects if we've completed the initial check and haven't tried already
-  // This prevents multiple redirects
-  if (initialCheckComplete && orgSlug && !redirectAttempted.current) {
-    const currentOrgSlug = getOrgFromUrl();
-    if (orgSlug && (!currentOrgSlug || currentOrgSlug !== orgSlug)) {
-      console.log("🏢 ProtectedRoute redirecting to correct org subdomain:", orgSlug);
-      redirectAttempted.current = true; // Prevent further redirect attempts
-      sessionStorage.setItem('lastAuthenticatedPath', location.pathname + location.search);
-      redirectToOrgUrl(orgSlug);
-      return null;
-    }
-  }
-
-  // Handle root path redirection based on role
-  if (location.pathname === '/' && !redirectAttempted.current) {
-    // Get role from user_metadata
-    const userRole = user?.user_metadata?.role || 'user';
-    const targetPath = userRole === 'admin' ? '/hr-dashboard' : '/ask-sage'; // Default for users is /ask-sage
-    
-    // Prevent unwanted redirects
-    if (!shouldPreventRouteRedirect(targetPath)) {
-      redirectAttempted.current = true;
-      navigate(targetPath, { replace: true });
-      return null;
-    }
-  }
-  
-  // Check for required role or permission
-  if (requiredRole) {
-    const userRole = user?.user_metadata?.role || 'user';
-    
-    if (userRole !== requiredRole) {
-      console.log("🚫 User lacks required role:", requiredRole);
-      navigate('/unauthorized', { replace: true });
-      return null;
-    }
-  }
-  
-  if (requiredPermission && 
-      (!user?.user_metadata?.permissions || 
-       !user.user_metadata.permissions.includes(requiredPermission))) {
-    console.log("🚫 User lacks required permission:", requiredPermission);
-    navigate('/unauthorized', { replace: true });
     return null;
   }
   

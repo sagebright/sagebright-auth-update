@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/auth/AuthContext";
@@ -10,6 +9,12 @@ import LoginForm from "@/components/auth/LoginForm";
 import { getOrgFromUrl } from "@/lib/subdomainUtils";
 import { useToast } from "@/hooks/use-toast";
 
+const ROLE_LANDING_PAGES = {
+  admin: '/hr-dashboard',
+  user: '/ask-sage',
+  default: '/ask-sage'
+};
+
 export default function Login() {
   const { signInWithGoogle, user, isAuthenticated, loading, orgId, refreshSession } = useAuth();
   const navigate = useNavigate();
@@ -19,14 +24,11 @@ export default function Login() {
   const hasRedirectedRef = useRef(false);
   const redirectInProgressRef = useRef(false);
   const [loginTimestamp, setLoginTimestamp] = useState<number | null>(null);
+  const sessionStableRef = useRef(false);
   
-  // Get the stored redirect path or default to dashboard
-  const redirectPath = localStorage.getItem("redirectAfterLogin") || "/ask-sage";
-  
-  // Check if we need to preserve query parameters (e.g., voice param)
+  const redirectPath = localStorage.getItem("redirectAfterLogin") || null;
   const preserveSearch = localStorage.getItem("preserveSearchParams") || "";
   
-  // Force session refresh on login page load
   useEffect(() => {
     if (refreshSession && !loading) {
       console.log("🔄 Login page forcing session refresh");
@@ -35,7 +37,6 @@ export default function Login() {
   }, [refreshSession, loading]);
 
   useEffect(() => {
-    // Store the current search parameters if coming from a page with voice param
     if (location.search && location.search.includes('voice=') && !localStorage.getItem("preserveSearchParams")) {
       localStorage.setItem("preserveSearchParams", location.search);
       const timestamp = new Date().toISOString();
@@ -46,78 +47,80 @@ export default function Login() {
       });
     }
     
-    // If auth is still loading, don't do anything yet
     if (loading) {
       console.log("⏳ Auth still loading on login page, waiting...");
       return;
     }
 
-    // If user is already authenticated, redirect them appropriately
-    if (isAuthenticated && user && !hasRedirectedRef.current && !redirectInProgressRef.current) {
+    if (isAuthenticated && user && user.user_metadata && !sessionStableRef.current) {
+      console.log("✅ Login page detected stable session with metadata:", {
+        role: user.user_metadata?.role || 'unknown',
+        orgId: user.user_metadata?.org_id || 'unknown'
+      });
+      sessionStableRef.current = true;
+    }
+
+    if (isAuthenticated && user && sessionStableRef.current && 
+        !hasRedirectedRef.current && !redirectInProgressRef.current) {
+      
       redirectInProgressRef.current = true;
       hasRedirectedRef.current = true;
       
-      // Record login timestamp to detect potential redirect loops
       const currentTime = Date.now();
       setLoginTimestamp(currentTime);
       
       const timestamp = new Date().toISOString();
-      console.log(`✅ [${timestamp}] User already authenticated on login page, redirecting to dashboard`);
+      console.log(`✅ [${timestamp}] User authenticated on login page, redirecting to dashboard`);
       
-      // Check the role specifically from user_metadata
       const role = user.user_metadata?.role || 'user';
-      let targetPath = role === 'admin' ? '/hr-dashboard' : '/ask-sage';
       
-      // Check if we should redirect to a stored path
-      if (localStorage.getItem("redirectAfterLogin")) {
-        targetPath = localStorage.getItem("redirectAfterLogin") || targetPath;
-        
-        // Append preserved search params if they exist
-        const searchParams = localStorage.getItem("preserveSearchParams");
-        if (searchParams && !targetPath.includes('?')) {
-          targetPath += searchParams;
-          console.log(`🔄 [${timestamp}] Restoring search params to redirect:`, {
-            targetPath,
-            originalSearch: searchParams,
-            voiceParam: new URLSearchParams(searchParams).get('voice')
-          });
-        }
+      let targetPath: string;
+      
+      if (redirectPath) {
+        targetPath = redirectPath;
+        console.log(`🔄 [${timestamp}] Using stored redirect path:`, targetPath);
+      } else {
+        targetPath = ROLE_LANDING_PAGES[role as keyof typeof ROLE_LANDING_PAGES] || ROLE_LANDING_PAGES.default;
+        console.log(`🔄 [${timestamp}] Using role-based landing page for ${role}:`, targetPath);
       }
       
-      console.log(`🎯 [${timestamp}] Redirecting to:`, targetPath, "based on role:", role);
+      if (preserveSearch && !targetPath.includes('?')) {
+        targetPath += preserveSearch;
+        console.log(`🔄 [${timestamp}] Restoring search params to redirect:`, {
+          targetPath,
+          originalSearch: preserveSearch,
+          voiceParam: new URLSearchParams(preserveSearch).get('voice')
+        });
+      }
       
-      // Show a toast for redirection
+      console.log(`🎯 [${timestamp}] Redirecting to:`, targetPath);
+      
       toast({
-        title: "Already signed in",
+        title: "Welcome back!",
         description: "Redirecting to your dashboard...",
       });
       
-      // Clear any stored redirect paths to prevent loops
       localStorage.removeItem("redirectAfterLogin");
       localStorage.removeItem("preserveSearchParams");
       
-      // Use setTimeout to ensure we're not redirecting within another React effect cycle
-      // Increased timeout to ensure auth state is settled
       setTimeout(() => {
         if (document.location.pathname.startsWith('/auth')) {
           navigate(targetPath, { replace: true });
-          redirectInProgressRef.current = false;
+          setTimeout(() => {
+            redirectInProgressRef.current = false;
+          }, 1000);
         }
       }, 300);
     }
-  }, [user, isAuthenticated, loading, orgId, navigate, toast, location.search]);
+  }, [user, isAuthenticated, loading, orgId, navigate, toast, location.search, redirectPath, preserveSearch]);
 
-  // Handle Google sign-in
   const handleGoogleSignIn = async () => {
     try {
       await signInWithGoogle();
-      // The redirect will be handled by the AuthContext after successful Google sign-in
     } catch (error) {
-      // Error is handled in the auth context
     }
   };
 
-  // If still loading auth state, show a loading indicator
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -127,7 +130,6 @@ export default function Login() {
     );
   }
   
-  // If already authenticated, show a loading indicator instead of a flash of the login page
   if (isAuthenticated && user) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -137,7 +139,6 @@ export default function Login() {
     );
   }
 
-  // Only render the login form if the user is not authenticated
   return (
     <AuthLayout
       title="Sign in"
