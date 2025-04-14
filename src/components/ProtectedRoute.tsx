@@ -23,14 +23,14 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const { loading, isAuthenticated, user, orgId, orgSlug } = useRequireAuth(navigate);
   const [initialCheckComplete, setInitialCheckComplete] = useState(false);
   const redirectAttempted = useRef(false);
-  const askSageProtectionActive = useRef(false);
   const protectionPropsChecked = useRef(false);
   
   // Get route protection state
   const {
     redirectInProgressRef,
     userDashboardRedirectBlocker,
-    locationRef
+    locationRef,
+    sessionStabilizedRef
   } = useRouteProtection(navigate);
   
   // Get redirect logic
@@ -51,20 +51,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     }
   }, [location]);
   
-  // Special protection for /ask-sage route
-  useEffect(() => {
-    if (location.pathname === '/ask-sage') {
-      askSageProtectionActive.current = true;
-      
-      // Reset protection after 10 seconds
-      const timer = setTimeout(() => {
-        askSageProtectionActive.current = false;
-      }, 10000);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [location.pathname]);
-  
   // Track whether we've already attempted a redirection to prevent loops
   useEffect(() => {
     if (!loading && !initialCheckComplete) {
@@ -72,27 +58,38 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     }
   }, [loading, initialCheckComplete]);
   
-  // Prevent unwanted redirects between ask-sage and user-dashboard
+  // Prevent unwanted redirects between specific routes
   const shouldPreventRouteRedirect = (path: string): boolean => {
-    // Always block redirects from ask-sage to user-dashboard when protection is active
-    if (location.pathname === '/ask-sage' && path === '/user-dashboard' && askSageProtectionActive.current) {
-      console.log(`🛑 Preventing unwanted redirect: ${location.pathname} → ${path} (protection active)`);
-      return true;
-    }
-    
-    // Don't bounce between these routes
+    // Always block redirects between ask-sage and user-dashboard in both directions
     if ((location.pathname === '/ask-sage' && path === '/user-dashboard') ||
         (location.pathname === '/user-dashboard' && path === '/ask-sage')) {
       console.log(`🛑 Preventing unwanted redirect: ${location.pathname} → ${path}`);
       return true;
     }
+    
+    // Prevent HR dashboard redirects if already on that page
+    if (location.pathname === '/hr-dashboard' && path === '/hr-dashboard') {
+      return true;
+    }
+    
+    // Prevent admin dashboard redirects if already on that page
+    if (location.pathname === '/admin-dashboard' && path === '/admin-dashboard') {
+      return true;
+    }
+    
     return false;
   };
   
-  // Main role and permission checks
+  // Main role and permission checks - only run once when component mounts
   useEffect(() => {
     // Skip until initial auth check is complete
     if (!initialCheckComplete || protectionPropsChecked.current || !isAuthenticated || !user) {
+      return;
+    }
+    
+    // Skip until session is fully stabilized for role-based decisions
+    if (!sessionStabilizedRef.current) {
+      console.log("⏳ ProtectedRoute waiting for session to stabilize before role checks");
       return;
     }
     
@@ -116,7 +113,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         // Redirect to an appropriate page based on their actual role
         const fallbackPath = userRole === 'admin' ? '/hr-dashboard' : '/ask-sage';
         
-        if (!shouldPreventRouteRedirect(fallbackPath)) {
+        if (!shouldPreventRouteRedirect(fallbackPath) && !redirectAttempted.current) {
+          redirectAttempted.current = true;
           navigate(fallbackPath, { replace: true });
         }
         return;
@@ -139,17 +137,18 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       const userRole = user?.user_metadata?.role || 'user';
       const fallbackPath = userRole === 'admin' ? '/hr-dashboard' : '/ask-sage';
       
-      if (!shouldPreventRouteRedirect(fallbackPath)) {
+      if (!shouldPreventRouteRedirect(fallbackPath) && !redirectAttempted.current) {
+        redirectAttempted.current = true;
         navigate(fallbackPath, { replace: true });
       }
       return;
     }
     
-  }, [initialCheckComplete, isAuthenticated, user, requiredRole, requiredPermission, navigate, location.pathname]);
+  }, [initialCheckComplete, isAuthenticated, user, requiredRole, requiredPermission, navigate, location.pathname, sessionStabilizedRef]);
   
   // Subdomain check - ensure user is on correct org subdomain
   useEffect(() => {
-    if (initialCheckComplete && orgSlug && !redirectAttempted.current) {
+    if (initialCheckComplete && orgSlug && !redirectAttempted.current && isAuthenticated) {
       const currentOrgSlug = getOrgFromUrl();
       if (orgSlug && (!currentOrgSlug || currentOrgSlug !== orgSlug)) {
         console.log("🏢 ProtectedRoute redirecting to correct org subdomain:", orgSlug);
@@ -158,7 +157,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         redirectToOrgUrl(orgSlug);
       }
     }
-  }, [initialCheckComplete, orgSlug, location]);
+  }, [initialCheckComplete, orgSlug, location, isAuthenticated]);
   
   if (loading) {
     return (
