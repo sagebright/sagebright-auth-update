@@ -9,6 +9,7 @@ import { sendToOpenAI } from '@/lib/backendApi';
 import { toast } from '@/components/ui/use-toast';
 import { createUserMessage, createSageMessage, createLoadingMessage, createSageErrorMessage } from '@/utils/messageUtils';
 import { useAuth } from '@/contexts/auth/AuthContext';
+import { useVisibilityChange } from '@/contexts/auth/hooks/useVisibilityChange';
 
 interface DebugPanelHandlers {
   setRequestLoading: () => void;
@@ -29,80 +30,37 @@ export const useSendMessage = (
   const voice = useVoiceParam();
   
   // Track tab visibility to handle refocus issues
-  const wasHiddenRef = useRef(false);
-  const lastVisibilityChangeTime = useRef(Date.now());
   const sessionRefreshInProgress = useRef(false);
   const sessionRefreshSuccessful = useRef(false);
   
-  // Detect tab visibility changes with more robust handling
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      const currentTime = Date.now();
-      
-      if (document.visibilityState === 'hidden') {
-        wasHiddenRef.current = true;
-        lastVisibilityChangeTime.current = currentTime;
-        sessionRefreshSuccessful.current = false;
-        console.log('📱 Tab/window hidden at:', new Date(currentTime).toISOString());
-      } else if (wasHiddenRef.current) {
-        // Page has become visible after being hidden
-        const timeHidden = currentTime - lastVisibilityChangeTime.current;
-        wasHiddenRef.current = false;
-        
-        console.log(`📱 Tab/window visible again after ${timeHidden}ms at:`, new Date(currentTime).toISOString());
-        
-        // Force session refresh on tab refocus - this is critical to prevent stalled chat
-        if (refreshSession && !sessionRefreshInProgress.current) {
-          sessionRefreshInProgress.current = true;
-          console.log('🔄 Proactively refreshing session after tab refocus');
-          
-          refreshSession('message UI tab refocus')
-            .then(() => {
-              console.log('✅ Session refresh successful after tab refocus');
-              sessionRefreshSuccessful.current = true;
-              sessionRefreshInProgress.current = false;
-            })
-            .catch(err => {
-              console.error('❌ Session refresh failed after tab refocus:', err);
-              sessionRefreshInProgress.current = false;
-              
-              // Show toast for session issues
-              toast({
-                variant: "destructive",
-                title: "Session refresh failed",
-                description: "You may need to sign in again to continue chatting."
-              });
-            });
-        }
-      }
-    };
-    
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    
-    // Also handle window focus events as a backup
-    const handleWindowFocus = () => {
-      if (!sessionRefreshSuccessful.current && !sessionRefreshInProgress.current && refreshSession) {
+  // Use the extracted visibility change hook
+  useVisibilityChange({
+    onVisible: () => {
+      // Force session refresh on tab refocus - this is critical to prevent stalled chat
+      if (refreshSession && !sessionRefreshInProgress.current) {
         sessionRefreshInProgress.current = true;
-        console.log('🔄 Refreshing session on window focus');
+        console.log('🔄 Proactively refreshing session after tab refocus');
         
-        refreshSession('window focus')
+        refreshSession('message UI tab refocus')
           .then(() => {
+            console.log('✅ Session refresh successful after tab refocus');
             sessionRefreshSuccessful.current = true;
             sessionRefreshInProgress.current = false;
           })
-          .catch(() => {
+          .catch(err => {
+            console.error('❌ Session refresh failed after tab refocus:', err);
             sessionRefreshInProgress.current = false;
+            
+            // Show toast for session issues
+            toast({
+              variant: "destructive",
+              title: "Session refresh failed",
+              description: "You may need to sign in again to continue chatting."
+            });
           });
       }
-    };
-    
-    window.addEventListener('focus', handleWindowFocus);
-    
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('focus', handleWindowFocus);
-    };
-  }, [refreshSession]);
+    }
+  });
   
   // Function to handle sending message to Sage
   const handleSendMessage = useCallback(async (content: string) => {
