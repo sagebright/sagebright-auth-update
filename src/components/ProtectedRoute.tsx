@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
 import { getOrgFromUrl, redirectToOrgUrl } from '@/lib/subdomainUtils';
@@ -19,7 +19,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const location = useLocation();
   const { loading, isAuthenticated, user, orgId, orgSlug } = useRequireAuth(navigate);
   const [initialCheckComplete, setInitialCheckComplete] = useState(false);
-  const [redirectAttempted, setRedirectAttempted] = useState(false);
+  const redirectAttempted = useRef(false);
   
   // Store search parameters that need to be preserved across auth flow
   useEffect(() => {
@@ -37,6 +37,17 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     }
   }, [loading, initialCheckComplete]);
   
+  // Prevent unwanted redirects between ask-sage and user-dashboard
+  const shouldPreventRouteRedirect = (path: string): boolean => {
+    // Don't bounce between these routes
+    if ((location.pathname === '/ask-sage' && path === '/user-dashboard') ||
+        (location.pathname === '/user-dashboard' && path === '/ask-sage')) {
+      console.log(`🛑 Preventing unwanted redirect: ${location.pathname} → ${path}`);
+      return true;
+    }
+    return false;
+  };
+  
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -53,11 +64,11 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   
   // Only attempt subdomain redirects if we've completed the initial check and haven't tried already
   // This prevents multiple redirects
-  if (initialCheckComplete && orgSlug && !redirectAttempted) {
+  if (initialCheckComplete && orgSlug && !redirectAttempted.current) {
     const currentOrgSlug = getOrgFromUrl();
     if (orgSlug && (!currentOrgSlug || currentOrgSlug !== orgSlug)) {
       console.log("🏢 ProtectedRoute redirecting to correct org subdomain:", orgSlug);
-      setRedirectAttempted(true); // Prevent further redirect attempts
+      redirectAttempted.current = true; // Prevent further redirect attempts
       sessionStorage.setItem('lastAuthenticatedPath', location.pathname + location.search);
       redirectToOrgUrl(orgSlug);
       return null;
@@ -65,12 +76,17 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   // Handle root path redirection based on role
-  if (location.pathname === '/') {
+  if (location.pathname === '/' && !redirectAttempted.current) {
     // Get role from user_metadata
     const userRole = user?.user_metadata?.role || 'user';
-    const targetPath = userRole === 'admin' ? '/hr-dashboard' : '/user-dashboard';
-    navigate(targetPath, { replace: true });
-    return null;
+    const targetPath = userRole === 'admin' ? '/hr-dashboard' : '/ask-sage'; // Default for users is /ask-sage
+    
+    // Prevent unwanted redirects
+    if (!shouldPreventRouteRedirect(targetPath)) {
+      redirectAttempted.current = true;
+      navigate(targetPath, { replace: true });
+      return null;
+    }
   }
   
   // Check for required role or permission

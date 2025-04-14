@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { Message } from '@/types/chat';
 import { getCompleteSystemPrompt } from '@/lib/promptBuilder';
 import { voiceprints } from '@/lib/voiceprints';
@@ -8,6 +8,7 @@ import { buildSageContext } from '@/lib/buildSageContext';
 import { callOpenAI } from '@/lib/api';
 import { toast } from '@/components/ui/use-toast';
 import { createUserMessage, createSageMessage, createLoadingMessage, createSageErrorMessage } from '@/utils/messageUtils';
+import { useAuth } from '@/contexts/auth/AuthContext';
 
 interface DebugPanelHandlers {
   setRequestLoading: () => void;
@@ -23,12 +24,40 @@ export const useSendMessage = (
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>,
   userId: string | null,
   orgId: string | null,
-  user: any | null, // Changed from User to any to fix the first error
+  user: any | null,
   debugHandlers?: DebugPanelHandlers
 ) => {
   const [isLoading, setIsLoading] = useState(false);
+  const { refreshSession } = useAuth();
   // Get the voice parameter from our custom hook
   const voice = useVoiceParam();
+  
+  // Track tab visibility to handle refocus issues
+  const wasHiddenRef = useRef(false);
+  
+  // Detect tab visibility changes
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        wasHiddenRef.current = true;
+      } else if (wasHiddenRef.current) {
+        // Page has become visible after being hidden
+        wasHiddenRef.current = false;
+        
+        // Refresh session if we have the refresh function
+        if (refreshSession) {
+          console.log('📱 Message interface detected tab refocus, refreshing session');
+          refreshSession('message UI tab refocus');
+        }
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [refreshSession]);
   
   // Function to handle sending message to Sage
   const handleSendMessage = useCallback(async (content: string) => {
@@ -40,6 +69,17 @@ export const useSendMessage = (
         description: "User or organization information is missing. Please try again later."
       });
       return;
+    }
+
+    // Check if we need to refresh the session before sending (tab was hidden)
+    if (wasHiddenRef.current && refreshSession) {
+      console.log('🔄 Pre-message session refresh due to tab visibility change');
+      try {
+        await refreshSession('pre-message tab change');
+        wasHiddenRef.current = false;
+      } catch (refreshError) {
+        console.error('Failed to refresh session before sending message:', refreshError);
+      }
     }
 
     setIsLoading(true);
@@ -129,7 +169,7 @@ export const useSendMessage = (
     } finally {
       setIsLoading(false);
     }
-  }, [userId, orgId, voice, setMessages, debugHandlers]);
+  }, [userId, orgId, voice, setMessages, debugHandlers, refreshSession]);
 
   return {
     isLoading,

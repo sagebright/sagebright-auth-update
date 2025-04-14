@@ -20,6 +20,7 @@ export function useAuthProvider() {
     setUser,
     setLoading,
     setAccessToken,
+    refreshSession, // Get refreshSession from useSessionInit
   } = useSessionInit();
 
   // Initialize organization context
@@ -135,6 +136,7 @@ export function useAuthProvider() {
     setAccessToken,
     isRecoveringOrgContext,
     recoverOrgContext,
-    fetchUserData
+    fetchUserData,
+    refreshSession, // Expose refreshSession
   };
 }

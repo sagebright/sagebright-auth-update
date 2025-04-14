@@ -9,6 +9,47 @@ export function useRequireAuth(navigate: NavigateFunction) {
   const auth = useAuth();
   const [redirecting, setRedirecting] = useState(false);
   const initialCheckDone = useRef(false);
+  const redirectAttempted = useRef(false);
+  const lastRedirectPath = useRef<string | null>(null);
+  const redirectDebounceTimer = useRef<number | null>(null);
+
+  useEffect(() => {
+    // Clean up any pending redirect timer on unmount
+    return () => {
+      if (redirectDebounceTimer.current) {
+        window.clearTimeout(redirectDebounceTimer.current);
+      }
+    };
+  }, []);
+
+  // Debounced redirect function to prevent multiple redirects
+  const safeRedirect = (path: string, options: { replace?: boolean } = {}) => {
+    // Don't redirect to the same path multiple times
+    if (path === lastRedirectPath.current) {
+      console.log(`🚫 Prevented duplicate redirect to: ${path}`);
+      return;
+    }
+
+    // Add timestamp to log for tracking race conditions
+    const timestamp = new Date().toISOString();
+    console.log(`🚀 [${timestamp}] Initiating redirect to: ${path}`);
+    
+    // Store the path we're redirecting to
+    lastRedirectPath.current = path;
+    setRedirecting(true);
+    
+    // Clear any existing redirect timer
+    if (redirectDebounceTimer.current) {
+      window.clearTimeout(redirectDebounceTimer.current);
+    }
+    
+    // Debounce the redirect to prevent race conditions
+    redirectDebounceTimer.current = window.setTimeout(() => {
+      console.log(`✅ [${new Date().toISOString()}] Executing redirect to: ${path}`);
+      navigate(path, options);
+      redirectDebounceTimer.current = null;
+    }, 100);
+  };
 
   useEffect(() => {
     // Skip if we're already redirecting or have completed the initial check
@@ -22,7 +63,8 @@ export function useRequireAuth(navigate: NavigateFunction) {
       isAuthenticated: auth.isAuthenticated, 
       user: !!auth.user, 
       orgSlug: auth.orgSlug,
-      role: auth.user?.user_metadata?.role || 'unknown'
+      role: auth.user?.user_metadata?.role || 'unknown',
+      pathname: location.pathname
     });
 
     // Skip auth check on public routes or if we're already on an auth route
@@ -50,7 +92,7 @@ export function useRequireAuth(navigate: NavigateFunction) {
       localStorage.setItem("redirectAfterLogin", fullPath);
       
       setRedirecting(true);
-      navigate('/auth/login', { replace: true });
+      safeRedirect('/auth/login', { replace: true });
       return;
     }
 
@@ -67,7 +109,7 @@ export function useRequireAuth(navigate: NavigateFunction) {
       
       // Handle subdomain mismatch - ensure user is on the correct subdomain
       const currentOrgSlug = getOrgFromUrl();
-      if (auth.orgSlug && (!currentOrgSlug || currentOrgSlug !== auth.orgSlug)) {
+      if (auth.orgSlug && (!currentOrgSlug || currentOrgSlug !== auth.orgSlug) && !redirectAttempted.current) {
         console.log("🏢 Redirecting to correct org subdomain:", auth.orgSlug);
         
         // Store path for after subdomain redirect
@@ -76,21 +118,26 @@ export function useRequireAuth(navigate: NavigateFunction) {
         sessionStorage.setItem('lastAuthenticatedPath', targetPath);
         
         setRedirecting(true);
+        redirectAttempted.current = true;
         redirectToOrgUrl(auth.orgSlug);
         return;
       }
     }
 
     // Handle root path redirection based on role
-    if (location.pathname === '/') {
-      const targetPath = userRole === 'admin' ? '/hr-dashboard' : '/user-dashboard';
+    // Critical fix: Only redirect if current path is exactly '/' to prevent redirecting from /ask-sage
+    if (location.pathname === '/' && !redirectAttempted.current) {
+      // Check if we're at exactly the root path, not any other path
+      const targetPath = userRole === 'admin' ? '/hr-dashboard' : '/ask-sage'; // Changed default for user to /ask-sage
       
-      console.log("🏠 Redirecting from root to role-based dashboard:", targetPath);
-      setRedirecting(true);
-      navigate(targetPath, { replace: true });
+      console.log(`🏠 Redirecting from root to role-based path: ${targetPath}`);
+      console.log(`📍 Current path: ${location.pathname}`);
+      
+      redirectAttempted.current = true;
+      safeRedirect(targetPath, { replace: true });
       return;
     }
-
+    
   }, [auth.loading, auth.isAuthenticated, auth.user, auth.orgSlug, location.pathname, navigate]);
 
   // Return all the auth state plus the orgSlug explicitly

@@ -1,9 +1,10 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabaseClient';
 import { syncUserRole } from '@/lib/syncUserRole';
 import { syncExistingUsers } from '@/lib/syncExistingUsers';
+import { toast } from '@/components/ui/use-toast';
 
 export function useSessionInit() {
   const [accessToken, setAccessToken] = useState<string | null>(null);
@@ -12,6 +13,71 @@ export function useSessionInit() {
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const lastFocusTimeRef = useRef<number>(Date.now());
+
+  // Function to refresh the session when needed
+  const refreshSession = async (reason: string) => {
+    try {
+      console.log(`🔄 Refreshing session (reason: ${reason})`);
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session) {
+        setSession(session);
+        setUser(session.user);
+        setUserId(session.user.id);
+        setAccessToken(session.access_token);
+        setIsAuthenticated(true);
+        console.log('✅ Session refreshed successfully');
+      } else if (user) {
+        // We had a user before, but now session is gone - this is abnormal
+        console.warn('⚠️ Session lost, but user state existed');
+        toast({
+          title: "Session expired",
+          description: "Please refresh the page or sign in again.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Error refreshing session:', error);
+    }
+  };
+
+  // Set up tab focus/blur event listeners
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        const timeSinceLastFocus = Date.now() - lastFocusTimeRef.current;
+        lastFocusTimeRef.current = Date.now();
+        
+        // If it's been more than 1 minute since last focus, refresh the session
+        if (timeSinceLastFocus > 60000) {
+          console.log(`👁️ Tab refocused after ${timeSinceLastFocus}ms, refreshing session`);
+          refreshSession('tab refocus');
+        }
+      }
+    };
+
+    const handleWindowFocus = () => {
+      const timeSinceLastFocus = Date.now() - lastFocusTimeRef.current;
+      lastFocusTimeRef.current = Date.now();
+      
+      // If it's been more than 1 minute since last focus, refresh the session
+      if (timeSinceLastFocus > 60000) {
+        console.log(`🔍 Window refocused after ${timeSinceLastFocus}ms, refreshing session`);
+        refreshSession('window focus');
+      }
+    };
+
+    // Add event listeners
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleWindowFocus);
+
+    return () => {
+      // Clean up event listeners
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleWindowFocus);
+    };
+  }, [user, isAuthenticated]);
 
   useEffect(() => {
     console.log("🔧 useSessionInit initializing");
@@ -139,5 +205,6 @@ export function useSessionInit() {
     setUser,
     setLoading,
     setAccessToken,
+    refreshSession,
   };
 }

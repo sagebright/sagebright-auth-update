@@ -23,6 +23,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     currentUser,
     loading,
     isAuthenticated,
+    refreshSession, // Include the refreshSession function
   } = authState;
 
   // Debug log for the exact auth state being provided to context
@@ -165,6 +166,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     resetPassword,
     updateProfile,
     accessToken,
+    refreshSession, // Expose the refreshSession function
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

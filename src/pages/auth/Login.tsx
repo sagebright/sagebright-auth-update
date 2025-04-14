@@ -1,4 +1,5 @@
-import React, { useEffect } from "react";
+
+import React, { useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/auth/AuthContext";
 import AuthLayout from "@/components/auth/AuthLayout";
@@ -15,9 +16,10 @@ export default function Login() {
   const location = useLocation();
   const { form, isLoading, authError, onSubmit } = useLoginForm();
   const { toast } = useToast();
+  const hasRedirectedRef = useRef(false);
   
   // Get the stored redirect path or default to dashboard
-  const redirectPath = localStorage.getItem("redirectAfterLogin") || "/user-dashboard";
+  const redirectPath = localStorage.getItem("redirectAfterLogin") || "/ask-sage";
   
   // Check if we need to preserve query parameters (e.g., voice param)
   const preserveSearch = localStorage.getItem("preserveSearchParams") || "";
@@ -41,13 +43,14 @@ export default function Login() {
     }
 
     // If user is already authenticated, redirect them appropriately
-    if (isAuthenticated && user) {
+    if (isAuthenticated && user && !hasRedirectedRef.current) {
+      hasRedirectedRef.current = true;
       const timestamp = new Date().toISOString();
       console.log(`✅ [${timestamp}] User already authenticated on login page, redirecting to dashboard`);
       
       // Check the role specifically from user_metadata
       const role = user.user_metadata?.role || 'user';
-      let targetPath = role === 'admin' ? '/hr-dashboard' : '/user-dashboard';
+      let targetPath = role === 'admin' ? '/hr-dashboard' : '/ask-sage';
       
       // Check if we should redirect to a stored path
       if (localStorage.getItem("redirectAfterLogin")) {
@@ -77,8 +80,12 @@ export default function Login() {
       localStorage.removeItem("redirectAfterLogin");
       localStorage.removeItem("preserveSearchParams");
       
-      // Redirect immediately to prevent login page flash
-      navigate(targetPath, { replace: true });
+      // Use setTimeout to ensure we're not redirecting within another React effect cycle
+      setTimeout(() => {
+        if (document.location.pathname.startsWith('/auth')) {
+          navigate(targetPath, { replace: true });
+        }
+      }, 100);
     }
   }, [user, isAuthenticated, loading, orgId, navigate, toast, location.search]);
 
