@@ -37,16 +37,16 @@ async function fetchWithAuth(path: string, options: RequestInit = {}) {
     if (!res.ok) {
       const text = await res.text();
       let error;
-    
+
       try {
         error = JSON.parse(text);
       } catch (e) {
         throw new Error(`Non-JSON error: ${text.slice(0, 100)}`);
       }
-    
+
       throw new Error(error.message || 'API request failed');
     }
-    
+
     return res.json();
   } catch (error) {
     // Log the error but don't show toast - let the caller decide that
@@ -67,8 +67,8 @@ async function fetchWithAuth(path: string, options: RequestInit = {}) {
  * @returns JSON response or null on error
  */
 export async function apiRequest(
-  path: string, 
-  options: RequestInit = {}, 
+  path: string,
+  options: RequestInit = {},
   errorConfig: {
     context?: string;
     fallbackMessage?: string;
@@ -79,26 +79,56 @@ export async function apiRequest(
   try {
     return await fetchWithAuth(path, options);
   } catch (error: any) {
-    // Check if this is a "Forbidden: insufficient role" error
-    const isForbiddenRoleError = 
-      error?.message?.includes('Forbidden: insufficient role') || 
-      error?.message?.includes('403') || 
+    const isForbiddenRoleError =
+      error?.message?.includes('Forbidden: insufficient role') ||
+      error?.message?.includes('403') ||
       error?.message?.includes('forbidden');
-      
-    // Only show toasts for errors that aren't silent and aren't role-related
-    // (Role errors are expected during normal operation in some cases)
-    const shouldShowToast = 
-      !errorConfig.silent && 
-      errorConfig.showToast !== false && 
+
+    const shouldShowToast =
+      !errorConfig.silent &&
+      errorConfig.showToast !== false &&
       !isForbiddenRoleError;
-    
+
     handleApiError(error, {
       context: errorConfig.context || path,
       fallbackMessage: errorConfig.fallbackMessage || 'Unable to complete request. Please try again.',
       showToast: shouldShowToast
     });
+
     return null;
   }
+}
+
+/**
+ * Send a prompt to the OpenAI proxy route
+ * @param systemPrompt The system-level instructions
+ * @param userPrompt The user message
+ * @param voice Optional voice metadata
+ * @param model Optional model name (defaults to gpt-4o)
+ * @returns OpenAI response or null on error
+ */
+export async function sendToOpenAI({
+  systemPrompt,
+  userPrompt,
+  voice,
+  model
+}: {
+  systemPrompt: string;
+  userPrompt: string;
+  voice?: string;
+  model?: string;
+}) {
+  return apiRequest('/openai', {
+    method: 'POST',
+    body: JSON.stringify({ systemPrompt, userPrompt, voice, model }),
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  }, {
+    context: 'OpenAI request',
+    fallbackMessage: 'Sage had trouble generating a response.',
+    showToast: true
+  });
 }
 
 /**
@@ -109,7 +139,6 @@ export async function getUsers() {
   const res = await apiRequest('/users', {}, {
     context: 'fetching users',
     fallbackMessage: 'Unable to load users. Please try again.',
-    // Don't show toast for this operation, it's common for regular users to get 403
     silent: true
   });
   return res?.data || [];
@@ -165,8 +194,8 @@ export function createFetcher(path: string, errorContext: string, fallbackMessag
  * @returns Function that mutates data in the API
  */
 export function createMutation(
-  path: string, 
-  method: 'POST' | 'PUT' | 'PATCH' | 'DELETE', 
+  path: string,
+  method: 'POST' | 'PUT' | 'PATCH' | 'DELETE',
   errorContext: string,
   fallbackMessage: string
 ) {
@@ -177,11 +206,11 @@ export function createMutation(
         'Content-Type': 'application/json'
       }
     };
-    
+
     if (data && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
       options.body = JSON.stringify(data);
     }
-    
+
     const res = await apiRequest(path, options, {
       context: errorContext,
       fallbackMessage

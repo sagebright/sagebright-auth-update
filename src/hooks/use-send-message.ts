@@ -5,7 +5,7 @@ import { getCompleteSystemPrompt } from '@/lib/promptBuilder';
 import { voiceprints } from '@/lib/voiceprints';
 import { useVoiceParam } from './use-voice-param';
 import { buildSageContext } from '@/lib/buildSageContext';
-import { callOpenAI } from '@/lib/api';
+import { sendToOpenAI } from '@/lib/backendApi'; // 🔄 new function
 import { toast } from '@/components/ui/use-toast';
 import { createUserMessage, createSageMessage, createLoadingMessage, createSageErrorMessage } from '@/utils/messageUtils';
 import { useAuth } from '@/contexts/auth/AuthContext';
@@ -16,9 +16,6 @@ interface DebugPanelHandlers {
   setRequestError: (error: string) => void;
 }
 
-/**
- * Custom hook for sending messages to Sage
- */
 export const useSendMessage = (
   messages: Message[],
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>,
@@ -83,86 +80,56 @@ export const useSendMessage = (
     }
 
     setIsLoading(true);
-    if (debugHandlers) {
-      debugHandlers.setRequestLoading();
-    }
+    if (debugHandlers) debugHandlers.setRequestLoading();
 
     const startTime = Date.now();
     const timestamp = new Date().toISOString();
-    
-    // Validate voice parameter against available voices
+
     const isValidVoice = voice in voiceprints;
-    
+    const finalVoice = isValidVoice ? voice : 'default';
+
     console.group(`🔍 Voice Parameter Resolution (${timestamp})`);
     console.log("Initial voice param:", voice);
     console.log("Is valid voice:", isValidVoice);
-    
-    if (!isValidVoice && voice !== 'default') {
-      console.warn(`⚠️ Invalid voice "${voice}" requested, falling back to default`);
-      console.log("Available voices:", Object.keys(voiceprints));
-    }
-    
-    // Use the validated voice or fall back to 'default'
-    const finalVoice = isValidVoice ? voice : 'default';
-    
     console.log("Final voice used:", finalVoice);
     console.groupEnd();
-    
-    if (!isValidVoice && voice !== 'default') {
-      console.warn(`🚨 Mismatch detected: "${voice}" not in available voices. Using "${finalVoice}"`);
-    }
 
     try {
-      // Create a new user message
       const userMessage = createUserMessage(content);
+      setMessages(prev => [...prev, userMessage]);
 
-      // Update messages state with the new user message
-      setMessages((prevMessages) => [...prevMessages, userMessage]);
-
-      // Build the context for Sage
       const context = await buildSageContext(userId, orgId);
-      
-      // Prepare loading message for better UX
       const loadingMessage = createLoadingMessage("Thinking...");
-      
-      setMessages((prevMessages) => [...prevMessages, loadingMessage]);
-      
-      // Call the OpenAI API with the built context
-      const responseContent = await callOpenAI({
-        question: content,
-        context,
+      setMessages(prev => [...prev, loadingMessage]);
+
+      const systemPrompt = getCompleteSystemPrompt(context, finalVoice); // 🧠 still using client scaffolding
+
+      const data = await sendToOpenAI({
+        systemPrompt,
+        userPrompt: content,
         voice: finalVoice
       });
-      
-      // Replace loading message with the actual response
-      const sageMessage = createSageMessage(responseContent);
 
-      setMessages((prevMessages) => 
-        prevMessages.filter(msg => !msg.isLoading).concat(sageMessage)
-      );
-      
+      const responseContent = data?.choices?.[0]?.message?.content || 'No response content found.';
+      const sageMessage = createSageMessage(responseContent);
+      setMessages(prev => prev.filter(m => !m.isLoading).concat(sageMessage));
+
       const responseTime = Date.now() - startTime;
-      if (debugHandlers) {
-        debugHandlers.setRequestSuccess(responseTime);
-      }
-      
+      if (debugHandlers) debugHandlers.setRequestSuccess(responseTime);
+
       console.log(`🎤 Message sent with voice: ${finalVoice} (response time: ${responseTime}ms)`);
     } catch (error) {
       console.error("Error sending message:", error);
-      
-      // Remove loading message and add error message
-      setMessages((prevMessages) => 
-        prevMessages.filter(msg => !msg.isLoading).concat(
+      setMessages(prev =>
+        prev.filter(m => !m.isLoading).concat(
           createSageErrorMessage("I'm sorry, I encountered an error processing your request. Please try again.")
         )
       );
-      
       toast({
         variant: "destructive",
         title: "Error sending message",
         description: error instanceof Error ? error.message : "An unknown error occurred"
       });
-      
       if (debugHandlers) {
         debugHandlers.setRequestError(error instanceof Error ? error.message : String(error));
       }
