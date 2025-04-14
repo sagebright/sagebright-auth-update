@@ -2,6 +2,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
+import { useRouteProtection, ROLE_LANDING_PAGES } from '@/hooks/useRouteProtection';
+import { useRedirectLogic } from '@/hooks/useRedirectLogic';
 import { getOrgFromUrl, redirectToOrgUrl } from '@/lib/subdomainUtils';
 import { toast } from '@/components/ui/use-toast';
 
@@ -23,6 +25,22 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const redirectAttempted = useRef(false);
   const askSageProtectionActive = useRef(false);
   const protectionPropsChecked = useRef(false);
+  
+  // Get route protection state
+  const {
+    redirectInProgressRef,
+    userDashboardRedirectBlocker,
+    locationRef
+  } = useRouteProtection(navigate);
+  
+  // Get redirect logic
+  const { safeRedirect } = useRedirectLogic(
+    navigate,
+    locationRef,
+    userDashboardRedirectBlocker,
+    redirectInProgressRef,
+    () => {}
+  );
   
   // Store search parameters that need to be preserved across auth flow
   useEffect(() => {
@@ -97,7 +115,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         
         // Redirect to an appropriate page based on their actual role
         const fallbackPath = userRole === 'admin' ? '/hr-dashboard' : '/ask-sage';
-        navigate(fallbackPath, { replace: true });
+        
+        if (!shouldPreventRouteRedirect(fallbackPath)) {
+          navigate(fallbackPath, { replace: true });
+        }
         return;
       }
     }
@@ -117,11 +138,14 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       // Redirect based on role
       const userRole = user?.user_metadata?.role || 'user';
       const fallbackPath = userRole === 'admin' ? '/hr-dashboard' : '/ask-sage';
-      navigate(fallbackPath, { replace: true });
+      
+      if (!shouldPreventRouteRedirect(fallbackPath)) {
+        navigate(fallbackPath, { replace: true });
+      }
       return;
     }
     
-  }, [initialCheckComplete, isAuthenticated, user, requiredRole, requiredPermission, navigate]);
+  }, [initialCheckComplete, isAuthenticated, user, requiredRole, requiredPermission, navigate, location.pathname]);
   
   // Subdomain check - ensure user is on correct org subdomain
   useEffect(() => {
