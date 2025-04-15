@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { Message } from '@/types/chat';
 import { useVoiceParam } from './use-voice-param';
@@ -6,6 +5,7 @@ import { useAuth } from '@/contexts/auth/AuthContext';
 import { useVisibilityChange } from '@/contexts/auth/hooks/useVisibilityChange';
 import { toast } from '@/components/ui/use-toast';
 import { createUserMessage, createSageMessage, createLoadingMessage, createSageErrorMessage } from '@/utils/messageUtils';
+import { supabase } from '@/lib/supabaseClient';
 
 interface DebugPanelHandlers {
   setRequestLoading: () => void;
@@ -27,7 +27,6 @@ export const useSendMessage = (
   const sessionRefreshInProgress = useRef(false);
   const sessionRefreshSuccessful = useRef(false);
   
-  // Handle tab visibility changes to proactively refresh auth sessions
   useVisibilityChange({
     onVisible: () => {
       if (refreshSession && !sessionRefreshInProgress.current) {
@@ -77,9 +76,19 @@ export const useSendMessage = (
     const startTime = Date.now();
 
     try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+
+      if (!token) {
+        throw new Error("No access token found. User might not be authenticated.");
+      }
+
       const response = await fetch("https://sagebright-backend-production.up.railway.app/api/ask-sage", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify({ message: content }),
       });
 
