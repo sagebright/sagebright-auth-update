@@ -100,38 +100,6 @@ export async function apiRequest(
 }
 
 /**
- * Send a prompt to the OpenAI proxy route
- * @param systemPrompt The system-level instructions
- * @param userPrompt The user message
- * @param voice Optional voice metadata
- * @param model Optional model name (defaults to gpt-4o)
- * @returns OpenAI response or null on error
- */
-export async function sendToOpenAI({
-  systemPrompt,
-  userPrompt,
-  voice,
-  model
-}: {
-  systemPrompt: string;
-  userPrompt: string;
-  voice?: string;
-  model?: string;
-}) {
-  return apiRequest('/openai', {
-    method: 'POST',
-    body: JSON.stringify({ systemPrompt, userPrompt, voice, model }),
-    headers: {
-      'Content-Type': 'application/json'
-    }
-  }, {
-    context: 'OpenAI request',
-    fallbackMessage: 'Sage had trouble generating a response.',
-    showToast: true
-  });
-}
-
-/**
  * Get users from the API
  * @returns Array of users or empty array on error
  */

@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { Message } from '@/types/chat';
 import { getCompleteSystemPrompt } from '@/lib/promptBuilder';
@@ -27,7 +26,6 @@ export const useSendMessage = (
 ) => {
   const [isLoading, setIsLoading] = useState(false);
   const { refreshSession } = useAuth();
-  const voice = useVoiceParam();
   
   // Track tab visibility to handle refocus issues
   const sessionRefreshInProgress = useRef(false);
@@ -128,7 +126,6 @@ export const useSendMessage = (
       setIsLoading(false);
     }
   }, [userId, orgId, setMessages, debugHandlers]);
-  
 
   return {
     isLoading,
