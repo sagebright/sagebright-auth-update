@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
@@ -76,6 +75,17 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   
   // Store search parameters that need to be preserved across auth flow
   useEffect(() => {
+    if (!isAuthenticated && !redirectAttempted.current) {
+      const fullPath = location.pathname + location.search;
+      if (!localStorage.getItem("redirectAfterLogin")) {
+        console.log("📝 Storing redirect path:", fullPath);
+        localStorage.setItem("redirectAfterLogin", fullPath);
+      }
+    }
+  }, [location, isAuthenticated]);
+  
+  // Store search parameters that need to be preserved across auth flow
+  useEffect(() => {
     if (location.search && location.search.includes('voice=')) {
       localStorage.setItem("preserveSearchParams", location.search);
       localStorage.setItem("redirectAfterLogin", location.pathname + location.search);
@@ -92,6 +102,14 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   
   // Prevent unwanted redirects between specific routes
   const shouldPreventRouteRedirect = (path: string): boolean => {
+    // Prevent redirects if user is already on a valid route
+    if (location.pathname !== '/' && 
+        location.pathname !== '/auth/login' && 
+        !location.pathname.startsWith('/auth/')) {
+      console.log(`🛑 Preventing unwanted redirect: Current path ${location.pathname} is valid`);
+      return true;
+    }
+
     // Always block redirects between ask-sage and user-dashboard in both directions
     if ((location.pathname === '/ask-sage' && path === '/user-dashboard') ||
         (location.pathname === '/user-dashboard' && path === '/ask-sage')) {

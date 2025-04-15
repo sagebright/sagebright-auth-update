@@ -70,34 +70,32 @@ export default function Login() {
       setLoginTimestamp(currentTime);
       
       const timestamp = new Date().toISOString();
-      console.log(`✅ [${timestamp}] User authenticated on login page, redirecting to dashboard`);
-      
-      const role = user.user_metadata?.role || 'user';
+      console.log(`✅ [${timestamp}] User authenticated on login page, handling redirect`);
       
       let targetPath: string;
       
-      if (redirectPath) {
-        targetPath = redirectPath;
+      // Prioritize stored redirect path
+      const storedPath = localStorage.getItem("redirectAfterLogin");
+      if (storedPath) {
+        targetPath = storedPath;
         console.log(`🔄 [${timestamp}] Using stored redirect path:`, targetPath);
       } else {
+        // Fall back to role-based landing page
+        const role = user.user_metadata?.role || 'user';
         targetPath = ROLE_LANDING_PAGES[role as keyof typeof ROLE_LANDING_PAGES] || ROLE_LANDING_PAGES.default;
         console.log(`🔄 [${timestamp}] Using role-based landing page for ${role}:`, targetPath);
       }
       
+      // Preserve search params if needed
       if (preserveSearch && !targetPath.includes('?')) {
         targetPath += preserveSearch;
-        console.log(`🔄 [${timestamp}] Restoring search params to redirect:`, {
-          targetPath,
-          originalSearch: preserveSearch,
-          voiceParam: new URLSearchParams(preserveSearch).get('voice')
-        });
       }
       
       console.log(`🎯 [${timestamp}] Redirecting to:`, targetPath);
       
       toast({
         title: "Welcome back!",
-        description: "Redirecting to your dashboard...",
+        description: "Redirecting you back...",
       });
       
       localStorage.removeItem("redirectAfterLogin");
