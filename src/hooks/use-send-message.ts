@@ -1,10 +1,10 @@
+
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { Message } from '@/types/chat';
 import { getCompleteSystemPrompt } from '@/lib/promptBuilder';
 import { voiceprints } from '@/lib/voiceprints';
 import { useVoiceParam } from './use-voice-param';
 import { buildSageContext } from '@/lib/buildSageContext';
-import { sendToOpenAI } from '@/lib/backendApi'; 
 import { toast } from '@/components/ui/use-toast';
 import { createUserMessage, createSageMessage, createLoadingMessage, createSageErrorMessage } from '@/utils/messageUtils';
 import { useAuth } from '@/contexts/auth/AuthContext';
@@ -127,3 +127,4 @@ export const useSendMessage = (
     handleSendMessage,
   };
 };
+
