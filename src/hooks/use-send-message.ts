@@ -30,6 +30,7 @@ export const useSendMessage = (
   const sessionRefreshInProgress = useRef(false);
   const sessionRefreshSuccessful = useRef(false);
   
+  // Handle tab visibility changes to proactively refresh auth sessions
   useVisibilityChange({
     onVisible: () => {
       if (refreshSession && !sessionRefreshInProgress.current) {
@@ -127,4 +128,3 @@ export const useSendMessage = (
     handleSendMessage,
   };
 };
-

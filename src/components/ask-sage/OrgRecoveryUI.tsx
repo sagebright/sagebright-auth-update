@@ -1,124 +1,73 @@
 
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from "lucide-react";
-import { supabase } from '@/lib/supabaseClient';
-import { toast } from "@/components/ui/use-toast";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { useAuth } from '@/contexts/auth/AuthContext';
+import { Link } from 'react-router-dom';
 
-interface OrgRecoveryUIProps {
-  userId: string | null;
-}
-
-export const OrgRecoveryUI: React.FC<OrgRecoveryUIProps> = ({ userId }) => {
-  const navigate = useNavigate();
-  const [isRecovering, setIsRecovering] = useState(false);
-
-  const handleTryRecover = async () => {
-    setIsRecovering(true);
+export const OrgRecoveryUI = () => {
+  const { user, refreshSession } = useAuth();
+  const [isAttemptingRecovery, setIsAttemptingRecovery] = React.useState(false);
+  
+  const handleRecoveryAttempt = async () => {
+    if (!user?.id) return;
+    
+    setIsAttemptingRecovery(true);
     try {
-      console.log("🔄 Manually attempting recovery of organization context");
-      
-      // Try to refresh session first
-      await supabase.auth.refreshSession();
-      
-      // Try to get user from database
-      const { data, error } = await supabase
-        .from('users')
-        .select('org_id')
-        .eq('id', userId)
-        .single();
-      
-      if (error) {
-        console.error("❌ Error fetching user data:", error);
-        throw new Error("Failed to fetch user data");
-      }
-      
-      if (data?.org_id) {
-        console.log("✅ Found org_id in database:", data.org_id);
-        
-        // Update user metadata with org_id
-        const { error: updateError } = await supabase.auth.updateUser({
-          data: { org_id: data.org_id }
-        });
-        
-        if (updateError) {
-          console.error("❌ Error updating user metadata:", updateError);
-          throw new Error("Failed to update user metadata");
-        }
-        
-        // Force refresh session to get updated metadata
-        await supabase.auth.refreshSession();
-        
-        toast({
-          title: "Recovery Successful",
-          description: "Your organization context has been restored."
-        });
-        
-        // Reload the page to pick up the new org context
+      await refreshSession('org context recovery');
+      // Wait a moment before reloading
+      setTimeout(() => {
         window.location.reload();
-      } else {
-        console.error("❌ No org_id found for user in database");
-        throw new Error("No organization found for your account");
-      }
+      }, 1000);
     } catch (error) {
-      console.error("Recovery error:", error);
-      toast({
-        variant: "destructive",
-        title: "Recovery Failed",
-        description: "Unable to recover your organization context. Please contact support."
-      });
+      console.error('Recovery attempt failed:', error);
     } finally {
-      setIsRecovering(false);
+      setIsAttemptingRecovery(false);
     }
   };
-
-  const handleSignOut = async () => {
-    try {
-      await supabase.auth.signOut();
-      navigate('/auth/login');
-    } catch (error) {
-      console.error('Error signing out:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Error signing out',
-        description: 'Failed to sign out. Please try again.'
-      });
-    }
-  };
-
+  
   return (
-    <div className="container mx-auto max-w-md py-16 px-4">
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <h2 className="text-2xl font-bold mb-4">Account Recovery Required</h2>
-        <p className="mb-6">Your account needs to be connected to an organization to use Sage.</p>
-        
-        <div className="space-y-4">
-          <Button 
-            onClick={handleTryRecover} 
-            className="w-full" 
-            disabled={isRecovering}
-          >
-            {isRecovering ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Recovering...
-              </>
-            ) : (
-              'Try to Recover'
-            )}
-          </Button>
+    <div className="max-w-2xl mx-auto p-4">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-accent1">Organization Context Missing</CardTitle>
+          <CardDescription>
+            We're having trouble loading your organization context
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Alert variant="destructive" className="mb-4">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              Your account is missing required organization data. This can happen when switching devices or after a long period of inactivity.
+            </AlertDescription>
+          </Alert>
           
-          <Button 
-            onClick={handleSignOut} 
-            variant="outline" 
-            className="w-full"
-            disabled={isRecovering}
-          >
-            Sign Out
-          </Button>
-        </div>
-      </div>
+          <div className="flex flex-col sm:flex-row gap-3 mt-4">
+            <Button 
+              onClick={handleRecoveryAttempt}
+              className="bg-primary"
+              disabled={isAttemptingRecovery}
+            >
+              <RefreshCw className="mr-2 h-4 w-4" />
+              {isAttemptingRecovery ? "Recovering..." : "Recover Automatically"}
+            </Button>
+            
+            <Button asChild variant="outline">
+              <Link to="/auth/recovery">
+                Manual Recovery Options
+              </Link>
+            </Button>
+          </div>
+        </CardContent>
+        <CardFooter className="text-xs text-muted-foreground">
+          If recovery fails, try clearing your browser cache or signing out and back in.
+        </CardFooter>
+      </Card>
     </div>
   );
 };
+
+export default OrgRecoveryUI;
