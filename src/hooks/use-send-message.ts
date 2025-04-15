@@ -1,14 +1,11 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { Message } from '@/types/chat';
-import { getCompleteSystemPrompt } from '@/lib/promptBuilder';
-import { voiceprints } from '@/lib/voiceprints';
 import { useVoiceParam } from './use-voice-param';
-import { buildSageContext } from '@/lib/buildSageContext';
-import { toast } from '@/components/ui/use-toast';
-import { createUserMessage, createSageMessage, createLoadingMessage, createSageErrorMessage } from '@/utils/messageUtils';
 import { useAuth } from '@/contexts/auth/AuthContext';
 import { useVisibilityChange } from '@/contexts/auth/hooks/useVisibilityChange';
+import { toast } from '@/components/ui/use-toast';
+import { createUserMessage, createSageMessage, createLoadingMessage, createSageErrorMessage } from '@/utils/messageUtils';
 
 interface DebugPanelHandlers {
   setRequestLoading: () => void;
@@ -67,39 +64,39 @@ export const useSendMessage = (
       });
       return;
     }
-  
+
     const userMessage = createUserMessage(content);
     setMessages(prev => [...prev, userMessage]);
-  
+
     const loadingMessage = createLoadingMessage("Thinking...");
     setMessages(prev => [...prev, loadingMessage]);
-  
+
     setIsLoading(true);
     if (debugHandlers) debugHandlers.setRequestLoading();
-  
+
     const startTime = Date.now();
-  
+
     try {
-      const response = await fetch("/api/ask-sage", {
+      const response = await fetch("https://sagebright-backend-production.up.railway.app/api/ask-sage", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: content }),
       });
-  
+
       const data = await response.json();
-  
+
       if (!response.ok) {
         throw new Error(data.error || "Unknown error from Sage");
       }
-  
+
       const sageMessage = createSageMessage(data.reply);
       setMessages(prev =>
         prev.filter(m => !m.isLoading).concat(sageMessage)
       );
-  
+
       const responseTime = Date.now() - startTime;
       if (debugHandlers) debugHandlers.setRequestSuccess(responseTime);
-  
+
       console.log(`✅ Sage replied in ${responseTime}ms`);
     } catch (error) {
       console.error("❌ Sage backend error:", error);
@@ -108,13 +105,13 @@ export const useSendMessage = (
           createSageErrorMessage("Something went wrong. Please try again.")
         )
       );
-  
+
       toast({
         variant: "destructive",
         title: "Sage error",
         description: error instanceof Error ? error.message : String(error),
       });
-  
+
       if (debugHandlers) {
         debugHandlers.setRequestError(error instanceof Error ? error.message : String(error));
       }
