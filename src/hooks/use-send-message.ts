@@ -27,14 +27,11 @@ export const useSendMessage = (
   const [isLoading, setIsLoading] = useState(false);
   const { refreshSession } = useAuth();
   
-  // Track tab visibility to handle refocus issues
   const sessionRefreshInProgress = useRef(false);
   const sessionRefreshSuccessful = useRef(false);
   
-  // Use the extracted visibility change hook
   useVisibilityChange({
     onVisible: () => {
-      // Force session refresh on tab refocus - this is critical to prevent stalled chat
       if (refreshSession && !sessionRefreshInProgress.current) {
         sessionRefreshInProgress.current = true;
         console.log('🔄 Proactively refreshing session after tab refocus');
@@ -49,7 +46,6 @@ export const useSendMessage = (
             console.error('❌ Session refresh failed after tab refocus:', err);
             sessionRefreshInProgress.current = false;
             
-            // Show toast for session issues
             toast({
               variant: "destructive",
               title: "Session refresh failed",
@@ -60,7 +56,6 @@ export const useSendMessage = (
     }
   });
   
-  // Function to handle sending message to Sage
   const handleSendMessage = useCallback(async (content: string) => {
     if (!userId || !orgId) {
       console.error("Missing userId or orgId");
