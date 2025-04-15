@@ -54,12 +54,11 @@ export const useSendMessage = (
   });
   
   const handleSendMessage = useCallback(async (content: string) => {
-    if (!userId || !orgId) {
-      console.error("Missing userId or orgId");
+    if (!user || !userId || !orgId || sessionRefreshInProgress.current) {
       toast({
         variant: "destructive",
-        title: "Missing context",
-        description: "Please sign in again or reload the app.",
+        title: "Sage isn't quite ready yet",
+        description: "Please wait a moment and try again.",
       });
       return;
     }
@@ -92,11 +91,11 @@ export const useSendMessage = (
         body: JSON.stringify({ message: content }),
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        throw new Error(data.error || "Unknown error from Sage");
+        throw new Error("Failed to get response from Sage");
       }
+
+      const data = await response.json();
 
       const sageMessage = createSageMessage(data.reply);
       setMessages(prev =>
@@ -127,7 +126,7 @@ export const useSendMessage = (
     } finally {
       setIsLoading(false);
     }
-  }, [userId, orgId, setMessages, debugHandlers]);
+  }, [userId, orgId, user, setMessages, debugHandlers]);
 
   return {
     isLoading,
