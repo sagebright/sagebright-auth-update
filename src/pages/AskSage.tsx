@@ -86,7 +86,7 @@ const AskSage = () => {
 
   // Check if organization context is missing
   if (!authLoading && userId && !orgId && !isRecoveringOrg) {
-    return <OrgRecoveryUI userId={userId} />;
+    return <OrgRecoveryUI />; // Remove the userId prop since it's not expected
   }
 
   return (
