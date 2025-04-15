@@ -65,109 +65,70 @@ export const useSendMessage = (
   // Function to handle sending message to Sage
   const handleSendMessage = useCallback(async (content: string) => {
     if (!userId || !orgId) {
-      console.error("Cannot send message without userId and orgId");
+      console.error("Missing userId or orgId");
       toast({
         variant: "destructive",
-        title: "Error sending message",
-        description: "User or organization information is missing. Please try again later."
+        title: "Missing context",
+        description: "Please sign in again or reload the app.",
       });
       return;
     }
-
-    // ALWAYS refresh session before sending - critical for reliability after tab changes
-    let sessionRefreshed = false;
-    if (refreshSession) {
-      try {
-        console.log('🔄 Pre-message session refresh - ALWAYS refreshing before sending');
-        
-        // Clear all previous status flags
-        sessionRefreshSuccessful.current = false;
-        sessionRefreshInProgress.current = true;
-        
-        await refreshSession('pre-message send');
-        sessionRefreshed = true;
-        sessionRefreshSuccessful.current = true;
-        console.log('✅ Pre-message session refresh successful');
-      } catch (refreshError) {
-        console.error('❌ Failed to refresh session before sending message:', refreshError);
-        
-        // Show user-facing error for auth issues
-        toast({
-          variant: "destructive",
-          title: "Session error",
-          description: "There was an issue with your session. Try refreshing the page."
-        });
-        
-        // Gracefully abort the message send
-        return;
-      } finally {
-        sessionRefreshInProgress.current = false;
-      }
-    }
-
+  
+    const userMessage = createUserMessage(content);
+    setMessages(prev => [...prev, userMessage]);
+  
+    const loadingMessage = createLoadingMessage("Thinking...");
+    setMessages(prev => [...prev, loadingMessage]);
+  
     setIsLoading(true);
     if (debugHandlers) debugHandlers.setRequestLoading();
-
+  
     const startTime = Date.now();
-    const timestamp = new Date().toISOString();
-
-    const isValidVoice = voice in voiceprints;
-    const finalVoice = isValidVoice ? voice : 'default';
-
-    console.group(`🔍 Voice Parameter Resolution (${timestamp})`);
-    console.log("Initial voice param:", voice);
-    console.log("Is valid voice:", isValidVoice);
-    console.log("Final voice used:", finalVoice);
-    console.log("Session was refreshed before sending:", sessionRefreshed);
-    console.groupEnd();
-
+  
     try {
-      const userMessage = createUserMessage(content);
-      setMessages(prev => [...prev, userMessage]);
-
-      const context = await buildSageContext(userId, orgId);
-      const loadingMessage = createLoadingMessage("Thinking...");
-      setMessages(prev => [...prev, loadingMessage]);
-
-      const systemPrompt = getCompleteSystemPrompt(context, finalVoice);
-
-      console.log(`🚀 Sending message to OpenAI at ${new Date().toISOString()}`);
-      
-      const data = await sendToOpenAI({
-        systemPrompt,
-        userPrompt: content,
-        voice: finalVoice
+      const response = await fetch("/api/ask-sage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: content }),
       });
-
-      console.log(`✅ Received response from OpenAI at ${new Date().toISOString()}`);
-
-      const responseContent = data?.choices?.[0]?.message?.content || 'No response content found.';
-      const sageMessage = createSageMessage(responseContent);
-      setMessages(prev => prev.filter(m => !m.isLoading).concat(sageMessage));
-
+  
+      const data = await response.json();
+  
+      if (!response.ok) {
+        throw new Error(data.error || "Unknown error from Sage");
+      }
+  
+      const sageMessage = createSageMessage(data.reply);
+      setMessages(prev =>
+        prev.filter(m => !m.isLoading).concat(sageMessage)
+      );
+  
       const responseTime = Date.now() - startTime;
       if (debugHandlers) debugHandlers.setRequestSuccess(responseTime);
-
-      console.log(`🎤 Message sent with voice: ${finalVoice} (response time: ${responseTime}ms)`);
+  
+      console.log(`✅ Sage replied in ${responseTime}ms`);
     } catch (error) {
-      console.error("Error sending message:", error);
+      console.error("❌ Sage backend error:", error);
       setMessages(prev =>
         prev.filter(m => !m.isLoading).concat(
-          createSageErrorMessage("I'm sorry, I encountered an error processing your request. Please try again.")
+          createSageErrorMessage("Something went wrong. Please try again.")
         )
       );
+  
       toast({
         variant: "destructive",
-        title: "Error sending message",
-        description: error instanceof Error ? error.message : "An unknown error occurred"
+        title: "Sage error",
+        description: error instanceof Error ? error.message : String(error),
       });
+  
       if (debugHandlers) {
         debugHandlers.setRequestError(error instanceof Error ? error.message : String(error));
       }
     } finally {
       setIsLoading(false);
     }
-  }, [userId, orgId, voice, setMessages, debugHandlers, refreshSession]);
+  }, [userId, orgId, setMessages, debugHandlers]);
+  
 
   return {
     isLoading,
