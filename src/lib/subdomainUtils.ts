@@ -45,6 +45,42 @@ export function getOrgFromUrl(): string | null {
 }
 
 /**
+ * Fetch organization details by ID from the database
+ * @param orgId The organization ID to fetch
+ * @returns The organization object with slug or null if not found
+ */
+export async function getOrgById(orgId: string): Promise<{ id: string; slug: string; name: string } | null> {
+  try {
+    // Import supabase client here to avoid circular dependencies
+    const { supabase } = await import('@/lib/supabaseClient');
+    
+    console.log("🔍 Fetching org details for ID:", orgId);
+    
+    const { data, error } = await supabase
+      .from('orgs')
+      .select('id, slug, name')
+      .eq('id', orgId)
+      .single();
+    
+    if (error) {
+      console.error("❌ Error fetching org details:", error);
+      return null;
+    }
+    
+    if (!data) {
+      console.warn("⚠️ No org found with ID:", orgId);
+      return null;
+    }
+    
+    console.log("✅ Found org details:", data);
+    return data;
+  } catch (error) {
+    console.error("❌ Error in getOrgById:", error);
+    return null;
+  }
+}
+
+/**
  * Redirect to the organization-specific URL
  * @param orgSlug The organization slug to redirect to
  */
