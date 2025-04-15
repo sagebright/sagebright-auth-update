@@ -1,15 +1,15 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { handleApiError } from "./lib/handleApiError";
 import { AuthProvider } from "./contexts/auth/AuthContext";
 import { LanguageProvider } from "./contexts/language/LanguageContext";
 import { getOrgFromUrl } from "./lib/subdomainUtils";
 import "@/i18n"; // Import i18n configuration
+import { checkAuth, supabase } from "./lib/supabaseClient";
 
 // Eagerly loaded components
 import PageErrorBoundary from "./components/PageErrorBoundary";
@@ -43,6 +43,49 @@ const PageLoadingFallback = () => (
   </div>
 );
 
+// Root component to handle subdomain detection
+const RootRedirect = () => {
+  const orgContext = getOrgFromUrl();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      setIsLoading(true);
+      try {
+        // Force a session check on initial load
+        const isAuthValid = await checkAuth();
+        console.log("🔍 Root auth check:", { isAuthenticated: isAuthValid, orgContext });
+        setIsAuthenticated(isAuthValid);
+      } catch (error) {
+        console.error("❌ Auth check error:", error);
+        setIsAuthenticated(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuthStatus();
+  }, [orgContext]);
+
+  if (isLoading) {
+    return <PageLoadingFallback />;
+  }
+
+  // If on a subdomain and authenticated, go to user dashboard
+  if (orgContext && isAuthenticated) {
+    return <Navigate to="/user-dashboard" replace />;
+  }
+  
+  // If on a subdomain but not authenticated, go to login
+  if (orgContext && !isAuthenticated) {
+    return <Navigate to="/auth/login" replace />;
+  }
+  
+  // Otherwise, show the landing page (for non-subdomain)
+  return <Index />;
+};
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -60,8 +103,6 @@ const queryClient = new QueryClient({
 });
 
 const App = () => {
-  const orgContext = getOrgFromUrl();
-  
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
@@ -73,23 +114,8 @@ const App = () => {
               <PageErrorBoundary>
                 <Suspense fallback={<PageLoadingFallback />}>
                   <Routes>
-                    {/* Root path behavior depends on subdomain */}
-                    <Route 
-                      path="/" 
-                      element={
-                        orgContext ? (
-                          <ProtectedRoute>
-                            {/* Will be redirected based on role in ProtectedRoute */}
-                            <div className="flex h-screen items-center justify-center">
-                              <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
-                              <span className="ml-2 text-primary">Loading your dashboard...</span>
-                            </div>
-                          </ProtectedRoute>
-                        ) : (
-                          <Index />
-                        )
-                      } 
-                    />
+                    {/* Root path now uses the RootRedirect component */}
+                    <Route path="/" element={<RootRedirect />} />
                     
                     <Route path="/contact-us" element={<ContactUs />} />
                     

@@ -6,6 +6,7 @@ import { useRouteProtection, ROLE_LANDING_PAGES } from '@/hooks/useRouteProtecti
 import { useRedirectLogic } from '@/hooks/useRedirectLogic';
 import { getOrgFromUrl, redirectToOrgUrl } from '@/lib/subdomainUtils';
 import { toast } from '@/components/ui/use-toast';
+import { checkAuth } from '@/lib/supabaseClient';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -22,6 +23,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const location = useLocation();
   const { loading, isAuthenticated, user, orgId, orgSlug } = useRequireAuth(navigate);
   const [initialCheckComplete, setInitialCheckComplete] = useState(false);
+  const [hasVerifiedSession, setHasVerifiedSession] = useState(false);
   const redirectAttempted = useRef(false);
   const protectionPropsChecked = useRef(false);
   
@@ -41,6 +43,36 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     redirectInProgressRef,
     () => {}
   );
+  
+  // Extra validation for subdomain contexts
+  useEffect(() => {
+    if (!hasVerifiedSession) {
+      const verifySession = async () => {
+        try {
+          const isValidSession = await checkAuth();
+          console.log("🔐 Manual session validation in ProtectedRoute:", { isValidSession });
+          
+          if (!isValidSession && !redirectAttempted.current) {
+            redirectAttempted.current = true;
+            console.log("🔑 Session validation failed, redirecting to login");
+            localStorage.setItem("redirectAfterLogin", location.pathname + location.search);
+            navigate('/auth/login', { replace: true });
+            return;
+          }
+          
+          setHasVerifiedSession(true);
+        } catch (error) {
+          console.error("❌ Error verifying session:", error);
+        }
+      };
+      
+      if (!loading && !isAuthenticated) {
+        verifySession();
+      } else {
+        setHasVerifiedSession(true);
+      }
+    }
+  }, [hasVerifiedSession, loading, isAuthenticated, location, navigate]);
   
   // Store search parameters that need to be preserved across auth flow
   useEffect(() => {
@@ -148,8 +180,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   
   // Subdomain check - ensure user is on correct org subdomain
   useEffect(() => {
+    const currentOrgSlug = getOrgFromUrl();
+    
     if (initialCheckComplete && orgSlug && !redirectAttempted.current && isAuthenticated) {
-      const currentOrgSlug = getOrgFromUrl();
       if (orgSlug && (!currentOrgSlug || currentOrgSlug !== orgSlug)) {
         console.log("🏢 ProtectedRoute redirecting to correct org subdomain:", orgSlug);
         redirectAttempted.current = true; // Prevent further redirect attempts
@@ -157,7 +190,14 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         redirectToOrgUrl(orgSlug);
       }
     }
-  }, [initialCheckComplete, orgSlug, location, isAuthenticated]);
+    
+    // Special case: If we're on a subdomain but have no auth, redirect to login
+    if (currentOrgSlug && !loading && !isAuthenticated && !redirectAttempted.current) {
+      console.log("🔑 On subdomain but not authenticated, redirecting to login");
+      redirectAttempted.current = true;
+      navigate('/auth/login', { replace: true });
+    }
+  }, [initialCheckComplete, orgSlug, location, isAuthenticated, loading, navigate]);
   
   if (loading) {
     return (

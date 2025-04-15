@@ -12,7 +12,6 @@ if (!supabaseUrl || !supabaseAnonKey) {
 const globalAny = globalThis as any;
 
 if (!globalAny.__supabase) {
-  // Temp fix for supaBase bullshit in auth
   console.log("🧠 Initializing Supabase client at", new Date().toISOString());
 
   globalAny.__supabase = createClient(supabaseUrl, supabaseAnonKey, {
@@ -20,6 +19,8 @@ if (!globalAny.__supabase) {
       autoRefreshToken: true,
       persistSession: true,
       detectSessionInUrl: true,
+      storageKey: 'sagebright_supabase_auth',
+      storage: localStorage,
     },
   });
 }
@@ -29,3 +30,18 @@ export const supabase = globalAny.__supabase;
 if (typeof window !== "undefined") {
   (window as any).supabase = supabase;
 }
+
+// Add a function to check if auth has been initialized
+export const checkAuth = async () => {
+  try {
+    const { data, error } = await supabase.auth.getSession();
+    if (error) {
+      console.error('❌ Auth check failed:', error.message);
+      return false;
+    }
+    return !!data.session;
+  } catch (err) {
+    console.error('❌ Unexpected auth error:', err);
+    return false;
+  }
+};

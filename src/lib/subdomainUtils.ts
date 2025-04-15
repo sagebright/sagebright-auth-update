@@ -1,111 +1,98 @@
 
 /**
- * Utility functions for handling subdomain-based routing and organization context
+ * Utility functions for handling subdomain-based organization routing
  */
 
-import { supabase } from '@/lib/supabaseClient';
+// Define valid org slugs (should eventually come from API/database)
+const VALID_ORG_SLUGS = ['lumon', 'demo', 'test'];
 
 /**
- * Extracts the subdomain from the current hostname
- */
-export function getSubdomain(hostname: string): string | null {
-  // Don't process IP addresses
-  if (/^\d+\.\d+\.\d+\.\d+$/.test(hostname)) {
-    return null;
-  }
-  
-  // Handle localhost 
-  if (hostname.includes('localhost')) {
-    return null;
-  }
-  
-  const parts = hostname.split('.');
-  
-  // If we have a subdomain (e.g., tenant.sagebright.ai)
-  if (parts.length > 2) {
-    return parts[0];
-  }
-  
-  return null;
-}
-
-/**
- * Gets the organization identifier (slug) from the current URL
- * Uses subdomain in production or query param for development
+ * Extract the organization slug from the current URL's subdomain
+ * @returns The organization slug or null if not found
  */
 export function getOrgFromUrl(): string | null {
-  // First check subdomain
-  const subdomain = getSubdomain(window.location.hostname);
-  if (subdomain) return subdomain;
-  
-  // Fallback to query param for local development
-  const urlParams = new URLSearchParams(window.location.search);
-  const orgParam = urlParams.get('org');
-  return orgParam;
-}
-
-/**
- * Constructs the organization URL for a specific org slug
- */
-export function getOrgUrl(orgSlug: string): string {
-  if (window.location.hostname === 'localhost') {
-    // For local development, use query param
-    const url = new URL(window.location.href);
-    url.searchParams.set('org', orgSlug);
-    return url.toString();
-  }
-  
-  // In production, use subdomain
-  const domainParts = window.location.hostname.split('.');
-  const rootDomain = domainParts.length > 2 
-    ? domainParts.slice(1).join('.') 
-    : domainParts.join('.');
+  try {
+    if (typeof window === 'undefined') return null;
     
-  return window.location.protocol + '//' + orgSlug + '.' + rootDomain;
+    const hostname = window.location.hostname;
+    console.log("🌐 Current hostname:", hostname);
+    
+    // Skip localhost
+    if (hostname === 'localhost') return null;
+    
+    // Handle IP addresses (no subdomains)
+    if (/^\d+\.\d+\.\d+\.\d+$/.test(hostname)) return null;
+    
+    // Extract subdomain from hostname
+    const parts = hostname.split('.');
+    
+    // Must have at least 3 parts for a subdomain (subdomain.domain.tld)
+    if (parts.length < 3) return null;
+    
+    const subdomain = parts[0].toLowerCase();
+    
+    // Validate if this is a known org slug
+    if (VALID_ORG_SLUGS.includes(subdomain)) {
+      console.log("✅ Valid org subdomain detected:", subdomain);
+      return subdomain;
+    }
+    
+    return null;
+  } catch (error) {
+    console.error("❌ Error getting org from URL:", error);
+    return null;
+  }
 }
 
 /**
- * Redirects to the organization-specific URL using org slug
+ * Redirect to the organization-specific URL
+ * @param orgSlug The organization slug to redirect to
  */
 export function redirectToOrgUrl(orgSlug: string): void {
-  const orgUrl = getOrgUrl(orgSlug);
-  window.location.href = orgUrl;
-}
-
-/**
- * Fetch organization details by slug
- */
-export async function getOrgBySlug(slug: string) {
   try {
-    const { data, error } = await supabase
-      .from('orgs')
-      .select('*')
-      .eq('slug', slug)
-      .single();
-      
-    if (error) throw error;
-    return data;
+    const href = window.location.href;
+    const url = new URL(href);
+    
+    // Skip if we're already on this subdomain
+    if (url.hostname.startsWith(`${orgSlug}.`)) {
+      console.log("🔄 Already on correct org subdomain");
+      return;
+    }
+    
+    // Build new URL with the org subdomain
+    const hostParts = url.hostname.split('.');
+    
+    // Skip localhost
+    if (url.hostname === 'localhost') {
+      console.log("⚠️ Cannot add subdomain to localhost");
+      return;
+    }
+    
+    // Handle different domain patterns
+    let newHostname;
+    if (hostParts.length >= 3) {
+      // Replace existing subdomain
+      hostParts[0] = orgSlug;
+      newHostname = hostParts.join('.');
+    } else {
+      // Add subdomain to domain
+      newHostname = `${orgSlug}.${url.hostname}`;
+    }
+    
+    // Create new URL with the org subdomain
+    const newUrl = new URL(url);
+    newUrl.hostname = newHostname;
+    
+    console.log(`🚀 Redirecting to org URL: ${newUrl.toString()}`);
+    window.location.href = newUrl.toString();
   } catch (error) {
-    console.error('Error fetching org by slug:', error);
-    return null;
+    console.error("❌ Error redirecting to org URL:", error);
   }
 }
 
 /**
- * Fetch organization details by ID
+ * Check if current URL is on a subdomain
  */
-export async function getOrgById(orgId: string) {
-  try {
-    const { data, error } = await supabase
-      .from('orgs')
-      .select('*')
-      .eq('id', orgId)
-      .single();
-      
-    if (error) throw error;
-    return data;
-  } catch (error) {
-    console.error('Error fetching org by ID:', error);
-    return null;
-  }
+export function isOnSubdomain(): boolean {
+  return !!getOrgFromUrl();
 }
