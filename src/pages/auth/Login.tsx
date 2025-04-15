@@ -75,12 +75,12 @@ export default function Login() {
       let targetPath: string;
       
       // Prioritize stored redirect path
-      const storedPath = localStorage.getItem("redirectAfterLogin");
-      if (storedPath) {
-        targetPath = storedPath;
+      const storedRedirect = localStorage.getItem("redirectAfterLogin");
+      if (storedRedirect && storedRedirect !== '/auth/login') {
+        targetPath = storedRedirect;
         console.log(`🔄 [${timestamp}] Using stored redirect path:`, targetPath);
       } else {
-        // Fall back to role-based landing page
+        // Fall back to role-based landing page ONLY if no explicit path was set
         const role = user.user_metadata?.role || 'user';
         targetPath = ROLE_LANDING_PAGES[role as keyof typeof ROLE_LANDING_PAGES] || ROLE_LANDING_PAGES.default;
         console.log(`🔄 [${timestamp}] Using role-based landing page for ${role}:`, targetPath);
@@ -110,7 +110,7 @@ export default function Login() {
         }
       }, 300);
     }
-  }, [user, isAuthenticated, loading, orgId, navigate, toast, location.search, redirectPath, preserveSearch]);
+  }, [user, isAuthenticated, orgId, navigate, toast, location.search, redirectPath, preserveSearch]);
 
   const handleGoogleSignIn = async () => {
     try {

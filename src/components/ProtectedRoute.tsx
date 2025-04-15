@@ -26,7 +26,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const redirectAttempted = useRef(false);
   const protectionPropsChecked = useRef(false);
   
-  // Get route protection state
   const {
     redirectInProgressRef,
     userDashboardRedirectBlocker,
@@ -34,7 +33,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     sessionStabilizedRef
   } = useRouteProtection(navigate);
   
-  // Get redirect logic
   const { safeRedirect } = useRedirectLogic(
     navigate,
     locationRef,
@@ -43,7 +41,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     () => {}
   );
   
-  // Extra validation for subdomain contexts
   useEffect(() => {
     if (!hasVerifiedSession) {
       const verifySession = async () => {
@@ -73,18 +70,18 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     }
   }, [hasVerifiedSession, loading, isAuthenticated, location, navigate]);
   
-  // Store search parameters that need to be preserved across auth flow
   useEffect(() => {
     if (!isAuthenticated && !redirectAttempted.current) {
       const fullPath = location.pathname + location.search;
-      if (!localStorage.getItem("redirectAfterLogin")) {
+      if (!localStorage.getItem("redirectAfterLogin") && 
+          location.pathname !== '/' && 
+          !location.pathname.startsWith('/auth')) {
         console.log("📝 Storing redirect path:", fullPath);
         localStorage.setItem("redirectAfterLogin", fullPath);
       }
     }
   }, [location, isAuthenticated]);
   
-  // Store search parameters that need to be preserved across auth flow
   useEffect(() => {
     if (location.search && location.search.includes('voice=')) {
       localStorage.setItem("preserveSearchParams", location.search);
@@ -93,16 +90,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     }
   }, [location]);
   
-  // Track whether we've already attempted a redirection to prevent loops
   useEffect(() => {
     if (!loading && !initialCheckComplete) {
       setInitialCheckComplete(true);
     }
   }, [loading, initialCheckComplete]);
   
-  // Prevent unwanted redirects between specific routes
   const shouldPreventRouteRedirect = (path: string): boolean => {
-    // Prevent redirects if user is already on a valid route
     if (location.pathname !== '/' && 
         location.pathname !== '/auth/login' && 
         !location.pathname.startsWith('/auth/')) {
@@ -110,19 +104,16 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       return true;
     }
 
-    // Always block redirects between ask-sage and user-dashboard in both directions
     if ((location.pathname === '/ask-sage' && path === '/user-dashboard') ||
         (location.pathname === '/user-dashboard' && path === '/ask-sage')) {
       console.log(`🛑 Preventing unwanted redirect: ${location.pathname} → ${path}`);
       return true;
     }
     
-    // Prevent HR dashboard redirects if already on that page
     if (location.pathname === '/hr-dashboard' && path === '/hr-dashboard') {
       return true;
     }
     
-    // Prevent admin dashboard redirects if already on that page
     if (location.pathname === '/admin-dashboard' && path === '/admin-dashboard') {
       return true;
     }
@@ -130,37 +121,30 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return false;
   };
   
-  // Main role and permission checks - only run once when component mounts
   useEffect(() => {
-    // Skip until initial auth check is complete
     if (!initialCheckComplete || protectionPropsChecked.current || !isAuthenticated || !user) {
       return;
     }
     
-    // Skip until session is fully stabilized for role-based decisions
     if (!sessionStabilizedRef.current) {
       console.log("⏳ ProtectedRoute waiting for session to stabilize before role checks");
       return;
     }
     
-    // Only check these role requirements once per component mount to prevent redirect loops
     protectionPropsChecked.current = true;
     
-    // Only check required role if specified and after authentication is complete
     if (requiredRole) {
       const userRole = user?.user_metadata?.role || 'user';
       
       if (userRole !== requiredRole) {
         console.log("🚫 User lacks required role:", requiredRole, "Current role:", userRole);
         
-        // Show a toast to inform the user
         toast({
           variant: "destructive",
           title: "Access denied",
           description: `You need ${requiredRole} access for this page.`
         });
         
-        // Redirect to an appropriate page based on their actual role
         const fallbackPath = userRole === 'admin' ? '/hr-dashboard' : '/ask-sage';
         
         if (!shouldPreventRouteRedirect(fallbackPath) && !redirectAttempted.current) {
@@ -171,7 +155,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       }
     }
     
-    // Check for required permission
     if (requiredPermission && 
         (!user?.user_metadata?.permissions || 
         !user.user_metadata.permissions.includes(requiredPermission))) {
@@ -183,7 +166,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         description: "You don't have permission to access this page."
       });
       
-      // Redirect based on role
       const userRole = user?.user_metadata?.role || 'user';
       const fallbackPath = userRole === 'admin' ? '/hr-dashboard' : '/ask-sage';
       
@@ -193,23 +175,20 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       }
       return;
     }
-    
   }, [initialCheckComplete, isAuthenticated, user, requiredRole, requiredPermission, navigate, location.pathname, sessionStabilizedRef]);
   
-  // Subdomain check - ensure user is on correct org subdomain
   useEffect(() => {
     const currentOrgSlug = getOrgFromUrl();
     
     if (initialCheckComplete && orgSlug && !redirectAttempted.current && isAuthenticated) {
       if (orgSlug && (!currentOrgSlug || currentOrgSlug !== orgSlug)) {
         console.log("🏢 ProtectedRoute redirecting to correct org subdomain:", orgSlug);
-        redirectAttempted.current = true; // Prevent further redirect attempts
+        redirectAttempted.current = true;
         sessionStorage.setItem('lastAuthenticatedPath', location.pathname + location.search);
         redirectToOrgUrl(orgSlug);
       }
     }
     
-    // Special case: If we're on a subdomain but have no auth, redirect to login
     if (currentOrgSlug && !loading && !isAuthenticated && !redirectAttempted.current) {
       console.log("🔑 On subdomain but not authenticated, redirecting to login");
       redirectAttempted.current = true;
@@ -226,14 +205,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     );
   }
 
-  // If not authenticated, useRequireAuth will handle the redirect
   if (!isAuthenticated || !user) {
     return null;
   }
   
   console.log("✅ ProtectedRoute access granted for path:", location.pathname);
   
-  // Only render children if we're authenticated and have all required permissions
   return <>{children}</>;
 }
 
