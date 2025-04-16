@@ -1,131 +1,119 @@
 
-import React, { useState } from 'react';
-import { MessageCircle, Search, CircleDot, ArrowUp } from 'lucide-react';
+import React, { useState, useRef, KeyboardEvent } from 'react';
+import { Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ReflectionForm, ReflectionData } from './ReflectionForm';
-import { SuggestedQuestions } from './SuggestedQuestions';
+import { toast } from '@/components/ui/use-toast';
+import { useDebugPanel } from '@/hooks/use-debug-panel';
 
 interface ChatInputBarProps {
   onSendMessage: (content: string) => void;
-  onReflectionSubmit: (data: ReflectionData) => void;
+  onReflectionSubmit?: () => void;
   isLoading?: boolean;
-  suggestedQuestions: string[];
-  onSelectQuestion: (question: string) => void;
+  suggestedQuestions?: string[];
+  onSelectQuestion?: (question: string) => void;
+  disabled?: boolean; // Added disabled prop
 }
 
 export const ChatInputBar: React.FC<ChatInputBarProps> = ({ 
   onSendMessage, 
-  onReflectionSubmit,
+  onReflectionSubmit, 
   isLoading = false,
-  suggestedQuestions,
-  onSelectQuestion
+  suggestedQuestions = [],
+  onSelectQuestion,
+  disabled = false
 }) => {
-  const [inputValue, setInputValue] = useState('');
-  const [activeTab, setActiveTab] = useState('chat');
+  const [message, setMessage] = useState('');
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const debugPanel = useDebugPanel();
 
-  const handleSendMessage = () => {
-    if (inputValue.trim() && !isLoading) {
-      onSendMessage(inputValue);
-      setInputValue('');
+  const handleSubmit = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    
+    if (!message.trim() || isLoading || disabled) return;
+    
+    try {
+      onSendMessage(message.trim());
+      setMessage('');
+      setShowSuggestions(false);
+      
+      // Focus the input after sending
+      if (inputRef.current) {
+        inputRef.current.focus();
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to send message. Please try again.",
+      });
     }
   };
 
-  const handleReflectionSubmit = (data: ReflectionData) => {
-    onReflectionSubmit(data);
-    setActiveTab('chat');
+  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit();
+    }
   };
 
-  const handleReflectionCancel = () => {
-    setActiveTab('chat');
+  const handleSelectSuggestion = (question: string) => {
+    if (onSelectQuestion) {
+      onSelectQuestion(question);
+    } else {
+      setMessage(question);
+      // Auto-submit after a short delay to make it feel natural
+      setTimeout(() => {
+        onSendMessage(question);
+      }, 300);
+    }
+    setShowSuggestions(false);
   };
 
   return (
-    <div className="sticky bottom-0 bg-white border-t border-gray-200 p-4">
+    <div className="border-t border-gray-200 bg-white p-4">
       <div className="max-w-3xl mx-auto">
-        <Tabs 
-          defaultValue="chat" 
-          value={activeTab}
-          onValueChange={setActiveTab}
-          className="w-full"
-        >
-          <TabsList className="mb-2">
-            <TabsTrigger value="chat" className="flex items-center">
-              <MessageCircle size={16} className="mr-1" />
-              Ask Sage
-            </TabsTrigger>
-            <TabsTrigger value="search" className="flex items-center">
-              <Search size={16} className="mr-1" />
-              Search
-            </TabsTrigger>
-            <TabsTrigger value="reflect" className="flex items-center">
-              <CircleDot size={16} className="mr-1" />
-              Reflect
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="chat" className="flex flex-col space-y-4 mt-0">
-            <div className="relative">
-              <Textarea
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                placeholder="What's on your mind?"
-                className="flex-1 min-h-[80px] resize-none pr-14"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    if (!isLoading) handleSendMessage();
-                  }
-                }}
-                disabled={isLoading}
-              />
-              <div className="absolute bottom-3 right-3">
-                <button
-                  onClick={handleSendMessage}
-                  className={`rounded-full p-2 flex items-center justify-center transition-all ${
-                    inputValue.trim() && !isLoading
-                      ? "bg-sagebright-green hover:bg-sagebright-green/90" 
-                      : "bg-gray-200 cursor-not-allowed"
-                  }`}
-                  disabled={!inputValue.trim() || isLoading}
-                  aria-label="Send message"
-                >
-                  <ArrowUp 
-                    size={18} 
-                    className={`${
-                      inputValue.trim() && !isLoading 
-                        ? "text-white" 
-                        : "text-gray-400"
-                    }`} 
-                  />
-                </button>
-              </div>
-            </div>
-            
-            {/* Suggested Questions section */}
-            <SuggestedQuestions 
-              questions={suggestedQuestions}
-              onSelectQuestion={onSelectQuestion}
+        <form onSubmit={handleSubmit} className="flex items-end gap-2">
+          <div className="flex-1 relative">
+            <textarea
+              ref={inputRef}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              onKeyDown={handleKeyDown}
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 pr-10 resize-none focus:outline-none focus:ring-2 focus:ring-sagebright-green focus:border-transparent"
+              placeholder={disabled ? "Please wait while Sage is loading..." : "Ask Sage a question..."}
+              rows={1}
+              disabled={isLoading || disabled}
+              style={{ minHeight: '44px', maxHeight: '120px' }}
             />
-          </TabsContent>
+          </div>
           
-          <TabsContent value="search" className="flex space-x-2 mt-0">
-            <Input
-              placeholder="Search resources, policies, and more..."
-              className="flex-1"
-            />
-            <Button>Search</Button>
-          </TabsContent>
-          
-          <TabsContent value="reflect" className="mt-0">
-            <ReflectionForm 
-              onSubmit={handleReflectionSubmit}
-              onCancel={handleReflectionCancel}
-            />
-          </TabsContent>
-        </Tabs>
+          <Button 
+            type="submit" 
+            className="bg-sagebright-green hover:bg-sagebright-green/90 text-white font-medium py-2 px-4 rounded-lg flex items-center"
+            disabled={!message.trim() || isLoading || disabled}
+          >
+            <Send size={18} className="mr-2" />
+            Send
+          </Button>
+        </form>
+        
+        {/* Suggested questions chips */}
+        {suggestedQuestions.length > 0 && !isLoading && message === '' && (
+          <div className="mt-4 flex flex-wrap gap-2">
+            {suggestedQuestions.slice(0, 3).map((question, index) => (
+              <button
+                key={index}
+                onClick={() => handleSelectSuggestion(question)}
+                className="bg-gray-100 hover:bg-gray-200 text-gray-800 text-sm px-3 py-1.5 rounded-full"
+                disabled={disabled}
+              >
+                {question}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

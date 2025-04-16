@@ -18,7 +18,10 @@ import { useAuth } from '@/contexts/auth/AuthContext';
 import { LoadingUI } from '@/components/ask-sage/LoadingUI'; 
 import { AuthRequiredUI } from '@/components/ask-sage/AuthRequiredUI';
 import { OrgRecoveryUI } from '@/components/ask-sage/OrgRecoveryUI';
+import { WelcomeMessage } from '@/components/ask-sage/WelcomeMessage';
+import { SuggestedQuestions } from '@/components/ask-sage/SuggestedQuestions';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { toast } from '@/components/ui/use-toast';
 
 const AskSage = () => {
   const isMobile = useIsMobile();
@@ -28,12 +31,13 @@ const AskSage = () => {
     userId,
     authLoading,
     isAuthenticated,
-    isOrgReady,
+    isContextReady,
     sessionUserReady,
     
     sidebarOpen,
     setSidebarOpen,
     isRecoveryVisible,
+    showWelcomeMessage,
     
     messages,
     isLoading,
@@ -52,26 +56,8 @@ const AskSage = () => {
     debugPanel
   } = useAskSagePage();
 
-  const isReady = sessionUserReady && isOrgReady && !authLoading;
+  const { user, currentUser, orgId, orgSlug } = useAuth();
 
-  useEffect(() => {
-    console.log("[Sage Init] Readiness check:", {
-      sessionUserReady,
-      isOrgReady,
-      authLoading,
-      isReady,
-      location: location.pathname,
-      timestamp: new Date().toISOString()
-    });
-  }, [sessionUserReady, isOrgReady, authLoading, isReady, location.pathname]);
-
-  if (!isReady) {
-    console.log("[Sage Init] ⏳ Waiting for full context before initializing...");
-    return <LoadingSage />;
-  }
-
-  const { user, currentUser, orgId, orgSlug } = useAuth(); // Add direct access to auth context
-  
   useEffect(() => {
     console.log("[Sage Init] AskSage component mounted with context:", {
       pathname: location.pathname,
@@ -114,7 +100,12 @@ const AskSage = () => {
 
   // Check if organization context is missing
   if (!authLoading && userId && !orgId && !isRecoveringOrg) {
-    return <OrgRecoveryUI />; // Remove the userId prop since it's not expected
+    return <OrgRecoveryUI />;
+  }
+
+  // Check if context is ready before rendering the page content
+  if (!isContextReady) {
+    return <LoadingSage />;
   }
 
   return (
@@ -141,6 +132,15 @@ const AskSage = () => {
                 </div>
               }>
                 <div className="max-w-3xl mx-auto space-y-6">
+                  {/* Welcome message - only show when no messages and context is ready */}
+                  {isContextReady && showWelcomeMessage && (
+                    <WelcomeMessage 
+                      voiceParam={voiceParam}
+                      userName={currentUser?.first_name}
+                    />
+                  )}
+                  
+                  {/* Messages */}
                   {messages.map((message) => (
                     <ChatMessage 
                       key={message.id} 
@@ -152,23 +152,12 @@ const AskSage = () => {
                 </div>
               </ErrorBoundary>
               
-              {isReady && suggestedQuestions && suggestedQuestions.length > 0 && !isLoading && messages.length === 0 && (
-                <div className="mt-6">
-                  <h3 className="text-lg font-medium text-charcoal mb-3">
-                    What would you like to ask Sage?
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {suggestedQuestions.map((question, index) => (
-                      <button
-                        key={index}
-                        className="bg-white border border-gray-200 hover:bg-gray-50 p-3 rounded-lg text-left"
-                        onClick={() => handleSelectQuestion(question)}
-                      >
-                        {question}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+              {/* Suggested questions - only show when no messages */}
+              {isContextReady && messages.length === 0 && !isLoading && suggestedQuestions.length > 0 && (
+                <SuggestedQuestions 
+                  questions={suggestedQuestions}
+                  onSelectQuestion={handleSelectQuestion}
+                />
               )}
             </div>
 
@@ -179,11 +168,12 @@ const AskSage = () => {
                 isLoading={isLoading}
                 suggestedQuestions={suggestedQuestions}
                 onSelectQuestion={handleSelectQuestion}
+                disabled={!isContextReady}
               />
             </div>
           </div>
 
-          {isReady && sidebarOpen && (
+          {isContextReady && sidebarOpen && (
             <div className="hidden md:flex flex-col w-80 border-l border-border bg-background p-4 overflow-y-auto">
               <ResourcesSidebar />
             </div>

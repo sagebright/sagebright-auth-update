@@ -26,13 +26,23 @@ export function ChatBubble({
   const isUser = sender === "user";
   const isSystem = sender === "system";
   
-  // Safe date formatting
-  const formatTimestamp = (timestamp?: Date) => {
+  // Safe date formatting with robust error handling
+  const formatTimestamp = (timestamp?: Date | null) => {
     try {
-      if (!timestamp || !(timestamp instanceof Date) || isNaN(timestamp.getTime())) {
+      if (!timestamp) {
         return "";
       }
-      return timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      
+      // For string timestamps, try to convert to Date
+      const dateObj = timestamp instanceof Date ? timestamp : new Date(timestamp);
+      
+      // Validate that the date is valid
+      if (isNaN(dateObj.getTime())) {
+        console.warn("🛑 Invalid date passed to formatter:", timestamp);
+        return "";
+      }
+      
+      return dateObj.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
     } catch (error) {
       console.error("Error formatting date:", error);
       return "";

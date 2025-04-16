@@ -2,6 +2,7 @@
 import { useState, useCallback } from 'react';
 import { useDebugPanel } from '@/hooks/use-debug-panel';
 import { v4 as uuidv4 } from 'uuid';
+import { toast } from '@/components/ui/use-toast';
 
 // Define the type expected for debug panel
 type DebugPanelState = ReturnType<typeof useDebugPanel>;
@@ -21,6 +22,11 @@ export const useChat = (debugPanel: DebugPanelState, isOrgReady: boolean = false
   const handleSendMessage = useCallback(async (content: string) => {
     if (!isOrgReady) {
       console.warn("[Sage Chat] ⚠️ Cannot send message - waiting for org context");
+      toast({
+        variant: "destructive",
+        title: "Sage isn't quite ready yet",
+        description: "Please wait a moment and try again.",
+      });
       return;
     }
 
@@ -50,12 +56,22 @@ export const useChat = (debugPanel: DebugPanelState, isOrgReady: boolean = false
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
+      // Check content type to avoid HTML parsing errors
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        console.error("🧨 Invalid content type:", contentType);
+        const rawResponse = await response.text();
+        console.log("Raw response (first 100 chars):", rawResponse.substring(0, 100));
+        throw new Error(`Expected JSON response but got ${contentType || 'unknown'}`);
+      }
+
       let data;
       try {
         data = await response.json();
       } catch (parseError) {
-        console.error("🧨 Failed to parse Sage response as JSON", parseError);
-        throw new Error("Sage server error. Check logs for HTML response.");
+        console.error("🧨 Failed to parse Sage response as JSON:", parseError);
+        console.log("Response status:", response.status);
+        throw new Error("Sage server error. Failed to parse response as JSON.");
       }
 
       if (data && data.output) {
@@ -69,17 +85,31 @@ export const useChat = (debugPanel: DebugPanelState, isOrgReady: boolean = false
         setShowReflection(data.showReflection);
       } else {
         console.warn("Empty response from /api/chat");
+        throw new Error("Sage returned an empty response");
       }
     } catch (error) {
       console.error("Error in handleSendMessage:", error);
+      
+      // Add a user-friendly error message
       setMessages((prevMessages) => [
         ...prevMessages,
-        { id: uuidv4(), content: "Sorry, I encountered an error. Please try again.", role: 'sage', timestamp: new Date() },
+        { 
+          id: uuidv4(), 
+          content: "Sorry, I encountered an error processing your request. Please try again in a moment.", 
+          role: 'sage', 
+          timestamp: new Date() 
+        },
       ]);
+      
+      toast({
+        variant: "destructive",
+        title: "Sage encountered an error",
+        description: error instanceof Error ? error.message : "Unknown error occurred",
+      });
     } finally {
       setIsLoading(false);
     }
-  }, [isOrgReady]);
+  }, [isOrgReady, debugPanel]);
 
   const handleFeedback = async (messageId: string, feedback: string) => {
     console.log('Feedback submitted:', { messageId, feedback });

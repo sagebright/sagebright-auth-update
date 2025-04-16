@@ -6,6 +6,8 @@ import { ReflectionData } from '@/components/ask-sage/ReflectionForm';
 import { useVoiceParam } from '@/hooks/use-voice-param';
 import { useDebugPanel } from '@/hooks/use-debug-panel';
 import { useAuth } from '@/contexts/auth/AuthContext';
+import { useSageContextReady } from '@/hooks/use-sage-context-ready';
+import { toast } from '@/components/ui/use-toast';
 
 export const useAskSagePage = () => {
   const navigate = useNavigate();
@@ -19,36 +21,35 @@ export const useAskSagePage = () => {
     isAuthenticated 
   } = useRequireAuth(navigate);
   
-  // Get currentUser from AuthContext directly 
   const { currentUser: currentUserData } = useAuth();
   
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isRecoveryVisible, setIsRecoveryVisible] = useState(false);
   const [pageInitialized, setPageInitialized] = useState(false);
+  const [showWelcomeMessage, setShowWelcomeMessage] = useState(true);
   
-  // Context readiness check
-  const isOrgReady = !!orgSlug && !!currentUserData && !!orgId;
   const sessionUserReady = !!user;
   
-  // Use our custom hooks
+  const { isContextReady, contextCheckComplete, missingContext } = useSageContextReady(
+    userId,
+    orgId,
+    orgSlug,
+    currentUserData,
+    authLoading,
+    sessionUserReady
+  );
+  
   const voiceParam = useVoiceParam();
   const debugPanel = useDebugPanel();
 
-  // Log context readiness state
   useEffect(() => {
-    console.log("[Sage Init] Context readiness check:", {
-      isOrgReady,
-      sessionUserReady,
-      hasOrgSlug: !!orgSlug,
-      hasCurrentUserData: !!currentUserData,
-      hasOrgId: !!orgId,
+    console.log("[Sage Init] Context readiness from useSageContextReady:", {
+      isContextReady,
+      contextCheckComplete,
+      missingContext,
       timestamp: new Date().toISOString()
     });
-
-    if (!orgSlug) console.warn("[Sage Init] ⚠️ orgSlug missing");
-    if (!currentUserData) console.warn("[Sage Init] ⚠️ currentUserData missing");
-    if (!orgId) console.warn("[Sage Init] ⚠️ orgId missing");
-  }, [orgSlug, currentUserData, orgId, isOrgReady, sessionUserReady]);
+  }, [isContextReady, contextCheckComplete, missingContext]);
 
   useEffect(() => {
     console.log("🎤 AskSagePage voice parameter (timestamp: %s): %s", 
@@ -62,7 +63,6 @@ export const useAskSagePage = () => {
     });
   }, [voiceParam]);
 
-  // Modify useChat to pass context readiness
   const {
     messages,
     isLoading,
@@ -72,15 +72,12 @@ export const useAskSagePage = () => {
     handleSendMessage,
     handleFeedback,
     isRecoveringOrg
-  } = useChat(debugPanel, isOrgReady);
+  } = useChat(debugPanel, isContextReady);
 
-  // Initialize page after auth is done loading (only need basic auth, not full currentUser)
   useEffect(() => {
     if (!authLoading && isAuthenticated && !pageInitialized) {
-      // Mark the page as initialized to prevent repeated initialization
       setPageInitialized(true);
       
-      // Log authentication state for debugging with timestamps
       console.log("[Sage Init] AskSage page initialized with auth state:", { 
         userId, 
         orgId, 
@@ -93,7 +90,10 @@ export const useAskSagePage = () => {
     }
   }, [authLoading, isAuthenticated, userId, orgId, isRecoveringOrg, pageInitialized, voiceParam, user]);
 
-  // Show recovery dialog if user is authenticated but missing org context
+  useEffect(() => {
+    setShowWelcomeMessage(messages.length === 0);
+  }, [messages.length]);
+
   useEffect(() => {
     if (pageInitialized && userId && !orgId && !isRecoveringOrg) {
       console.log("⚠️ Missing org context, showing recovery dialog");
@@ -108,16 +108,14 @@ export const useAskSagePage = () => {
     setShowReflection(false);
   };
 
-  // Send message using the useChat hook
   const sendMessageToSage = useCallback(async (content: string) => {
-    if (!userId) {
-      console.error("❌ Cannot send message - missing userId");
-      return;
-    }
-
-    if (!orgId) {
-      console.error("❌ Cannot send message - missing orgId");
-      setIsRecoveryVisible(true);
+    if (!isContextReady) {
+      console.error("❌ Cannot send message - context not ready");
+      toast({
+        variant: "destructive",
+        title: "Sage isn't quite ready",
+        description: "Please wait a moment while we load your session data.",
+      });
       return;
     }
 
@@ -125,7 +123,8 @@ export const useAskSagePage = () => {
       userId,
       orgId,
       hasSessionUser: !!user,
-      hasUserMetadata: user ? !!user.user_metadata : false
+      hasUserMetadata: user ? !!user.user_metadata : false,
+      isContextReady
     });
 
     try {
@@ -133,7 +132,7 @@ export const useAskSagePage = () => {
     } catch (error) {
       console.error("Error sending message:", error);
     }
-  }, [userId, orgId, handleSendMessage, user, setIsRecoveryVisible]);
+  }, [userId, orgId, handleSendMessage, user, isContextReady]);
 
   const handleSelectQuestion = useCallback((question: string) => {
     console.log("Selected suggested question:", question);
@@ -141,38 +140,33 @@ export const useAskSagePage = () => {
   }, [sendMessageToSage]);
 
   return {
-    // Auth state
     user,
     userId,
     orgId,
     authLoading,
     isAuthenticated,
     
-    // UI state
     sidebarOpen,
     setSidebarOpen,
     isRecoveryVisible,
+    showWelcomeMessage,
     
-    // Chat state
     messages,
     isLoading,
     suggestedQuestions,
     showReflection,
     setShowReflection,
     
-    // Handlers
     handleReflectionSubmit,
     sendMessageToSage,
     handleSelectQuestion,
     handleFeedback,
     
-    // Other
     isRecoveringOrg,
     voiceParam,
     
-    // Debug panel
     debugPanel,
-    isOrgReady,
+    isContextReady,
     sessionUserReady,
   };
 };

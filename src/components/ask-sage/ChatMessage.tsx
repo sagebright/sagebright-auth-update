@@ -32,14 +32,23 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, onFeedback })
     ? "/lovable-uploads/sage_avatar.png" 
     : message.avatar_url;
     
-  // Safe date formatting
-  const formatTimestamp = (timestamp: Date) => {
+  // Safe date formatting with robust error handling
+  const formatTimestamp = (timestamp: Date | null | undefined) => {
     try {
-      if (!timestamp || !(timestamp instanceof Date) || isNaN(timestamp.getTime())) {
+      if (!timestamp) {
+        return "";
+      }
+      
+      // For string timestamps, try to convert to Date
+      const dateObj = timestamp instanceof Date ? timestamp : new Date(timestamp);
+      
+      // Validate that the date is valid
+      if (isNaN(dateObj.getTime())) {
         console.warn("🛑 Invalid date passed to formatter:", timestamp);
         return "";
       }
-      return format(timestamp, 'h:mm a');
+      
+      return format(dateObj, 'h:mm a');
     } catch (error) {
       console.error("Error formatting date:", error);
       return "";

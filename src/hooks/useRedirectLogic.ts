@@ -26,6 +26,16 @@ export function useRedirectLogic(
       return;
     }
     
+    // Special handling for Ask Sage intent preservation
+    // If we're on the login page and have a stored intent to go to Ask Sage, prioritize that
+    if (locationRef.current === '/auth/login' && path === '/user-dashboard') {
+      const storedRedirect = localStorage.getItem("redirectAfterLogin");
+      if (storedRedirect === '/ask-sage') {
+        console.log(`🔀 Redirecting to /ask-sage instead of /user-dashboard based on stored intent`);
+        path = '/ask-sage';
+      }
+    }
+    
     // Check if we're trying to redirect from /ask-sage to /user-dashboard and block if needed
     if (locationRef.current === '/ask-sage' && 
         path === '/user-dashboard' && 
@@ -40,6 +50,13 @@ export function useRedirectLogic(
         locationRef.current !== '/') {
       console.log(`📝 Storing original path for post-login: ${locationRef.current}`);
       localStorage.setItem("redirectAfterLogin", locationRef.current);
+      
+      // If there are search params, store them too
+      const searchParams = window.location.search;
+      if (searchParams) {
+        console.log(`📝 Storing search params for post-login: ${searchParams}`);
+        localStorage.setItem("storedSearchParams", searchParams);
+      }
     }
     
     // Don't redirect to the same path multiple times
@@ -56,7 +73,6 @@ export function useRedirectLogic(
 
     const timestamp = new Date().toISOString();
     console.log(`🚀 [${timestamp}] Initiating redirect to: ${path} from ${locationRef.current}`);
-    console.trace("safeRedirect stack trace");
     
     lastRedirectPath.current = path;
     setRedirecting(true);
@@ -66,14 +82,29 @@ export function useRedirectLogic(
       window.clearTimeout(redirectDebounceTimer.current);
     }
     
+    // Add a delay to reduce race conditions and allow context to stabilize
+    const REDIRECT_DELAY = path === '/ask-sage' ? 300 : 100;
+    
     redirectDebounceTimer.current = window.setTimeout(() => {
       console.log(`✅ [${new Date().toISOString()}] Executing redirect to: ${path}`);
+      
+      // Check if we need to add stored search params
+      if (path === '/ask-sage') {
+        const storedParams = localStorage.getItem("storedSearchParams");
+        if (storedParams && !path.includes('?')) {
+          console.log(`🔍 Adding stored search params to redirect: ${storedParams}`);
+          path += storedParams;
+        }
+      }
+      
       navigate(path, options);
       redirectDebounceTimer.current = null;
+      
+      // Allow a cooling period before enabling redirects again
       setTimeout(() => {
         redirectInProgressRef.current = false;
       }, 1000);
-    }, 100);
+    }, REDIRECT_DELAY);
   }, [navigate, locationRef, userDashboardRedirectBlocker, redirectInProgressRef, setRedirecting]);
 
   return {
