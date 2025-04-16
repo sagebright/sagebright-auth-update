@@ -31,6 +31,27 @@ export interface RedirectIntent {
     
     // User's session ID when intent was created (if authenticated)
     sessionId?: string | null;
+    
+    // Timestamp for debugging and analytics
+    timestamp?: number;
+    
+    // Original destination (for tracking redirects)
+    originalDestination?: string;
+    
+    // Original search parameters
+    originalSearch?: string;
+    
+    // Context information
+    context?: string;
+    
+    // Path information
+    pathname?: string;
+    
+    // User ID for tracking
+    userId?: string | null;
+    
+    // Reason information
+    reason?: string;
   };
   
   // When this intent should be considered stale (milliseconds since epoch)

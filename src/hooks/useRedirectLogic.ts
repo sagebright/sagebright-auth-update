@@ -1,4 +1,3 @@
-
 import { useRef, useCallback } from 'react';
 import { NavigateFunction } from 'react-router-dom';
 import { useRedirectIntentManager } from '@/lib/redirect-intent';
