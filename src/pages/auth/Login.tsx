@@ -28,7 +28,7 @@ export default function Login() {
   
   const redirectPath = localStorage.getItem("redirectAfterLogin") || null;
   const preserveSearch = localStorage.getItem("preserveSearchParams") || "";
-  
+
   useEffect(() => {
     if (refreshSession && !loading) {
       console.log("🔄 Login page forcing session refresh");
@@ -72,26 +72,26 @@ export default function Login() {
       const timestamp = new Date().toISOString();
       console.log(`✅ [${timestamp}] User authenticated on login page, handling redirect`);
       
-      let targetPath: string;
-      
       const storedRedirect = localStorage.getItem("redirectAfterLogin");
+      const role = user.user_metadata?.role || 'default';
+      const fallback = ROLE_LANDING_PAGES[role as keyof typeof ROLE_LANDING_PAGES] || ROLE_LANDING_PAGES.default;
+      
       console.log(`🔍 Login redirect check [storedRedirect: ${storedRedirect}] [path: ${location.pathname}${location.search}]`);
       console.trace("Login redirect stack trace");
       
-      if (storedRedirect && storedRedirect !== '/auth/login') {
+      let targetPath: string;
+      
+      if (storedRedirect && !['/', '/auth/login'].includes(storedRedirect)) {
         targetPath = storedRedirect;
-        console.log(`🔄 [${timestamp}] Using stored redirect path:`, targetPath);
+        console.log(`🎯 [${timestamp}] Redirecting to stored redirect path:`, targetPath);
       } else {
-        const role = user.user_metadata?.role || 'user';
-        targetPath = ROLE_LANDING_PAGES[role as keyof typeof ROLE_LANDING_PAGES] || ROLE_LANDING_PAGES.default;
-        console.log(`🔄 [${timestamp}] Using role-based landing page for ${role}:`, targetPath);
+        targetPath = fallback;
+        console.log(`🎯 [${timestamp}] Redirecting to role-based fallback:`, fallback);
       }
       
       if (preserveSearch && !targetPath.includes('?')) {
         targetPath += preserveSearch;
       }
-      
-      console.log(`🎯 [${timestamp}] Redirecting to:`, targetPath);
       
       toast({
         title: "Welcome back!",

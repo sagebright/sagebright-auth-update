@@ -1,4 +1,3 @@
-
 import { useEffect, useState, useRef } from 'react';
 import { useLocation, NavigateFunction } from 'react-router-dom';
 import { useAuth } from '@/contexts/auth/AuthContext';
@@ -7,8 +6,8 @@ import { toast } from '@/components/ui/use-toast';
 // Map user roles to their default landing pages
 export const ROLE_LANDING_PAGES = {
   admin: '/hr-dashboard',
-  user: '/ask-sage',  // Important: default for regular users is /ask-sage
-  default: '/ask-sage' // Fallback if role is unknown
+  user: '/user-dashboard',
+  default: '/user-dashboard'
 };
 
 export function useRouteProtection(navigate: NavigateFunction) {
