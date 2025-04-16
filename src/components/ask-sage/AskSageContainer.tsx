@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { DashboardContainer } from '@/components/layout/DashboardContainer';
 import { ChatHeader } from '@/components/ask-sage/ChatHeader';
@@ -22,7 +23,16 @@ export const AskSageContainer: React.FC = () => {
   const location = useLocation();
   const voiceParamState = useVoiceParamState();
   const { captureIntent } = useRedirectIntentManager();
-  const { isRedirectAllowed, canInteract, shouldRender, readinessBlockers } = useAskSageGuard();
+  
+  // Use the unified Ask Sage Guard for route, session and context protection
+  const { 
+    canInteract, 
+    shouldRender, 
+    isRedirectAllowed, 
+    readinessBlockers,
+    isProtected,
+    showLoading
+  } = useAskSageGuard();
   
   const {
     userId,
@@ -56,6 +66,7 @@ export const AskSageContainer: React.FC = () => {
 
   const { orgId } = useAuth();
 
+  // Preserve voice parameters
   useEffect(() => {
     if (voiceParamState.isValid && voiceParamState.currentVoice !== 'default') {
       console.log(`📝 Preserving voice parameter ${voiceParamState.currentVoice} for /ask-sage`);
@@ -74,14 +85,22 @@ export const AskSageContainer: React.FC = () => {
     }
   }, [captureIntent, voiceParamState.currentVoice, voiceParamState.isValid]);
 
+  // Render decisions based on protection, session, and auth state
   if (!shouldRender) {
+    if (isProtected) {
+      console.log('🛡️ Ask Sage under protection - showing loading state');
+      return <LoadingSage reason="initialization" />;
+    }
+    
     if (!canInteract) {
       console.warn('🚧 Ask Sage not ready. Blockers:', readinessBlockers);
-      return <LoadingSage />;
+      return <LoadingSage reason="context_loading" />;
     }
+    
     return null;
   }
 
+  // Authentication flow
   if (authLoading) return <LoadingUI />;
   if (!authLoading && !userId) return <AuthRequiredUI />;
   if (!authLoading && userId && !orgId && !isRecoveringOrg) return <OrgRecoveryUI />;
@@ -89,7 +108,11 @@ export const AskSageContainer: React.FC = () => {
   return (
     <DashboardContainer showSagePanel={false}>
       <div className="flex flex-col h-full -m-4 md:-m-8">
-        <ChatHeader sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+        <ChatHeader 
+          sidebarOpen={sidebarOpen} 
+          setSidebarOpen={setSidebarOpen} 
+          isProtected={isProtected}
+        />
 
         {process.env.NODE_ENV === 'development' && (
           <div className="bg-secondary/10 px-4 py-1 text-xs text-charcoal">
@@ -100,6 +123,11 @@ export const AskSageContainer: React.FC = () => {
             <span className="ml-2">
               🔒 Session: <strong>{isSessionStable ? 'Stable' : 'Unstable'}</strong>
             </span>
+            {isProtected && (
+              <span className="ml-2 text-primary font-medium">
+                🛡️ Protection Active
+              </span>
+            )}
           </div>
         )}
 
@@ -115,6 +143,8 @@ export const AskSageContainer: React.FC = () => {
             isContextReady={isContextReady}
             showWelcomeMessage={showWelcomeMessage}
             voiceParam={voiceParam}
+            isProtected={isProtected}
+            canInteract={canInteract}
           />
 
           {isContextReady && sidebarOpen && (
@@ -131,7 +161,7 @@ export const AskSageContainer: React.FC = () => {
           isMobile={isMobile}
         />
         
-        <DebugPanel />
+        {process.env.NODE_ENV === 'development' && <DebugPanel />}
       </div>
     </DashboardContainer>
   );
