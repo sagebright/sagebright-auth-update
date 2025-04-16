@@ -7,8 +7,9 @@ import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 import AuthDivider from "@/components/auth/AuthDivider";
 import { useLoginForm } from "@/hooks/useLoginForm";
 import LoginForm from "@/components/auth/LoginForm";
-import { getOrgFromUrl } from "@/lib/subdomainUtils";
 import { useToast } from "@/hooks/use-toast";
+import { useRedirectIntentManager } from "@/lib/redirect-intent";
+import { getVoiceFromUrl } from "@/lib/utils";
 
 const ROLE_LANDING_PAGES = {
   admin: '/hr-dashboard',
@@ -27,8 +28,39 @@ export default function Login() {
   const [loginTimestamp, setLoginTimestamp] = useState<number | null>(null);
   const sessionStableRef = useRef(false);
   
-  const redirectPath = localStorage.getItem("redirectAfterLogin") || null;
-  const preserveSearch = localStorage.getItem("preserveSearchParams") || "";
+  // Use our new redirect intent manager
+  const { 
+    activeIntent,
+    captureIntent,
+    executeRedirect,
+    clearIntent
+  } = useRedirectIntentManager();
+  
+  // Capture voice parameter from URL if present
+  const voiceParam = getVoiceFromUrl(location.search);
+  const storedRedirectPath = localStorage.getItem("redirectAfterLogin");
+
+  // On initial mount, check if we need to capture a redirect intent from legacy storage
+  useEffect(() => {
+    // Handle legacy redirect path from localStorage
+    if (storedRedirectPath && !activeIntent) {
+      console.log("🔄 Migrating legacy redirect path to intent system:", storedRedirectPath);
+      
+      // Capture intent with voice parameter if available
+      captureIntent(
+        storedRedirectPath,
+        "auth",
+        voiceParam !== 'default' ? { voiceParam } : undefined
+      );
+      
+      // Clear legacy storage
+      localStorage.removeItem("redirectAfterLogin");
+    }
+    
+    if (location.search && location.search.includes('voice=')) {
+      console.log(`📝 Detected voice parameter in URL: ${voiceParam}`);
+    }
+  }, [storedRedirectPath, activeIntent, captureIntent, location.search, voiceParam]);
 
   useEffect(() => {
     if (refreshSession && !loading) {
@@ -37,17 +69,8 @@ export default function Login() {
     }
   }, [refreshSession, loading]);
 
+  // Handle authentication state changes
   useEffect(() => {
-    if (location.search && location.search.includes('voice=') && !localStorage.getItem("preserveSearchParams")) {
-      localStorage.setItem("preserveSearchParams", location.search);
-      const timestamp = new Date().toISOString();
-      console.log(`📝 [${timestamp}] Stored search params for post-login redirect:`, {
-        search: location.search,
-        storedPath: localStorage.getItem("redirectAfterLogin"),
-        voiceParam: new URLSearchParams(location.search).get('voice')
-      });
-    }
-    
     if (loading) {
       console.log("⏳ Auth still loading on login page, waiting...");
       return;
@@ -61,6 +84,7 @@ export default function Login() {
       sessionStableRef.current = true;
     }
 
+    // Handle successful authentication and redirection
     if (isAuthenticated && user && sessionStableRef.current && 
         !hasRedirectedRef.current && !redirectInProgressRef.current) {
       
@@ -73,25 +97,30 @@ export default function Login() {
       const timestamp = new Date().toISOString();
       console.log(`✅ [${timestamp}] User authenticated on login page, handling redirect`);
       
-      const storedRedirect = localStorage.getItem("redirectAfterLogin");
       const role = user.user_metadata?.role || 'default';
-      const fallback = ROLE_LANDING_PAGES[role as keyof typeof ROLE_LANDING_PAGES] || ROLE_LANDING_PAGES.default;
+      const fallbackPath = ROLE_LANDING_PAGES[role as keyof typeof ROLE_LANDING_PAGES] || ROLE_LANDING_PAGES.default;
       
-      console.log(`🔍 Login redirect check [storedRedirect: ${storedRedirect}] [path: ${location.pathname}${location.search}]`);
-      console.trace("Login redirect stack trace");
-      
+      // Decide where to redirect
       let targetPath: string;
       
-      if (storedRedirect && !['/', '/auth/login'].includes(storedRedirect)) {
-        targetPath = storedRedirect;
-        console.log(`🎯 [${timestamp}] Redirecting to stored redirect path:`, targetPath);
-      } else {
-        targetPath = fallback;
-        console.log(`🎯 [${timestamp}] Redirecting to role-based fallback:`, fallback);
-      }
-      
-      if (preserveSearch && !targetPath.includes('?')) {
-        targetPath += preserveSearch;
+      // Check for stored intent first
+      if (activeIntent) {
+        console.log(`🎯 [${timestamp}] Using stored redirect intent:`, activeIntent.destination);
+        targetPath = activeIntent.destination;
+        
+        // Include any voice parameter from the intent
+        if (activeIntent.metadata?.voiceParam && !targetPath.includes('voice=')) {
+          const separator = targetPath.includes('?') ? '&' : '?';
+          targetPath += `${separator}voice=${activeIntent.metadata.voiceParam}`;
+        }
+        
+        // Clear the intent after use
+        clearIntent();
+      } 
+      // Fall back to role-based default
+      else {
+        targetPath = fallbackPath;
+        console.log(`🎯 [${timestamp}] No stored intent, redirecting to role-based fallback:`, fallbackPath);
       }
       
       toast({
@@ -99,9 +128,7 @@ export default function Login() {
         description: "Redirecting you back...",
       });
       
-      localStorage.removeItem("redirectAfterLogin");
-      localStorage.removeItem("preserveSearchParams");
-      
+      // Execute the redirect
       setTimeout(() => {
         if (document.location.pathname.startsWith('/auth')) {
           navigate(targetPath, { replace: true });
@@ -111,7 +138,7 @@ export default function Login() {
         }
       }, 100);
     }
-  }, [user, isAuthenticated, orgId, navigate, toast, location.search, location.pathname, redirectPath, preserveSearch]);
+  }, [user, isAuthenticated, navigate, toast, loading, activeIntent, clearIntent]);
 
   const handleGoogleSignIn = async () => {
     try {
