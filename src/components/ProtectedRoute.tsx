@@ -31,8 +31,11 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     pathname: location.pathname + location.search
   });
 
-  // Handle org-specific redirects - now called without arguments
-  useOrgRedirect();
+  // Use the updated useOrgRedirect hook - now returns redirectAttempted state
+  const { redirectAttempted } = useOrgRedirect();
+  
+  // Add enhanced logging for protected route rendering
+  console.log(`🛡️ ProtectedRoute rendering: [path: ${location.pathname}] [authenticated: ${isAuthenticated}] [loading: ${loading}] [redirectAttempted: ${redirectAttempted}]`);
   
   if (loading) {
     return (

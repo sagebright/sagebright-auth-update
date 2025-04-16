@@ -19,6 +19,13 @@ export function useRedirectLogic(
       return;
     }
     
+    // CRITICAL: Enhanced check for redundant /ask-sage to /user-dashboard redirects
+    // This is the core of the current issue - block ANY redirect from ask-sage to user-dashboard
+    if (locationRef.current === '/ask-sage' && path === '/user-dashboard') {
+      console.log(`🛑 Blocked redirect from /ask-sage to /user-dashboard - preserving intended destination`);
+      return;
+    }
+    
     // Check if we're trying to redirect from /ask-sage to /user-dashboard and block if needed
     if (locationRef.current === '/ask-sage' && 
         path === '/user-dashboard' && 
@@ -49,6 +56,7 @@ export function useRedirectLogic(
 
     const timestamp = new Date().toISOString();
     console.log(`🚀 [${timestamp}] Initiating redirect to: ${path} from ${locationRef.current}`);
+    console.trace("safeRedirect stack trace");
     
     lastRedirectPath.current = path;
     setRedirecting(true);
