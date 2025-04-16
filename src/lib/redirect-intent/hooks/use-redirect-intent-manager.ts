@@ -14,7 +14,12 @@ import {
   shouldReplaceIntent,
   createIntentAuditLog
 } from '../utils';
-import { persistIntent, retrieveIntent, clearPersistedIntent, cleanupStaleIntents } from '../utils/storage';
+import { 
+  persistIntent, 
+  retrieveIntent, 
+  clearPersistedIntent, 
+  cleanupStaleIntents 
+} from '../utils/storage';
 import { detectRedirectLoop } from '../utils/redirect-loop';
 import { DEFAULT_OPTIONS } from '../constants';
 import { useRedirectActions } from './use-redirect-actions';

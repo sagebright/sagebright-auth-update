@@ -1,3 +1,4 @@
+
 import { RedirectIntent, IntentValidationResult } from './types';
 import { DEFAULT_EXPIRY_MS } from './constants';
 
@@ -145,3 +146,15 @@ export function createIntentAuditLog(
     ...details
   };
 }
+
+// Re-export storage functions to maintain backward compatibility
+// This helps prevent breaking changes for files still importing from utils.ts
+export { 
+  persistIntent, 
+  retrieveIntent, 
+  clearPersistedIntent, 
+  cleanupStaleIntents 
+} from './utils/storage';
+
+// Re-export redirect-loop functions
+export { detectRedirectLoop } from './utils/redirect-loop';
