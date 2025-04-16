@@ -1,4 +1,8 @@
 
+/**
+ * Public API for sage context hooks and utilities
+ */
+
 export * from './types';
 export * from './readiness-checks';
 export * from './readiness-logger';
