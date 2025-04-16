@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/auth/AuthContext';
 import { useSageContextReadiness } from '@/hooks/sage-context';
 
 /**
- * Monitor session stability for Ask Sage interactions
+ * Monitor session stability for Ask Sage interactions with enhanced recovery
  */
 export function useSageSessionStability() {
   const { 
@@ -17,46 +17,50 @@ export function useSageSessionStability() {
   const contextReadiness = useSageContextReadiness(
     userId,
     orgId,
-    // Assuming orgSlug is part of the context
     user?.user_metadata?.org_slug ?? null, 
     user,
     authLoading,
     !!user,
-    // Voice param would typically come from a hook
     'default'
   );
 
   const [sessionStable, setSessionStable] = useState(false);
+  const [stableTimestamp, setStableTimestamp] = useState<number | null>(null);
 
   useEffect(() => {
-    // Determine session stability based on comprehensive readiness checks
+    // Determine session stability with additional metadata checks
     const isStable = 
       !authLoading && 
       contextReadiness.isSessionStable && 
-      contextReadiness.isReadyToRender;
+      contextReadiness.isReadyToRender &&
+      !!user?.user_metadata; // Additional check for user metadata
 
-    setSessionStable(isStable);
-
-    if (isStable) {
+    if (isStable && !sessionStable) {
+      setStableTimestamp(Date.now());
       console.log('✅ Sage Session Stabilized', {
         userId,
+        role: user?.user_metadata?.role || 'unknown',
         orgId,
+        stableAt: new Date().toISOString(),
         blockers: contextReadiness.blockers
       });
-    } else if (contextReadiness.blockers.length > 0) {
-      console.warn('🚧 Session Stability Blockers:', contextReadiness.blockers);
     }
+
+    setSessionStable(isStable);
   }, [
     authLoading, 
     contextReadiness.isSessionStable, 
     contextReadiness.isReadyToRender,
     contextReadiness.blockers,
     userId,
-    orgId
+    orgId,
+    user,
+    sessionStable
   ]);
 
   return {
     sessionStable,
+    stableTimestamp,
     readinessBlockers: contextReadiness.blockers,
     isContextReady: contextReadiness.isContextReady
   };

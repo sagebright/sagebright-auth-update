@@ -1,27 +1,27 @@
 
 import { useState, useEffect, useRef } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { useRedirectIntentManager } from '@/lib/redirect-intent';
+import { useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/auth/AuthContext';
+import { useRedirectIntentManager } from '@/lib/redirect-intent';
 
 /**
  * Enhanced route protection specifically for the Ask Sage route
  */
 export function useAskSageRouteProtection() {
   const location = useLocation();
-  const navigate = useNavigate();
   const auth = useAuth();
-  const { captureIntent, activeIntent } = useRedirectIntentManager();
-
+  const { captureIntent } = useRedirectIntentManager();
+  
   // Protection window state
   const [protectionActive, setProtectionActive] = useState(false);
   const protectionTimerRef = useRef<number | null>(null);
+  const protectionStartTime = useRef<number | null>(null);
 
   // Track route transitions for Ask Sage
   useEffect(() => {
-    // Only activate protection for /ask-sage route
     if (location.pathname === '/ask-sage') {
       setProtectionActive(true);
+      protectionStartTime.current = Date.now();
 
       // Set a timeout to automatically release protection
       protectionTimerRef.current = window.setTimeout(() => {
@@ -36,14 +36,14 @@ export function useAskSageRouteProtection() {
         {
           source: 'ask_sage_protection',
           timestamp: Date.now(),
-          context: 'route_protection'
+          context: 'route_protection',
+          protectionStart: protectionStartTime.current
         },
         5 // High priority protection
       );
     }
 
     return () => {
-      // Clear timeout on unmount
       if (protectionTimerRef.current) {
         window.clearTimeout(protectionTimerRef.current);
       }
@@ -52,13 +52,18 @@ export function useAskSageRouteProtection() {
 
   // Prevention of unwanted redirects
   const isRedirectAllowed = (targetPath: string) => {
-    // If protection is active, only allow specific routes
     if (protectionActive) {
       const allowedRoutes = ['/ask-sage', '/auth/login'];
       const isAllowedRoute = allowedRoutes.includes(targetPath);
       
       if (!isAllowedRoute) {
-        console.warn(`🚫 Redirect blocked during Ask Sage protection: ${targetPath}`);
+        console.warn('🚫 Redirect blocked during Ask Sage protection:', {
+          attempted: targetPath,
+          protectionActive: true,
+          protectionTime: protectionStartTime.current ? 
+            Math.round((Date.now() - protectionStartTime.current) / 1000) + 's' : 
+            'unknown'
+        });
         return false;
       }
     }
@@ -68,5 +73,6 @@ export function useAskSageRouteProtection() {
   return {
     protectionActive,
     isRedirectAllowed,
+    protectionStartTime: protectionStartTime.current
   };
 }
