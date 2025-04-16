@@ -1,3 +1,4 @@
+
 import { useEffect, useState, useRef } from 'react';
 
 export interface SageContextReadiness {
@@ -6,6 +7,11 @@ export interface SageContextReadiness {
   isSessionReady: boolean;
   isVoiceReady: boolean;
   isReadyToRender: boolean;
+  
+  // Backward compatibility properties for existing code
+  isContextReady: boolean;
+  contextCheckComplete: boolean;
+  missingContext: boolean;
   
   // Timestamp when fully ready (null if not ready)
   readySince: number | null;
@@ -25,7 +31,7 @@ export function useSageContextReadiness(
   currentUserData: any | null,
   authLoading: boolean,
   isSessionUserReady: boolean,
-  voiceParam: string | null
+  voiceParam: string | null = null // Making this optional with a default value
 ): SageContextReadiness {
   // Initialize state with not-ready values
   const [readiness, setReadiness] = useState<SageContextReadiness>({
@@ -33,6 +39,9 @@ export function useSageContextReadiness(
     isSessionReady: false,
     isVoiceReady: false,
     isReadyToRender: false,
+    isContextReady: false,
+    contextCheckComplete: false,
+    missingContext: true,
     readySince: null,
     blockers: ['Initializing context']
   });
@@ -65,6 +74,11 @@ export function useSageContextReadiness(
     // Overall readiness requires all individual flags
     const isReadyToRender = isSessionReady && isOrgReady && isVoiceReady && !!currentUserData;
     
+    // For backward compatibility
+    const isContextReady = isReadyToRender;
+    const contextCheckComplete = true;
+    const missingContext = !isReadyToRender;
+    
     // Calculate readySince timestamp only when ready
     const readySince = isReadyToRender 
       ? (readiness.readySince ?? Date.now()) 
@@ -76,6 +90,9 @@ export function useSageContextReadiness(
       isSessionReady,
       isVoiceReady,
       isReadyToRender,
+      isContextReady,
+      contextCheckComplete,
+      missingContext,
       readySince,
       blockers
     };

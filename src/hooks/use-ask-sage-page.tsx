@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
@@ -30,16 +31,30 @@ export const useAskSagePage = () => {
   
   const sessionUserReady = !!user;
   
-  const { isContextReady, contextCheckComplete, missingContext } = useSageContextReadiness(
+  // Get voice parameter first so we can pass it to the context readiness hook
+  const voiceParam = useVoiceParam();
+  
+  // Use the enhanced hook with the voice parameter
+  const { 
+    isContextReady, 
+    contextCheckComplete, 
+    missingContext,
+    blockers,
+    isReadyToRender,
+    isSessionReady,
+    isOrgReady,
+    isVoiceReady,
+    readySince
+  } = useSageContextReadiness(
     userId,
     orgId,
     orgSlug,
     currentUserData,
     authLoading,
-    sessionUserReady
+    sessionUserReady,
+    voiceParam
   );
   
-  const voiceParam = useVoiceParam();
   const debugPanel = useDebugPanel();
 
   useEffect(() => {
@@ -47,9 +62,11 @@ export const useAskSagePage = () => {
       isContextReady,
       contextCheckComplete,
       missingContext,
+      isReadyToRender,
+      blockers,
       timestamp: new Date().toISOString()
     });
-  }, [isContextReady, contextCheckComplete, missingContext]);
+  }, [isContextReady, contextCheckComplete, missingContext, isReadyToRender, blockers]);
 
   useEffect(() => {
     console.log("🎤 AskSagePage voice parameter (timestamp: %s): %s", 
@@ -124,7 +141,8 @@ export const useAskSagePage = () => {
       orgId,
       hasSessionUser: !!user,
       hasUserMetadata: user ? !!user.user_metadata : false,
-      isContextReady
+      isContextReady,
+      blockers
     });
 
     try {
@@ -132,7 +150,7 @@ export const useAskSagePage = () => {
     } catch (error) {
       console.error("Error sending message:", error);
     }
-  }, [userId, orgId, handleSendMessage, user, isContextReady]);
+  }, [userId, orgId, handleSendMessage, user, isContextReady, blockers]);
 
   const handleSelectQuestion = useCallback((question: string) => {
     console.log("Selected suggested question:", question);
@@ -168,5 +186,12 @@ export const useAskSagePage = () => {
     debugPanel,
     isContextReady,
     sessionUserReady,
+    
+    // Add additional readiness flags for more granular control
+    isReadyToRender,
+    isSessionReady,
+    isOrgReady,
+    isVoiceReady,
+    blockers
   };
 };
