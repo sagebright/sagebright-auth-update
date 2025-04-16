@@ -1,5 +1,4 @@
-
-import React, { useEffect } from 'react';
+import React from 'react';
 import { DashboardContainer } from '@/components/layout/DashboardContainer';
 import { ChatHeader } from '@/components/ask-sage/ChatHeader';
 import { ResourcesSidebar } from '@/components/ask-sage/ResourcesSidebar';
@@ -16,12 +15,14 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/contexts/auth/AuthContext';
 import { useVoiceParamState } from '@/hooks/use-voice-param';
 import { useRedirectIntentManager } from '@/lib/redirect-intent';
+import { useAskSageGuard } from '@/hooks/ask-sage/use-ask-sage-guard';
 
 export const AskSageContainer: React.FC = () => {
   const isMobile = useIsMobile();
   const location = useLocation();
   const voiceParamState = useVoiceParamState();
   const { captureIntent } = useRedirectIntentManager();
+  const { isRedirectAllowed, canInteract, shouldRender, readinessBlockers } = useAskSageGuard();
   
   const {
     userId,
@@ -75,25 +76,20 @@ export const AskSageContainer: React.FC = () => {
     }
   }, [captureIntent, voiceParamState.currentVoice, voiceParamState.isValid]);
 
-  // Only wait for basic auth checks, not full current user data
-  if (authLoading) {
-    return <LoadingUI />;
+  // Render protection and loading states
+  if (!shouldRender) {
+    // Prioritize rendering based on context readiness
+    if (!canInteract) {
+      console.warn('🚧 Ask Sage not ready. Blockers:', readinessBlockers);
+      return <LoadingSage />;
+    }
+    return null;
   }
 
-  // Check if user exists at all (even without full currentUser data)
-  if (!authLoading && !userId) {
-    return <AuthRequiredUI />;
-  }
-
-  // Check if organization context is missing
-  if (!authLoading && userId && !orgId && !isRecoveringOrg) {
-    return <OrgRecoveryUI />;
-  }
-
-  // Check if context is ready before rendering the page content
-  if (!isContextReady) {
-    return <LoadingSage />;
-  }
+  // Keep existing route protection logic
+  if (authLoading) return <LoadingUI />;
+  if (!authLoading && !userId) return <AuthRequiredUI />;
+  if (!authLoading && userId && !orgId && !isRecoveringOrg) return <OrgRecoveryUI />;
 
   return (
     <DashboardContainer showSagePanel={false}>
@@ -146,4 +142,3 @@ export const AskSageContainer: React.FC = () => {
     </DashboardContainer>
   );
 };
-
