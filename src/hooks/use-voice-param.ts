@@ -1,3 +1,4 @@
+
 import { useEffect, useState, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { getVoiceFromUrl } from '@/lib/utils';
@@ -7,10 +8,11 @@ interface VoiceParamState {
   previousVoice: string | null;
   source: 'url' | 'storage' | 'default';
   timestamp: number;
+  isValid: boolean;
 }
 
 /**
- * Enhanced hook that manages voice parameter state with history and source tracking
+ * Enhanced hook that manages voice parameter state with history, source tracking and validation
  * @returns A string representing the current voice parameter
  */
 export function useVoiceParam(): string {
@@ -19,16 +21,18 @@ export function useVoiceParam(): string {
     currentVoice: 'default',
     previousVoice: null,
     source: 'default',
-    timestamp: Date.now()
+    timestamp: Date.now(),
+    isValid: true
   });
   const lastPathRef = useRef<string>(location.pathname);
+  const loggedWarningRef = useRef<boolean>(false);
   
   useEffect(() => {
     // Start a console group for voice parameter logging
     console.group('🎤 Voice Parameter Detection');
     
     try {
-      // Get voice from URL search params
+      // Get voice from URL search params - this is our canonical source of truth
       const voiceFromUrl = getVoiceFromUrl(location.search);
       const storedVoice = localStorage.getItem('lastVoiceParam');
       
@@ -41,15 +45,27 @@ export function useVoiceParam(): string {
         lastPathRef.current = location.pathname;
       }
       
+      // Clear warning log flag when search params change
+      if (loggedWarningRef.current && location.search) {
+        loggedWarningRef.current = false;
+      }
+      
       // Determine the new voice parameter and its source
       let newVoice = 'default';
       let source: 'url' | 'storage' | 'default' = 'default';
+      let isValid = true;
       
-      // If voice is specified in URL, use it
-      if (voiceFromUrl !== 'default') {
-        console.log(`Setting voice from URL: ${voiceFromUrl}`);
+      // If voice is specified in URL, use it as the canonical source
+      if (location.search.includes('voice=')) {
         newVoice = voiceFromUrl;
         source = 'url';
+        
+        // Only log warning once per parameter lifecycle
+        if (newVoice === 'default' && !loggedWarningRef.current) {
+          console.warn('⚠️ URL contains voice parameter but it\'s invalid. Using default.');
+          loggedWarningRef.current = true;
+          isValid = false;
+        }
         
         // Store for later use
         localStorage.setItem('lastVoiceParam', voiceFromUrl);
@@ -61,14 +77,15 @@ export function useVoiceParam(): string {
         source = 'storage';
       }
       
-      // Only update state if voice has changed
-      if (newVoice !== voiceState.currentVoice) {
+      // Only update state if voice has changed or validity changed
+      if (newVoice !== voiceState.currentVoice || isValid !== voiceState.isValid) {
         console.log(`Voice transition: ${voiceState.currentVoice} → ${newVoice} (via ${source})`);
         setVoiceState({
           currentVoice: newVoice,
           previousVoice: voiceState.currentVoice,
           source,
-          timestamp: Date.now()
+          timestamp: Date.now(),
+          isValid
         });
       }
     } catch (error) {
@@ -79,7 +96,8 @@ export function useVoiceParam(): string {
           currentVoice: 'default',
           previousVoice: voiceState.currentVoice,
           source: 'default',
-          timestamp: Date.now()
+          timestamp: Date.now(),
+          isValid: false
         });
       }
     }
@@ -100,33 +118,52 @@ export function useVoiceParamState(): VoiceParamState {
     currentVoice: 'default',
     previousVoice: null,
     source: 'default',
-    timestamp: Date.now()
+    timestamp: Date.now(),
+    isValid: true
   });
   const lastPathRef = useRef<string>(location.pathname);
+  const loggedWarningRef = useRef<boolean>(false);
   
   useEffect(() => {
-    // Similar implementation as useVoiceParam but returns the full state object
-    const voiceFromUrl = getVoiceFromUrl(location.search);
-    const storedVoice = localStorage.getItem('lastVoiceParam');
-    
-    let newVoice = 'default';
-    let source: 'url' | 'storage' | 'default' = 'default';
-    
-    if (voiceFromUrl !== 'default') {
-      newVoice = voiceFromUrl;
-      source = 'url';
-      localStorage.setItem('lastVoiceParam', voiceFromUrl);
-    } else if (storedVoice) {
-      newVoice = storedVoice;
-      source = 'storage';
-    }
-    
-    if (newVoice !== voiceState.currentVoice) {
+    try {
+      const voiceFromUrl = getVoiceFromUrl(location.search);
+      const storedVoice = localStorage.getItem('lastVoiceParam');
+      
+      let newVoice = 'default';
+      let source: 'url' | 'storage' | 'default' = 'default';
+      let isValid = true;
+      
+      if (location.search.includes('voice=')) {
+        newVoice = voiceFromUrl;
+        source = 'url';
+        
+        if (newVoice === 'default' && !loggedWarningRef.current) {
+          loggedWarningRef.current = true;
+          isValid = false;
+        }
+        
+        localStorage.setItem('lastVoiceParam', voiceFromUrl);
+      } else if (storedVoice) {
+        newVoice = storedVoice;
+        source = 'storage';
+      }
+      
+      if (newVoice !== voiceState.currentVoice || isValid !== voiceState.isValid) {
+        setVoiceState({
+          currentVoice: newVoice,
+          previousVoice: voiceState.currentVoice,
+          source,
+          timestamp: Date.now(),
+          isValid
+        });
+      }
+    } catch (error) {
       setVoiceState({
-        currentVoice: newVoice,
+        currentVoice: 'default',
         previousVoice: voiceState.currentVoice,
-        source,
-        timestamp: Date.now()
+        source: 'default',
+        timestamp: Date.now(),
+        isValid: false
       });
     }
   }, [location.search, location.pathname]);

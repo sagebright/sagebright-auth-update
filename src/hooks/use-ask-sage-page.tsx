@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
@@ -46,6 +45,7 @@ export const useAskSagePage = () => {
     isSessionReady,
     isOrgReady,
     isVoiceReady,
+    isSessionStable,
     readySince
   } = useSageContextReadiness(
     userId,
@@ -65,11 +65,12 @@ export const useAskSagePage = () => {
       contextCheckComplete,
       missingContext,
       isReadyToRender,
+      isSessionStable,
       blockers,
       readySince: readySince ? new Date(readySince).toISOString() : null,
       timestamp: new Date().toISOString()
     });
-  }, [isContextReady, contextCheckComplete, missingContext, isReadyToRender, blockers, readySince]);
+  }, [isContextReady, contextCheckComplete, missingContext, isReadyToRender, isSessionStable, blockers, readySince]);
 
   useEffect(() => {
     console.log("🌐 Current URL state:", { 
@@ -132,7 +133,8 @@ export const useAskSagePage = () => {
         isReadyToRender,
         isSessionReady,
         isOrgReady,
-        isVoiceReady
+        isVoiceReady,
+        isSessionStable
       });
       
       const blockerMessage = blockers.length > 0 
@@ -147,12 +149,24 @@ export const useAskSagePage = () => {
       return;
     }
 
+    if (!isSessionStable) {
+      console.warn("⚠️ Session not fully stable, proceeding with caution:", {
+        isContextReady,
+        isSessionStable,
+        userId,
+        orgId,
+        hasSessionUser: !!user,
+        hasUserMetadata: user ? !!user.user_metadata : false
+      });
+    }
+
     console.log("🚀 Sending message with context:", {
       userId,
       orgId,
       hasSessionUser: !!user,
       hasUserMetadata: user ? !!user.user_metadata : false,
       isContextReady,
+      isSessionStable,
       readySince: readySince ? new Date(readySince).toISOString() : null
     });
 
@@ -166,7 +180,7 @@ export const useAskSagePage = () => {
         description: error instanceof Error ? error.message : "Unknown error occurred",
       });
     }
-  }, [userId, orgId, handleSendMessage, user, isContextReady, blockers, isReadyToRender, isSessionReady, isOrgReady, isVoiceReady, readySince]);
+  }, [userId, orgId, handleSendMessage, user, isContextReady, isSessionStable, blockers, isReadyToRender, isSessionReady, isOrgReady, isVoiceReady, readySince]);
 
   const handleSelectQuestion = useCallback((question: string) => {
     console.log("Selected suggested question:", question);
@@ -205,11 +219,11 @@ export const useAskSagePage = () => {
     isContextReady,
     sessionUserReady,
     
-    // Enhanced readiness flags
     isReadyToRender,
     isSessionReady,
     isOrgReady,
     isVoiceReady,
+    isSessionStable,
     blockers,
     readySince
   };

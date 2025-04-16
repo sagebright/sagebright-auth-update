@@ -25,6 +25,7 @@ export const AskSageContainer: React.FC = () => {
     isAuthenticated,
     isContextReady,
     sessionUserReady,
+    isSessionStable,
     
     sidebarOpen,
     setSidebarOpen,
@@ -81,6 +82,9 @@ export const AskSageContainer: React.FC = () => {
             {!voiceParam && (
               <span className="text-accent1"> (Missing voice param!)</span>
             )}
+            <span className="ml-2">
+              🔒 Session: <strong>{isSessionStable ? 'Stable' : 'Unstable'}</strong>
+            </span>
           </div>
         )}
 

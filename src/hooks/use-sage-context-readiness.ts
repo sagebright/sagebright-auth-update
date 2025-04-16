@@ -1,3 +1,4 @@
+
 import { useEffect, useState, useRef, useMemo } from 'react';
 
 export interface SageContextReadiness {
@@ -6,6 +7,9 @@ export interface SageContextReadiness {
   isSessionReady: boolean;
   isVoiceReady: boolean;
   isReadyToRender: boolean;
+  
+  // Session stability flag - true only when all auth components are stable
+  isSessionStable: boolean;
   
   // Backward compatibility properties
   isContextReady: boolean;
@@ -44,6 +48,7 @@ export function useSageContextReadiness(
     isSessionReady: false,
     isVoiceReady: false,
     isReadyToRender: false,
+    isSessionStable: false,
     isContextReady: false,
     contextCheckComplete: false,
     missingContext: true,
@@ -93,6 +98,27 @@ export function useSageContextReadiness(
     };
   }, [voiceParam]);
   
+  // Session stability check - requires auth components to be stable
+  const checkSessionStability = useMemo((): ReadinessCheck => {
+    const blockers: string[] = [];
+    
+    // Check if signed in with Supabase
+    if (!isSessionUserReady) blockers.push('Supabase session not signed in');
+    
+    // Check if org context is available
+    if (!orgId || !orgSlug) blockers.push('Organization context incomplete');
+    
+    // Check if user metadata is available
+    if (!currentUserData?.user_metadata) blockers.push('User metadata missing');
+    
+    const isStable = isSessionUserReady && !!orgId && !!orgSlug && !!currentUserData?.user_metadata;
+    
+    return {
+      isReady: isStable,
+      blockers
+    };
+  }, [isSessionUserReady, orgId, orgSlug, currentUserData]);
+  
   useEffect(() => {
     // Don't evaluate until auth loading is complete
     if (authLoading) {
@@ -109,11 +135,13 @@ export function useSageContextReadiness(
       const sessionCheck = checkSessionReadiness;
       const orgCheck = checkOrgReadiness;
       const voiceCheck = checkVoiceReadiness;
+      const stabilityCheck = checkSessionStability;
       
       // Log individual check results
       console.log('Session readiness:', sessionCheck);
       console.log('Organization readiness:', orgCheck);
       console.log('Voice readiness:', voiceCheck);
+      console.log('Session stability:', stabilityCheck);
       
       // Combine all blockers
       const allBlockers = [
@@ -149,6 +177,7 @@ export function useSageContextReadiness(
         isSessionReady: sessionCheck.isReady,
         isVoiceReady: voiceCheck.isReady,
         isReadyToRender,
+        isSessionStable: stabilityCheck.isReady,
         isContextReady,
         contextCheckComplete,
         missingContext,
@@ -173,6 +202,18 @@ export function useSageContextReadiness(
       ) {
         // Log when blockers change, even if overall ready state remains the same
         console.log(`🔄 Context Blockers Changed: ${allBlockers.join(', ')}`);
+      }
+      
+      // Log session stability transitions
+      if (prevReadinessRef.current?.isSessionStable !== stabilityCheck.isReady) {
+        console.group('🔒 Session Stability Transition');
+        if (stabilityCheck.isReady) {
+          console.log(`UNSTABLE → STABLE at ${new Date().toISOString()}`);
+        } else {
+          console.log(`STABLE → UNSTABLE at ${new Date().toISOString()}`);
+          console.log(`Stability blockers: ${stabilityCheck.blockers.join(', ')}`);
+        }
+        console.groupEnd();
       }
       
       // Update refs and state
@@ -203,7 +244,8 @@ export function useSageContextReadiness(
     readiness.readySince,
     checkSessionReadiness,
     checkOrgReadiness,
-    checkVoiceReadiness
+    checkVoiceReadiness,
+    checkSessionStability
   ]);
   
   return readiness;

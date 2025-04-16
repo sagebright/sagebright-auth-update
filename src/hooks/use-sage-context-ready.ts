@@ -1,5 +1,4 @@
 
-// This file is kept for backwards compatibility but functionality has moved to use-sage-context-readiness.ts
 import { useSageContextReadiness } from './use-sage-context-readiness';
 
 /**
@@ -18,7 +17,8 @@ export function useSageContextReady(
   const { 
     isContextReady, 
     contextCheckComplete, 
-    missingContext 
+    missingContext,
+    isSessionStable 
   } = useSageContextReadiness(
     userId,
     orgId,
@@ -32,6 +32,7 @@ export function useSageContextReady(
   return {
     isContextReady,
     contextCheckComplete,
-    missingContext
+    missingContext,
+    isSessionStable
   };
 }
