@@ -60,9 +60,18 @@ export function validateRedirectIntent(intent: RedirectIntent): boolean {
   if (!route) return false;
   
   // Optional parameter validation if route defines a parameter schema
-  if (route.parameterSchema && intent.params) {
+  // We need to check if parameterSchema exists on the route first
+  if (intent.params && 'parameterSchema' in route && route.parameterSchema) {
     try {
-      z.object(route.parameterSchema).parse(intent.params);
+      // Create a dynamic schema based on the route's parameterSchema
+      const paramSchema = z.object(
+        Object.fromEntries(
+          Object.entries(route.parameterSchema).map(([key, validator]) => [key, validator])
+        )
+      );
+      
+      // Validate the params against the schema
+      paramSchema.parse(intent.params);
     } catch {
       return false;
     }
