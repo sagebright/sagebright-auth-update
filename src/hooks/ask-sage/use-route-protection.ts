@@ -37,7 +37,8 @@ export function useAskSageRouteProtection() {
           source: 'ask_sage_protection',
           timestamp: Date.now(),
           context: 'route_protection',
-          protectionStart: protectionStartTime.current
+          // Store protection start time in the timestamp field which is allowed by the type
+          timestamp: protectionStartTime.current
         },
         5 // High priority protection
       );
