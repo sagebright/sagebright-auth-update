@@ -58,9 +58,13 @@ export function useSageSessionStability() {
     sessionStable
   ]);
 
+  // Calculate stability time if we have a stable timestamp
+  const stabilityTimeMs = stableTimestamp ? Date.now() - stableTimestamp : null;
+
   return {
     sessionStable,
     stableTimestamp,
+    stabilityTimeMs,
     readinessBlockers: contextReadiness.blockers,
     isContextReady: contextReadiness.isContextReady
   };
