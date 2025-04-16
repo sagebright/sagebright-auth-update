@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
@@ -5,6 +6,7 @@ import { useChat } from '@/hooks/use-chat';
 import { ReflectionData } from '@/components/ask-sage/ReflectionForm';
 import { useVoiceParam } from '@/hooks/use-voice-param';
 import { useDebugPanel } from '@/hooks/use-debug-panel';
+import { useAuth } from '@/contexts/auth/AuthContext';
 
 export const useAskSagePage = () => {
   const navigate = useNavigate();
@@ -14,10 +16,12 @@ export const useAskSagePage = () => {
     userId, 
     orgId, 
     orgSlug,
-    currentUser: currentUserData,
     loading: authLoading, 
     isAuthenticated 
   } = useRequireAuth(navigate);
+  
+  // Get currentUser from AuthContext directly since it's not in useRequireAuth
+  const { currentUser: currentUserData } = useAuth();
   
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isRecoveryVisible, setIsRecoveryVisible] = useState(false);
@@ -178,6 +182,6 @@ export const useAskSagePage = () => {
     
     // Debug panel
     debugPanel,
-    isOrgReady, // Add this to the return object
+    isOrgReady,
   };
 };

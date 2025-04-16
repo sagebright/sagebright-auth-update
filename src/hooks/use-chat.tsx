@@ -1,6 +1,10 @@
+
 import { useState, useCallback } from 'react';
-import { DebugPanelState } from '@/hooks/use-debug-panel';
+import { useDebugPanel } from '@/hooks/use-debug-panel';
 import { v4 as uuidv4 } from 'uuid';
+
+// Define the type expected for debug panel based on the actual implementation
+type DebugPanelState = ReturnType<typeof useDebugPanel>;
 
 export const useChat = (debugPanel: DebugPanelState, isOrgReady: boolean = false) => {
   const [messages, setMessages] = useState<any[]>([]);

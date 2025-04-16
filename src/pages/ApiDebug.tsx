@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { DashboardContainer } from '@/components/layout/DashboardContainer';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,7 +12,7 @@ import { buildSageContext } from '@/lib/buildSageContext';
 import { DebugPanel } from '@/components/debug/DebugPanel';
 
 const ApiDebug = () => {
-  const { userId, orgId } = useAuth();
+  const { userId, orgId, orgSlug, currentUser } = useAuth();
   const [question, setQuestion] = useState('What is my role at Riverbend Solar?');
   const [voice, setVoice] = useState('skeptic');
   const [loading, setLoading] = useState(false);
@@ -31,7 +30,7 @@ const ApiDebug = () => {
         throw new Error('Missing userId or orgId. Please log in.');
       }
       
-      const context = await buildSageContext(userId, orgId);
+      const context = await buildSageContext(userId, orgId, orgSlug, currentUser);
       const result = await callOpenAI({ question, context, voice });
       setResponse(result);
     } catch (err) {
@@ -153,7 +152,6 @@ const ApiDebug = () => {
         </Tabs>
       </div>
       
-      {/* Add Debug Panel */}
       <DebugPanel />
     </DashboardContainer>
   );
