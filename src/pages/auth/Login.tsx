@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/auth/AuthContext";
@@ -11,8 +12,8 @@ import { useToast } from "@/hooks/use-toast";
 
 const ROLE_LANDING_PAGES = {
   admin: '/hr-dashboard',
-  user: '/ask-sage',
-  default: '/ask-sage'
+  user: '/user-dashboard',
+  default: '/user-dashboard'
 };
 
 export default function Login() {
