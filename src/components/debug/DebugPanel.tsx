@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useAskSageRouteProtection } from '@/hooks/ask-sage/use-route-protection';
 import { useSageSessionStability } from '@/hooks/ask-sage/use-session-stability';
@@ -18,7 +17,6 @@ export const DebugPanel = () => {
     'default'
   );
   
-  // Use the unified Ask Sage Guard for debug information
   const {
     canInteract,
     isProtected,
@@ -34,7 +32,6 @@ export const DebugPanel = () => {
       <div className="space-y-2 text-xs">
         <h3 className="font-medium">Debug Information</h3>
         
-        {/* Sage Guard Status */}
         <div className="border-t pt-2">
           <h4 className="font-medium text-primary">Sage Guard Status</h4>
           <div className="grid grid-cols-2 gap-1">
@@ -42,37 +39,25 @@ export const DebugPanel = () => {
             <span>{canInteract ? '✅ Yes' : '⚠️ No'}</span>
             
             <span>Protection Active:</span>
-            <span>{isProtected ? '🛡️ Yes' : '⚪️ No'}</span>
+            <span>{isProtected ? 
+              `🛡️ Yes (${protectionTimeMs ? `${Math.round(protectionTimeMs / 1000)}s` : 'N/A'})` : 
+              '⚪️ No'
+            }</span>
             
             <span>Should Render:</span>
             <span>{shouldRender ? '✅ Yes' : '⚠️ No'}</span>
             
             <span>Protected but Ready:</span>
             <span>{isProtectedButReady ? '🔄 Yes' : '⚪️ No'}</span>
+            
+            <span>Session Stability:</span>
+            <span>{stabilityTimeMs ? 
+              `${Math.round(stabilityTimeMs / 1000)}s stable` : 
+              '⏳ Stabilizing'
+            }</span>
           </div>
         </div>
 
-        {/* Timing Information */}
-        <div className="border-t pt-2">
-          <h4 className="font-medium text-primary">Timing Info</h4>
-          <div className="grid grid-cols-2 gap-1">
-            <span>Protection Time:</span>
-            <span>
-              {protectionTimeMs ? 
-                `${Math.round(protectionTimeMs / 1000)}s` : 
-                'N/A'}
-            </span>
-            
-            <span>Stability Time:</span>
-            <span>
-              {stabilityTimeMs ? 
-                `${Math.round(stabilityTimeMs / 1000)}s` : 
-                'N/A'}
-            </span>
-          </div>
-        </div>
-        
-        {/* Context Readiness */}
         <div className="border-t pt-2">
           <h4 className="font-medium text-primary">Context Readiness</h4>
           <div className="grid grid-cols-2 gap-1">
@@ -90,7 +75,6 @@ export const DebugPanel = () => {
           </div>
         </div>
 
-        {/* Auth Context */}
         <div className="border-t pt-2">
           <h4 className="font-medium text-primary">Auth Context</h4>
           <div className="grid grid-cols-2 gap-1">
@@ -102,15 +86,17 @@ export const DebugPanel = () => {
           </div>
         </div>
 
-        {/* Blockers */}
         {readinessBlockers && readinessBlockers.length > 0 && (
           <div className="border-t pt-2">
-            <h4 className="font-medium text-primary">Blockers</h4>
-            <ul>
+            <h4 className="font-medium text-primary">Active Blockers</h4>
+            <div className="mt-1 space-y-1">
               {readinessBlockers.map((blocker, index) => (
-                <li key={index} className="text-red-500">{blocker}</li>
+                <div key={index} className="flex items-start gap-2">
+                  <span className="text-red-500">⚠️</span>
+                  <span className="text-red-500">{blocker}</span>
+                </div>
               ))}
-            </ul>
+            </div>
           </div>
         )}
       </div>
