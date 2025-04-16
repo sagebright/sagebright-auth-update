@@ -4,9 +4,14 @@ import { useSessionInit } from './hooks/useSessionInit';
 import { useOrgContext } from './hooks/useOrgContext';
 import { useUserData } from './hooks/useUserData';
 import { useEffect } from 'react';
+import { useRedirectIntentManager } from '@/lib/redirect-intent';
 
 export function useAuthProvider() {
   const location = useLocation();
+  const { captureIntent, executeRedirect } = useRedirectIntentManager({
+    enableLogging: true,
+    defaultPriority: 1
+  });
   
   // Initialize the session and auth state
   const {
@@ -20,7 +25,7 @@ export function useAuthProvider() {
     setUser,
     setLoading,
     setAccessToken,
-    refreshSession, // Get refreshSession from useSessionInit
+    refreshSession,
   } = useSessionInit();
 
   // Initialize organization context
@@ -76,11 +81,25 @@ export function useAuthProvider() {
       !isRecoveringOrgContext
     ) {
       console.log("🔍 No orgId found anywhere—attempting recovery...");
+      
+      // Capture this situation as an intent for debugging
+      captureIntent(
+        location.pathname + location.search,
+        'session-restore',
+        {
+          source: 'org_recovery',
+          userId,
+          context: 'missing_org_id',
+          pathname: location.pathname
+        },
+        1
+      );
+      
       recoverOrgContext();
     }
-  }, [isAuthenticated, userId, orgId, isRecoveringOrgContext, user, recoverOrgContext]);
+  }, [isAuthenticated, userId, orgId, isRecoveringOrgContext, user, recoverOrgContext, location, captureIntent]);
 
-  // For debugging
+  // Enhanced logging for auth state changes
   useEffect(() => {
     if (isAuthenticated) {
       console.log("🔐 Auth provider state:", { 
@@ -90,7 +109,8 @@ export function useAuthProvider() {
         userMetadata: user?.user_metadata,
         currentUserData: currentUser,
         sessionReady: !!user,
-        currentUserReady: !!currentUser
+        currentUserReady: !!currentUser,
+        path: location.pathname
       });
       
       // Add additional log to trace final auth context before page rendering
@@ -101,10 +121,11 @@ export function useAuthProvider() {
         userMetadata: user?.user_metadata,
         sessionUserReady: !!user,
         currentUserReady: !!currentUser,
-        hasSessionMetadata: user ? !!user.user_metadata : false
+        hasSessionMetadata: user ? !!user.user_metadata : false,
+        path: location.pathname
       });
     }
-  }, [isAuthenticated, userId, orgId, orgSlug, user, currentUser]);
+  }, [isAuthenticated, userId, orgId, orgSlug, user, currentUser, location.pathname]);
 
   // Combined setter for current user to update both contexts
   const setCurrentUser = (userData: any | null) => {

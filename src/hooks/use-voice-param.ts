@@ -2,17 +2,19 @@
 import { useEffect, useState, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { getVoiceFromUrl } from '@/lib/utils';
+import { useRedirectIntentManager } from '@/lib/redirect-intent';
 
 interface VoiceParamState {
   currentVoice: string;
   previousVoice: string | null;
-  source: 'url' | 'storage' | 'default';
+  source: 'url' | 'storage' | 'intent' | 'default';
   timestamp: number;
   isValid: boolean;
 }
 
 /**
  * Enhanced hook that manages voice parameter state with history, source tracking and validation
+ * Now with intent system integration
  * @returns A string representing the current voice parameter
  */
 export function useVoiceParam(): string {
@@ -27,6 +29,9 @@ export function useVoiceParam(): string {
   const lastPathRef = useRef<string>(location.pathname);
   const loggedWarningRef = useRef<boolean>(false);
   
+  // Get active intent for voice parameter preservation
+  const { activeIntent } = useRedirectIntentManager();
+  
   useEffect(() => {
     // Start a console group for voice parameter logging
     console.group('🎤 Voice Parameter Detection');
@@ -36,8 +41,11 @@ export function useVoiceParam(): string {
       const voiceFromUrl = getVoiceFromUrl(location.search);
       const storedVoice = localStorage.getItem('lastVoiceParam');
       
+      // Check for voice in active intent (new high-priority source)
+      const intentVoice = activeIntent?.metadata?.voiceParam;
+      
       console.log(`Current path: ${location.pathname}, search: ${location.search}`);
-      console.log(`Voice from URL: ${voiceFromUrl}, Stored voice: ${storedVoice}`);
+      console.log(`Voice sources: URL: ${voiceFromUrl}, Storage: ${storedVoice}, Intent: ${intentVoice}`);
       
       // Check if we've navigated to a new path
       if (location.pathname !== lastPathRef.current) {
@@ -50,12 +58,12 @@ export function useVoiceParam(): string {
         loggedWarningRef.current = false;
       }
       
-      // Determine the new voice parameter and its source
+      // Determine the new voice parameter and its source - now with intent priority
       let newVoice = 'default';
-      let source: 'url' | 'storage' | 'default' = 'default';
+      let source: 'url' | 'storage' | 'intent' | 'default' = 'default';
       let isValid = true;
       
-      // If voice is specified in URL, use it as the canonical source
+      // Priority 1: Check URL (highest priority)
       if (location.search.includes('voice=')) {
         newVoice = voiceFromUrl;
         source = 'url';
@@ -70,7 +78,16 @@ export function useVoiceParam(): string {
         // Store for later use
         localStorage.setItem('lastVoiceParam', voiceFromUrl);
       } 
-      // If no voice in URL but we have one in storage, use that
+      // Priority 2: Check intent metadata (new high priority source)
+      else if (intentVoice) {
+        console.log(`Using voice from intent metadata: ${intentVoice}`);
+        newVoice = intentVoice;
+        source = 'intent';
+        
+        // Store for persistence
+        localStorage.setItem('lastVoiceParam', intentVoice);
+      }
+      // Priority 3: Check localStorage
       else if (storedVoice) {
         console.log(`Restoring voice from storage: ${storedVoice}`);
         newVoice = storedVoice;
@@ -78,7 +95,7 @@ export function useVoiceParam(): string {
       }
       
       // Only update state if voice has changed or validity changed
-      if (newVoice !== voiceState.currentVoice || isValid !== voiceState.isValid) {
+      if (newVoice !== voiceState.currentVoice || isValid !== voiceState.isValid || source !== voiceState.source) {
         console.log(`Voice transition: ${voiceState.currentVoice} → ${newVoice} (via ${source})`);
         setVoiceState({
           currentVoice: newVoice,
@@ -103,7 +120,7 @@ export function useVoiceParam(): string {
     }
     
     console.groupEnd();
-  }, [location.search, location.pathname]);
+  }, [location.search, location.pathname, activeIntent]);
   
   return voiceState.currentVoice;
 }
@@ -111,6 +128,7 @@ export function useVoiceParam(): string {
 /**
  * Returns detailed information about the voice parameter state
  * Useful for debugging and analytics
+ * Now with intent system integration
  */
 export function useVoiceParamState(): VoiceParamState {
   const location = useLocation();
@@ -124,15 +142,20 @@ export function useVoiceParamState(): VoiceParamState {
   const lastPathRef = useRef<string>(location.pathname);
   const loggedWarningRef = useRef<boolean>(false);
   
+  // Get active intent for voice parameter preservation
+  const { activeIntent } = useRedirectIntentManager();
+  
   useEffect(() => {
     try {
       const voiceFromUrl = getVoiceFromUrl(location.search);
       const storedVoice = localStorage.getItem('lastVoiceParam');
+      const intentVoice = activeIntent?.metadata?.voiceParam;
       
       let newVoice = 'default';
-      let source: 'url' | 'storage' | 'default' = 'default';
+      let source: 'url' | 'storage' | 'intent' | 'default' = 'default';
       let isValid = true;
       
+      // Priority 1: URL (highest)
       if (location.search.includes('voice=')) {
         newVoice = voiceFromUrl;
         source = 'url';
@@ -143,12 +166,20 @@ export function useVoiceParamState(): VoiceParamState {
         }
         
         localStorage.setItem('lastVoiceParam', voiceFromUrl);
-      } else if (storedVoice) {
+      } 
+      // Priority 2: Intent metadata
+      else if (intentVoice) {
+        newVoice = intentVoice;
+        source = 'intent';
+        localStorage.setItem('lastVoiceParam', intentVoice);
+      }
+      // Priority 3: Storage
+      else if (storedVoice) {
         newVoice = storedVoice;
         source = 'storage';
       }
       
-      if (newVoice !== voiceState.currentVoice || isValid !== voiceState.isValid) {
+      if (newVoice !== voiceState.currentVoice || isValid !== voiceState.isValid || source !== voiceState.source) {
         setVoiceState({
           currentVoice: newVoice,
           previousVoice: voiceState.currentVoice,
@@ -166,7 +197,7 @@ export function useVoiceParamState(): VoiceParamState {
         isValid: false
       });
     }
-  }, [location.search, location.pathname]);
+  }, [location.search, location.pathname, activeIntent]);
   
   return voiceState;
 }

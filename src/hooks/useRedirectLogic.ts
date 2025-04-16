@@ -1,6 +1,7 @@
 
 import { useRef, useCallback } from 'react';
 import { NavigateFunction } from 'react-router-dom';
+import { useRedirectIntentManager } from '@/lib/redirect-intent';
 
 export function useRedirectLogic(
   navigate: NavigateFunction,
@@ -11,6 +12,11 @@ export function useRedirectLogic(
 ) {
   const lastRedirectPath = useRef<string | null>(null);
   const redirectDebounceTimer = useRef<number | null>(null);
+  
+  // Initialize intent manager at this level to track and coordinate redirects
+  const { captureIntent, activeIntent } = useRedirectIntentManager({
+    enableLogging: true
+  });
 
   const safeRedirect = useCallback((path: string, options: { replace?: boolean } = {}) => {
     // Don't redirect while another redirect is in progress
@@ -23,16 +29,37 @@ export function useRedirectLogic(
     // This is the core of the current issue - block ANY redirect from ask-sage to user-dashboard
     if (locationRef.current === '/ask-sage' && path === '/user-dashboard') {
       console.log(`🛑 Blocked redirect from /ask-sage to /user-dashboard - preserving intended destination`);
+      
+      // Additionally, capture this as an intent to help debug
+      captureIntent(
+        '/ask-sage', 
+        'user-initiated',
+        {
+          source: 'blocked_redirect',
+          originalDestination: '/user-dashboard',
+          reason: 'ask_sage_protection'
+        },
+        1
+      );
+      
       return;
     }
     
     // Special handling for Ask Sage intent preservation
     // If we're on the login page and have a stored intent to go to Ask Sage, prioritize that
     if (locationRef.current === '/auth/login' && path === '/user-dashboard') {
-      const storedRedirect = localStorage.getItem("redirectAfterLogin");
-      if (storedRedirect === '/ask-sage') {
-        console.log(`🔀 Redirecting to /ask-sage instead of /user-dashboard based on stored intent`);
+      // Check for an active intent first (higher priority)
+      if (activeIntent && activeIntent.destination === '/ask-sage') {
+        console.log(`🔀 Using intent: redirecting to /ask-sage instead of /user-dashboard`);
         path = '/ask-sage';
+      } 
+      // Fall back to legacy storage if no intent
+      else {
+        const storedRedirect = localStorage.getItem("redirectAfterLogin");
+        if (storedRedirect === '/ask-sage') {
+          console.log(`🔀 Redirecting to /ask-sage instead of /user-dashboard based on stored intent`);
+          path = '/ask-sage';
+        }
       }
     }
     
@@ -46,9 +73,24 @@ export function useRedirectLogic(
 
     // Only set redirect path if not already stored and not on login page
     if (!localStorage.getItem("redirectAfterLogin") && 
+        !activeIntent &&
         locationRef.current !== '/auth/login' &&
         locationRef.current !== '/') {
       console.log(`📝 Storing original path for post-login: ${locationRef.current}`);
+      
+      // Capture as an intent for better tracking (higher priority)
+      captureIntent(
+        locationRef.current,
+        'auth',
+        {
+          source: 'pre_auth_capture',
+          timestamp: Date.now(),
+          originalSearch: window.location.search
+        },
+        2
+      );
+      
+      // Legacy support
       localStorage.setItem("redirectAfterLogin", locationRef.current);
       
       // If there are search params, store them too
@@ -105,7 +147,7 @@ export function useRedirectLogic(
         redirectInProgressRef.current = false;
       }, 1000);
     }, REDIRECT_DELAY);
-  }, [navigate, locationRef, userDashboardRedirectBlocker, redirectInProgressRef, setRedirecting]);
+  }, [navigate, locationRef, userDashboardRedirectBlocker, redirectInProgressRef, setRedirecting, captureIntent, activeIntent]);
 
   return {
     safeRedirect,

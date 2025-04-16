@@ -28,14 +28,17 @@ export default function Login() {
   const [loginTimestamp, setLoginTimestamp] = useState<number | null>(null);
   const sessionStableRef = useRef(false);
   
-  // Use our redirect intent manager
+  // Use our redirect intent manager with enhanced logging
   const { 
     activeIntent,
     captureIntent,
     executeRedirect,
     clearIntent,
     status: intentStatus
-  } = useRedirectIntentManager();
+  } = useRedirectIntentManager({
+    enableLogging: true,
+    defaultPriority: 1 // Set higher default priority for auth-related intents
+  });
   
   // Capture voice parameter from URL if present
   const voiceParam = getVoiceFromUrl(location.search);
@@ -43,27 +46,46 @@ export default function Login() {
 
   // On initial mount, check if we need to capture a redirect intent from legacy storage
   useEffect(() => {
-    // Handle legacy redirect path from localStorage
+    // Track login page visits for debugging
+    console.log(`🔒 Login page mounted at ${new Date().toISOString()} [auth: ${isAuthenticated}] [intent: ${activeIntent?.destination || 'none'}]`);
+    
+    // Enhanced migration of legacy redirect path to intent system
     if (storedRedirectPath && !activeIntent) {
-      console.log("🔄 Migrating legacy redirect path to intent system:", storedRedirectPath);
+      console.log("🔄 Migrating legacy redirect path to intent system:", {
+        path: storedRedirectPath,
+        voice: voiceParam
+      });
       
-      // Set a higher priority for the legacy intent (1) as it was explicitly set
+      // Create metadata with additional context
+      const metadata = {
+        source: 'legacy_storage',
+        context: 'login_migration',
+        timestamp: Date.now(),
+        voiceParam: voiceParam !== 'default' ? voiceParam : undefined
+      };
+      
+      // Set a higher priority (2) for redirects originated from explicit user navigation
       captureIntent(
         storedRedirectPath,
         "auth",
-        voiceParam !== 'default' ? { voiceParam } : undefined,
-        1 // Higher priority for user-driven redirects
+        metadata,
+        2 // Higher priority for user-driven redirects
       );
       
-      // Clear legacy storage
+      // Clear legacy storage after migration
       localStorage.removeItem("redirectAfterLogin");
     }
     
-    if (location.search && location.search.includes('voice=')) {
-      console.log(`📝 Detected voice parameter in URL: ${voiceParam}`);
+    // Capture voice parameter if present but no active intent
+    if (!activeIntent && location.search && location.search.includes('voice=') && voiceParam !== 'default') {
+      console.log(`📝 Detected voice parameter in URL without intent: ${voiceParam}`);
+      
+      // Store voice param for future use
+      localStorage.setItem("voiceParameter", voiceParam);
     }
-  }, [storedRedirectPath, activeIntent, captureIntent, location.search, voiceParam]);
+  }, [storedRedirectPath, activeIntent, captureIntent, location.search, voiceParam, isAuthenticated]);
 
+  // Force session refresh when login page loads
   useEffect(() => {
     if (refreshSession && !loading) {
       console.log("🔄 Login page forcing session refresh");
@@ -71,22 +93,25 @@ export default function Login() {
     }
   }, [refreshSession, loading]);
 
-  // Handle authentication state changes
+  // Handle authentication state changes with enhanced intent awareness
   useEffect(() => {
     if (loading) {
       console.log("⏳ Auth still loading on login page, waiting...");
       return;
     }
 
+    // Track session stability for reliable redirects
     if (isAuthenticated && user && user.user_metadata && !sessionStableRef.current) {
       console.log("✅ Login page detected stable session with metadata:", {
         role: user.user_metadata?.role || 'unknown',
-        orgId: user.user_metadata?.org_id || 'unknown'
+        orgId: user.user_metadata?.org_id || 'unknown',
+        intentStatus,
+        activeIntent: activeIntent?.destination
       });
       sessionStableRef.current = true;
     }
 
-    // Handle successful authentication and redirection
+    // Enhanced redirect logic with intent prioritization
     if (isAuthenticated && user && sessionStableRef.current && 
         !hasRedirectedRef.current && !redirectInProgressRef.current) {
       
@@ -97,20 +122,22 @@ export default function Login() {
       setLoginTimestamp(currentTime);
       
       const timestamp = new Date().toISOString();
-      console.log(`✅ [${timestamp}] User authenticated on login page, handling redirect`);
+      console.log(`✅ [${timestamp}] User authenticated on login page, handling redirect with intent status: ${intentStatus}`);
       
       const role = user.user_metadata?.role || 'default';
       const fallbackPath = ROLE_LANDING_PAGES[role as keyof typeof ROLE_LANDING_PAGES] || ROLE_LANDING_PAGES.default;
       
-      // Decide where to redirect
+      // Decide where to redirect with clearer priority system
       let targetPath: string;
       
-      // Check for stored intent first
+      // HIGHEST PRIORITY: Check for stored intent first
       if (activeIntent) {
         console.log(`🎯 [${timestamp}] Using stored redirect intent:`, {
           destination: activeIntent.destination,
           intentId: activeIntent.metadata?.intentId,
-          reason: activeIntent.reason
+          reason: activeIntent.reason,
+          priority: activeIntent.priority,
+          age: Date.now() - activeIntent.timestamp
         });
         
         targetPath = activeIntent.destination;
@@ -122,13 +149,30 @@ export default function Login() {
           console.log(`🎤 Adding voice parameter to redirect: ${activeIntent.metadata.voiceParam}`);
         }
         
-        // Clear the intent after use
+        // Clear the intent after use to prevent future interference
         clearIntent();
       } 
-      // Fall back to role-based default
+      // LOWER PRIORITY: Special case to prioritize Ask Sage if it's the target
+      else if (storedRedirectPath === '/ask-sage') {
+        targetPath = '/ask-sage';
+        console.log(`🎯 [${timestamp}] Special case: prioritizing /ask-sage redirect`);
+        
+        // Add voice param if stored
+        const storedVoice = localStorage.getItem("voiceParameter");
+        if (storedVoice && storedVoice !== 'default') {
+          targetPath += `?voice=${storedVoice}`;
+        }
+        
+        // Clean up
+        localStorage.removeItem("storedRedirectPath");
+      }
+      // LOWEST PRIORITY: Fall back to role-based default
       else {
         targetPath = fallbackPath;
-        console.log(`🎯 [${timestamp}] No stored intent, redirecting to role-based fallback:`, fallbackPath);
+        console.log(`🎯 [${timestamp}] No stored intent, redirecting to role-based fallback:`, {
+          role,
+          path: fallbackPath
+        });
       }
       
       toast({
@@ -136,17 +180,21 @@ export default function Login() {
         description: "Redirecting you back...",
       });
       
-      // Execute the redirect
+      // Execute the redirect with more careful timing
       setTimeout(() => {
+        // Double-check we're still on auth page to prevent race conditions
         if (document.location.pathname.startsWith('/auth')) {
+          console.log(`🚀 [${new Date().toISOString()}] Executing post-login redirect to: ${targetPath}`);
           navigate(targetPath, { replace: true });
           setTimeout(() => {
             redirectInProgressRef.current = false;
           }, 1000);
+        } else {
+          console.log(`⚠️ Aborting redirect - already navigated away from /auth`);
         }
       }, 100);
     }
-  }, [user, isAuthenticated, navigate, toast, loading, activeIntent, clearIntent]);
+  }, [user, isAuthenticated, navigate, toast, loading, activeIntent, clearIntent, intentStatus]);
 
   const handleGoogleSignIn = async () => {
     try {

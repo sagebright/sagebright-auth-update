@@ -21,7 +21,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const navigate = useNavigate();
   const location = useLocation();
   const { loading, isAuthenticated, user, orgId, orgSlug } = useRequireAuth(navigate);
-  const { captureIntent, status: intentStatus } = useRedirectIntentManager();
+  const { captureIntent, activeIntent, status: intentStatus } = useRedirectIntentManager({
+    enableLogging: true,
+    defaultPriority: 2 // Higher priority for auth protection intents
+  });
   
   // Extract voice param if present
   const voiceParam = getVoiceFromUrl(location.search);
@@ -40,23 +43,29 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   // Use the updated useOrgRedirect hook - now returns redirectAttempted state
   const { redirectAttempted } = useOrgRedirect();
   
-  // Add enhanced logging for protected route rendering
-  console.log(`🛡️ ProtectedRoute rendering: [path: ${location.pathname}] [authenticated: ${isAuthenticated}] [loading: ${loading}] [redirectAttempted: ${redirectAttempted}] [intentStatus: ${intentStatus}]`);
+  // Enhanced logging for protected route rendering
+  console.log(`🛡️ ProtectedRoute rendering: [path: ${location.pathname}] [authenticated: ${isAuthenticated}] [loading: ${loading}] [redirectAttempted: ${redirectAttempted}] [intentStatus: ${intentStatus}] [activeIntent: ${activeIntent?.destination || 'none'}]`);
   
-  // Capture redirect intent if not authenticated and not loading
+  // Capture redirect intent if not authenticated and not loading with enhanced metadata
   useEffect(() => {
     if (!isAuthenticated && !loading && !redirectAttempted) {
       console.log(`🔒 Capturing intent for protected route: ${location.pathname}${location.search}`);
       
-      // Create metadata with voice parameter if it exists and isn't default
-      const metadata = voiceParam !== 'default' ? { voiceParam } : undefined;
+      // Create enhanced metadata with more context
+      const metadata = {
+        voiceParam: voiceParam !== 'default' ? voiceParam : undefined,
+        source: 'protected_route',
+        timestamp: Date.now(),
+        pathname: location.pathname,
+        originalSearch: location.search
+      };
       
-      // Set a high priority (2) for auth-based redirects since these are critical path
+      // Set a high priority (3) for auth-based redirects since these are critical path
       captureIntent(
         location.pathname + location.search,
         'auth',
         metadata,
-        2
+        3
       );
     }
   }, [isAuthenticated, loading, location.pathname, location.search, captureIntent, redirectAttempted, voiceParam]);

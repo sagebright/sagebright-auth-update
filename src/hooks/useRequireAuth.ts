@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { NavigateFunction } from 'react-router-dom';
 import { useRouteProtection } from './useRouteProtection';
 import { useRedirectLogic } from './useRedirectLogic';
+import { useRedirectIntentManager } from '@/lib/redirect-intent';
 
 export function useRequireAuth(navigate: NavigateFunction) {
   const {
@@ -25,8 +26,12 @@ export function useRequireAuth(navigate: NavigateFunction) {
     setRedirecting
   );
 
-  // This is where the error was - we need to call useAuthCheck with the correct props
-  // Use the hook directly and pass the required props
+  // Initialize intent manager to track redirects at the auth layer
+  const { captureIntent, executeRedirect, activeIntent } = useRedirectIntentManager({
+    enableLogging: true
+  });
+
+  // Enhanced auth check with better intent integration
   useEffect(() => {
     // Only run the check if initial setup is done
     if (!initialCheckDone.current) return;
@@ -37,20 +42,42 @@ export function useRequireAuth(navigate: NavigateFunction) {
     // Skip if session is not yet stabilized
     if (!sessionStabilizedRef.current && auth.isAuthenticated) return;
 
-    // If user is not authenticated, redirect to login
+    // If user is not authenticated, handle with intent system
     if (!auth.loading && !auth.isAuthenticated) {
       console.log("🔑 Not authenticated, redirecting to login");
-      localStorage.setItem("redirectAfterLogin", location.pathname + location.search);
+      
+      // If we don't already have an active intent, capture one
+      if (!activeIntent) {
+        captureIntent(
+          location.pathname + location.search,
+          'auth',
+          {
+            source: 'useRequireAuth',
+            timestamp: Date.now(),
+            context: 'unauthenticated_access'
+          },
+          2 // Higher priority for auth protection
+        );
+      }
+      
       safeRedirect('/auth/login', { replace: true });
       return;
     }
 
     // Check user permissions and roles if needed
-    // (This was likely part of the original useAuthCheck implementation)
     if (auth.user && auth.isAuthenticated) {
       console.log("✅ User authenticated, continuing to route");
     }
-  }, [auth.loading, auth.isAuthenticated, auth.user, location.pathname, location.search, safeRedirect]);
+  }, [
+    auth.loading, 
+    auth.isAuthenticated, 
+    auth.user, 
+    location.pathname, 
+    location.search, 
+    safeRedirect, 
+    captureIntent,
+    activeIntent
+  ]);
 
   // Clean up any pending redirect timer on unmount
   useEffect(() => {
