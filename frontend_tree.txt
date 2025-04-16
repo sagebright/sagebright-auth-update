@@ -271,6 +271,7 @@
 │   │   ├── useCurrentUser.ts
 │   │   ├── useDataFetching.ts
 │   │   ├── useLoginForm.ts
+│   │   ├── useOrgRedirect.ts
 │   │   ├── useRedirectLogic.ts
 │   │   ├── useRequireAuth.ts
 │   │   ├── useRouteProtection.ts
@@ -288,6 +289,11 @@
 │   │       └── types.ts
 │   ├── lib
 │   │   ├── README.md
+│   │   ├── api
+│   │   │   ├── apiClient.ts
+│   │   │   ├── departmentsApi.ts
+│   │   │   ├── roadmapsApi.ts
+│   │   │   └── usersApi.ts
 │   │   ├── api.ts
 │   │   ├── backendApi.ts
 │   │   ├── buildSageContext.ts
@@ -371,4 +377,4 @@
 ├── tsconfig.node.json
 └── vite.config.ts
 
-54 directories, 318 files
+55 directories, 323 files
