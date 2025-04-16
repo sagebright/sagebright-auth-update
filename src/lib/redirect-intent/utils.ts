@@ -1,5 +1,5 @@
 import { RedirectIntent, IntentValidationResult } from './types';
-import { STORAGE_KEY, MAX_RECENT_INTENTS, DEFAULT_EXPIRY_MS } from './constants';
+import { DEFAULT_EXPIRY_MS } from './constants';
 
 /**
  * Validates a redirect intent to ensure it's still valid
@@ -85,7 +85,7 @@ export function generateIntentId(): string {
 export function updateRecentIntents(
   recentIntents: RedirectIntent[],
   newIntent: RedirectIntent,
-  maxHistory: number = MAX_RECENT_INTENTS
+  maxHistory: number = 5
 ): RedirectIntent[] {
   const updated = [...recentIntents, newIntent];
   

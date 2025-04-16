@@ -7,9 +7,9 @@ import {
 } from '../types';
 import {
   validateIntent,
-  clearPersistedIntent,
   createIntentAuditLog
 } from '../utils';
+import { clearPersistedIntent } from '../utils/storage';
 
 /**
  * Hook that provides redirect action functions

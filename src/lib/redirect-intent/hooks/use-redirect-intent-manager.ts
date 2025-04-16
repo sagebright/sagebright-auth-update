@@ -9,17 +9,15 @@ import {
 } from '../types';
 import {
   createRedirectIntent,
-  persistIntent,
-  retrieveIntent,
-  clearPersistedIntent,
   validateIntent,
   updateRecentIntents,
   shouldReplaceIntent,
   createIntentAuditLog
 } from '../utils';
+import { persistIntent, retrieveIntent, clearPersistedIntent, cleanupStaleIntents } from '../utils/storage';
 import { detectRedirectLoop } from '../utils/redirect-loop';
-import { cleanupStaleIntents } from '../utils/storage';
 import { DEFAULT_OPTIONS } from '../constants';
+import { useRedirectActions } from './use-redirect-actions';
 
 export function useRedirectIntentManager(options: RedirectIntentOptions = {}) {
   const mergedOptions = { ...DEFAULT_OPTIONS, ...options };
@@ -219,6 +217,3 @@ export function useRedirectIntentManager(options: RedirectIntentOptions = {}) {
     cancelRedirect
   };
 }
-
-// Import the useRedirectActions hook
-import { useRedirectActions } from './use-redirect-actions';
