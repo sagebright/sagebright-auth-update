@@ -1,93 +1,113 @@
 
-import React from 'react';
-import { ChatMessage } from '@/components/ask-sage/ChatMessage';
+import React, { useRef, useEffect } from 'react';
 import { ChatInputBar } from '@/components/ask-sage/ChatInputBar';
-import { TypingIndicator } from '@/components/ask-sage/TypingIndicator';
-import { WelcomeMessage } from '@/components/ask-sage/WelcomeMessage';
+import { ChatMessage } from '@/components/ask-sage/ChatMessage';
 import { SuggestedQuestions } from '@/components/ask-sage/SuggestedQuestions';
-import ErrorBoundary from '@/components/ErrorBoundary';
-import { useAuth } from '@/contexts/auth/AuthContext';
-import { ReflectionData } from './ReflectionForm';
+import { WelcomeMessage } from '@/components/ask-sage/WelcomeMessage';
+import { TypingIndicator } from '@/components/ask-sage/TypingIndicator';
+import { Message } from '@/types/chat';
 
 interface AskSageContentProps {
-  messages: any[];
+  messages: Message[];
   isLoading: boolean;
-  suggestedQuestions: string[];
+  suggestedQuestions?: string[];
   handleSelectQuestion: (question: string) => void;
   sendMessageToSage: (content: string) => void;
-  handleReflectionSubmit: (data: ReflectionData) => void;
-  handleFeedback: (messageId: string, feedback: string) => void;
+  handleReflectionSubmit?: (reflection: string) => void;
+  handleFeedback?: (messageId: string, feedback: 'like' | 'dislike') => void;
   isContextReady: boolean;
-  showWelcomeMessage: boolean;
-  voiceParam: string | null;
-  isProtected?: boolean; // Added missing props to interface
-  canInteract?: boolean;  
+  showWelcomeMessage?: boolean;
+  voiceParam?: string;
+  isProtected?: boolean;
+  canInteract?: boolean;
+  canSendMessages?: boolean;
 }
 
 export const AskSageContent: React.FC<AskSageContentProps> = ({
   messages,
   isLoading,
-  suggestedQuestions,
+  suggestedQuestions = [],
   handleSelectQuestion,
   sendMessageToSage,
-  handleReflectionSubmit,
   handleFeedback,
   isContextReady,
-  showWelcomeMessage,
-  voiceParam,
-  isProtected = false, // Default value
-  canInteract = true   // Default value
+  showWelcomeMessage = true,
+  voiceParam = 'default',
+  isProtected = false,
+  canInteract = true,
+  canSendMessages = true
 }) => {
-  const { currentUser } = useAuth();
-
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+  
+  useEffect(() => {
+    if (messages.length > 0) {
+      scrollToBottom();
+    }
+  }, [messages.length]);
+  
   return (
-    <div className="flex-1 flex flex-col min-w-0 h-full">
-      <div className="flex-1 overflow-y-auto p-4">
-        <ErrorBoundary fallback={
-          <div className="p-4 bg-red-50 text-red-800 rounded-lg my-4">
-            <h3 className="font-medium">Something went wrong displaying messages</h3>
-            <p>Try refreshing the page or contact support if the issue persists.</p>
-          </div>
-        }>
-          <div className="max-w-3xl mx-auto space-y-6">
-            {/* Welcome message - only show when no messages and context is ready */}
-            {isContextReady && showWelcomeMessage && (
-              <WelcomeMessage 
-                voiceParam={voiceParam}
-                userName={currentUser?.first_name}
-              />
-            )}
-            
-            {/* Messages */}
-            {messages.map((message) => (
-              <ChatMessage 
-                key={message.id} 
-                message={message} 
-                onFeedback={handleFeedback} 
-              />
-            ))}
-            {isLoading && <TypingIndicator />}
-          </div>
-        </ErrorBoundary>
+    <div className="flex-1 flex flex-col overflow-hidden bg-background">
+      <div className="flex-1 overflow-y-auto px-3 md:px-6 py-4 space-y-6">
+        {/* Show welcome message if no messages yet */}
+        {showWelcomeMessage && messages.length === 0 && (
+          <WelcomeMessage voiceParam={voiceParam} />
+        )}
         
-        {/* Suggested questions - only show when no messages */}
-        {isContextReady && messages.length === 0 && !isLoading && suggestedQuestions.length > 0 && (
-          <SuggestedQuestions 
+        {/* Show messages */}
+        {messages.map((message) => (
+          <ChatMessage
+            key={message.id}
+            message={message}
+            handleFeedback={handleFeedback}
+          />
+        ))}
+        
+        {/* Show typing indicator when loading */}
+        {isLoading && (
+          <div className="py-2">
+            <TypingIndicator />
+          </div>
+        )}
+        
+        {/* Show suggested questions if available and not loading */}
+        {!isLoading && suggestedQuestions.length > 0 && messages.length > 0 && (
+          <SuggestedQuestions
             questions={suggestedQuestions}
-            onSelectQuestion={handleSelectQuestion}
+            onSelect={handleSelectQuestion}
           />
         )}
+        
+        {/* Invisible element to scroll to */}
+        <div ref={messagesEndRef} />
       </div>
-
-      <div className="flex-shrink-0">
+      
+      {/* Chat input bar with condition */}
+      <div className="border-t border-border p-3">
         <ChatInputBar 
-          onSendMessage={sendMessageToSage} 
-          onReflectionSubmit={(data: ReflectionData) => handleReflectionSubmit(data)}
+          onSend={sendMessageToSage} 
           isLoading={isLoading}
-          suggestedQuestions={suggestedQuestions}
-          onSelectQuestion={handleSelectQuestion}
-          disabled={!isContextReady || !canInteract || isProtected}
+          disabled={!canInteract || !canSendMessages || isProtected}
+          disabledReason={
+            isProtected 
+              ? "Sage is initializing..." 
+              : !canSendMessages 
+                ? "Context still loading..." 
+                : !canInteract 
+                  ? "Please wait..." 
+                  : undefined
+          }
         />
+        
+        {/* Context not ready warning message for development */}
+        {process.env.NODE_ENV === 'development' && !canSendMessages && (
+          <div className="mt-2 text-xs text-amber-500 px-2">
+            ⚠️ Message sending disabled: Context hydration incomplete. See debug panel for details.
+          </div>
+        )}
       </div>
     </div>
   );

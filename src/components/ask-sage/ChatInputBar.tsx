@@ -1,77 +1,67 @@
 
-import React, { useState } from 'react';
-import { ReflectionData } from './ReflectionForm';
+import React, { useState, KeyboardEvent } from 'react';
+import { Button } from '@/components/ui/button';
+import { SendIcon } from 'lucide-react';
 
 interface ChatInputBarProps {
-  onSendMessage: (content: string) => void;
-  onReflectionSubmit: (data: ReflectionData) => void;
-  isLoading: boolean;
-  suggestedQuestions: string[];
-  onSelectQuestion: (question: string) => void;
+  onSend: (message: string) => void;
+  isLoading?: boolean;
   disabled?: boolean;
+  disabledReason?: string;
+  placeholder?: string;
 }
 
 export const ChatInputBar: React.FC<ChatInputBarProps> = ({
-  onSendMessage,
-  onReflectionSubmit,
-  isLoading,
-  suggestedQuestions,
-  onSelectQuestion,
-  disabled = false
+  onSend,
+  isLoading = false,
+  disabled = false,
+  disabledReason,
+  placeholder = "Ask Sage a question..."
 }) => {
   const [message, setMessage] = useState('');
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  
+  const handleSend = () => {
     if (message.trim() && !isLoading && !disabled) {
-      onSendMessage(message.trim());
+      onSend(message.trim());
       setMessage('');
     }
   };
-
-  // For demo purposes, we can simulate submitting a reflection
-  const handleReflectionClick = () => {
-    // This is a mock reflection data, in a real app this would come from a form
-    const mockReflectionData: ReflectionData = {
-      wellResponse: "I've learned a lot about the company structure",
-      unclearResponse: "I'm still confused about the benefits package",
-      shareWithManager: false
-    };
-    onReflectionSubmit(mockReflectionData);
+  
+  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
   };
-
+  
   return (
-    <div className="border-t border-gray-200 bg-white p-4">
-      <form onSubmit={handleSubmit} className="flex items-center">
-        <input
-          type="text"
+    <div className="flex items-end gap-2">
+      <div className="relative flex-1">
+        <textarea
           value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          placeholder="Ask Sage a question..."
-          className="flex-1 border border-gray-300 rounded-l-md p-2 focus:outline-none focus:ring-2 focus:ring-primary"
-          disabled={isLoading || disabled}
+          onChange={e => setMessage(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder={disabled && disabledReason ? disabledReason : placeholder}
+          disabled={disabled || isLoading}
+          rows={1}
+          className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none min-h-[40px] max-h-[120px] bg-background"
+          style={{ overflowY: 'auto' }}
         />
-        <button
-          type="submit"
-          className={`bg-primary text-white px-4 py-2 rounded-r-md ${
-            (isLoading || disabled) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary/90'
-          }`}
-          disabled={isLoading || disabled}
-        >
-          Send
-        </button>
-      </form>
+      </div>
       
-      {/* This button would typically be elsewhere in the UI */}
-      {/* 
-      <button 
-        onClick={handleReflectionClick}
-        className="mt-2 text-sm text-gray-500 hover:text-primary"
-        disabled={disabled}
+      <Button
+        type="button"
+        size="icon"
+        onClick={handleSend}
+        disabled={!message.trim() || isLoading || disabled}
+        aria-label="Send message"
       >
-        Reflect on your experience
-      </button>
-      */}
+        {isLoading ? (
+          <div className="h-4 w-4 animate-spin rounded-full border-2 border-background border-t-foreground" />
+        ) : (
+          <SendIcon className="h-4 w-4" />
+        )}
+      </Button>
     </div>
   );
 };

@@ -10,6 +10,7 @@ import { LoadingUI } from '@/components/ask-sage/LoadingUI';
 import { AuthRequiredUI } from '@/components/ask-sage/AuthRequiredUI';
 import { OrgRecoveryUI } from '@/components/ask-sage/OrgRecoveryUI';
 import { LoadingSage } from '@/components/ask-sage/LoadingSage';
+import { HydrationUI } from '@/components/ask-sage/HydrationUI';
 import { AskSageContent } from '@/components/ask-sage/AskSageContent';
 import { AskSageReflectionDialog } from '@/components/ask-sage/AskSageReflectionDialog';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -17,6 +18,7 @@ import { useAuth } from '@/contexts/auth/AuthContext';
 import { useVoiceParamState } from '@/hooks/use-voice-param';
 import { useRedirectIntentManager } from '@/lib/redirect-intent';
 import { useAskSageGuard } from '@/hooks/ask-sage/use-ask-sage-guard';
+import { useContextHydration } from '@/hooks/sage-context/use-context-hydration';
 
 export const AskSageContainer: React.FC = () => {
   const isMobile = useIsMobile();
@@ -33,6 +35,9 @@ export const AskSageContainer: React.FC = () => {
     isProtected,
     showLoading
   } = useAskSageGuard();
+  
+  // Use the enhanced context hydration system
+  const contextHydration = useContextHydration(voiceParamState.currentVoice);
   
   const {
     userId,
@@ -85,25 +90,42 @@ export const AskSageContainer: React.FC = () => {
     }
   }, [captureIntent, voiceParamState.currentVoice, voiceParamState.isValid]);
 
-  // Render decisions based on protection, session, and auth state
-  if (!shouldRender) {
+  // Determine appropriate loading UI based on hydration state
+  const renderLoadingState = () => {
+    // If under protection, show simplified loading state
     if (isProtected) {
-      console.log('🛡️ Ask Sage under protection - showing loading state');
       return <LoadingSage reason="initialization" />;
     }
     
+    // If not interactive, show hydration UI with progress
     if (!canInteract) {
-      console.warn('🚧 Ask Sage not ready. Blockers:', readinessBlockers);
-      return <LoadingSage reason="context_loading" />;
+      return (
+        <HydrationUI 
+          isLoading={true}
+          progress={contextHydration.hydration.progressPercent}
+          blockers={contextHydration.blockers}
+          blockersByCategory={contextHydration.blockersByCategory}
+          completedSteps={contextHydration.hydration.completedSteps}
+        />
+      );
     }
     
-    return null;
+    // Fallback for unexpected states
+    return <LoadingSage reason="context_loading" />;
+  };
+
+  // Render decisions based on protection, session, and auth state
+  if (!shouldRender) {
+    return renderLoadingState();
   }
 
   // Authentication flow
   if (authLoading) return <LoadingUI />;
   if (!authLoading && !userId) return <AuthRequiredUI />;
   if (!authLoading && userId && !orgId && !isRecoveringOrg) return <OrgRecoveryUI />;
+
+  // Only allow message sending if context is fully ready
+  const canSendMessages = contextHydration.isReadyToSend;
 
   return (
     <DashboardContainer showSagePanel={false}>
@@ -128,6 +150,11 @@ export const AskSageContainer: React.FC = () => {
                 🛡️ Protection Active
               </span>
             )}
+            {!contextHydration.isReadyToSend && (
+              <span className="ml-2 text-amber-500 font-medium">
+                ⚠️ Send Blocked
+              </span>
+            )}
           </div>
         )}
 
@@ -145,6 +172,7 @@ export const AskSageContainer: React.FC = () => {
             voiceParam={voiceParam}
             isProtected={isProtected}
             canInteract={canInteract}
+            canSendMessages={canSendMessages}
           />
 
           {isContextReady && sidebarOpen && (
