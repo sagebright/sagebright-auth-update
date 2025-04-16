@@ -310,6 +310,8 @@
 │   │   ├── performance.ts
 │   │   ├── permissions.ts
 │   │   ├── promptBuilder.ts
+│   │   ├── routing
+│   │   │   └── types.ts
 │   │   ├── subdomainUtils.ts
 │   │   ├── supabaseClient.ts
 │   │   ├── supabaseContext.ts
@@ -377,4 +379,4 @@
 ├── tsconfig.node.json
 └── vite.config.ts
 
-55 directories, 323 files
+56 directories, 324 files
