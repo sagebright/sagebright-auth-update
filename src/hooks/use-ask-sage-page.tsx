@@ -1,18 +1,24 @@
-import { useState, useEffect, useCallback } from 'react';
+
+import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
 import { useChat } from '@/hooks/use-chat';
-import { ReflectionData } from '@/components/ask-sage/ReflectionForm';
 import { useVoiceParam } from '@/hooks/use-voice-param';
 import { useDebugPanel } from '@/hooks/use-debug-panel';
 import { useAuth } from '@/contexts/auth/AuthContext';
 import { useSageContextReadiness } from '@/hooks/use-sage-context-readiness';
-import { toast } from '@/components/ui/use-toast';
+import { useSageUIState } from '@/hooks/ask-sage/use-sage-ui-state';
+import { useReflectionHandler } from '@/hooks/ask-sage/use-reflection-handler';
+import { useQuestionSelection } from '@/hooks/ask-sage/use-question-selection';
+import { useContextMonitor } from '@/hooks/ask-sage/use-context-monitor';
+import { useSageMessenger } from '@/hooks/ask-sage/use-sage-messenger';
 
 export const useAskSagePage = () => {
   console.group('🌟 Ask Sage Page Initialization');
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  
+  // Auth context
   const { 
     user, 
     userId, 
@@ -23,31 +29,20 @@ export const useAskSagePage = () => {
   } = useRequireAuth(navigate);
   
   const { currentUser: currentUserData } = useAuth();
-  
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isRecoveryVisible, setIsRecoveryVisible] = useState(false);
-  const [pageInitialized, setPageInitialized] = useState(false);
-  const [showWelcomeMessage, setShowWelcomeMessage] = useState(true);
-  
   const sessionUserReady = !!user;
   
-  // Get voice parameter first so we can pass it to the context readiness hook
+  // Debug panel
+  const debugPanel = useDebugPanel();
+  
+  // Voice parameter context
   const voiceParam = useVoiceParam();
   console.log('🎤 Voice parameter detected:', voiceParam);
   
-  // Use the enhanced hook with the voice parameter
-  const { 
-    isContextReady, 
-    contextCheckComplete, 
-    missingContext,
-    blockers,
-    isReadyToRender,
-    isSessionReady,
-    isOrgReady,
-    isVoiceReady,
-    isSessionStable,
-    readySince
-  } = useSageContextReadiness(
+  // UI state management
+  const [pageInitialized, setPageInitialized] = useState(false);
+  
+  // Context readiness
+  const contextReadiness = useSageContextReadiness(
     userId,
     orgId,
     orgSlug,
@@ -57,174 +52,94 @@ export const useAskSagePage = () => {
     voiceParam
   );
   
-  const debugPanel = useDebugPanel();
-
-  useEffect(() => {
-    console.log("🔍 Context readiness from useSageContextReadiness:", {
-      isContextReady,
-      contextCheckComplete,
-      missingContext,
-      isReadyToRender,
-      isSessionStable,
-      blockers,
-      readySince: readySince ? new Date(readySince).toISOString() : null,
-      timestamp: new Date().toISOString()
-    });
-  }, [isContextReady, contextCheckComplete, missingContext, isReadyToRender, isSessionStable, blockers, readySince]);
-
-  useEffect(() => {
-    console.log("🌐 Current URL state:", { 
-      pathname: window.location.pathname,
-      search: window.location.search,
-      href: window.location.href,
-      historyLength: window.history.length
-    });
-  }, []);
-
+  // Chat functionality
   const {
     messages,
     isLoading,
     suggestedQuestions,
-    showReflection,
-    setShowReflection,
     handleSendMessage,
     handleFeedback,
     isRecoveringOrg
-  } = useChat(debugPanel, isContextReady);
-
+  } = useChat(debugPanel, contextReadiness.isContextReady);
+  
+  // UI state hooks
+  const uiState = useSageUIState(messages);
+  
+  // Reflection handler
+  const reflectionHandler = useReflectionHandler();
+  
+  // Context monitoring
+  useContextMonitor(
+    contextReadiness,
+    isAuthenticated,
+    userId,
+    orgId,
+    isRecoveringOrg,
+    user,
+    voiceParam,
+    pageInitialized,
+    uiState.setIsRecoveryVisible
+  );
+  
+  // Message sending
+  const { sendMessageToSage } = useSageMessenger(
+    userId,
+    orgId,
+    handleSendMessage,
+    user,
+    contextReadiness
+  );
+  
+  // Question selection
+  const { handleSelectQuestion } = useQuestionSelection(sendMessageToSage);
+  
+  // Page initialization effect
   useEffect(() => {
     if (!authLoading && isAuthenticated && !pageInitialized) {
       setPageInitialized(true);
-      
-      console.log("🚀 AskSage page initialized with auth state:", { 
-        userId, 
-        orgId, 
-        isRecoveringOrg,
-        hasSessionMetadata: user ? !!user.user_metadata : false,
-        voiceParam,
-        urlSearch: window.location.search,
-        timestamp: new Date().toISOString()
-      });
     }
-  }, [authLoading, isAuthenticated, userId, orgId, isRecoveringOrg, pageInitialized, voiceParam, user]);
-
-  useEffect(() => {
-    setShowWelcomeMessage(messages.length === 0);
-  }, [messages.length]);
-
-  useEffect(() => {
-    if (pageInitialized && userId && !orgId && !isRecoveringOrg) {
-      console.log("⚠️ Missing org context, showing recovery dialog");
-      setIsRecoveryVisible(true);
-    } else if (pageInitialized) {
-      setIsRecoveryVisible(false);
-    }
-  }, [userId, orgId, authLoading, isRecoveringOrg, pageInitialized]);
-
-  const handleReflectionSubmit = (data: ReflectionData) => {
-    console.log('Reflection submitted:', data);
-    setShowReflection(false);
-  };
-
-  const sendMessageToSage = useCallback(async (content: string) => {
-    if (!isContextReady) {
-      console.error("❌ Cannot send message - context not ready:", {
-        blockers,
-        isReadyToRender,
-        isSessionReady,
-        isOrgReady,
-        isVoiceReady,
-        isSessionStable
-      });
-      
-      const blockerMessage = blockers.length > 0 
-        ? blockers.join(', ') 
-        : "Unknown issue with session data";
-      
-      toast({
-        variant: "destructive",
-        title: "Sage isn't quite ready",
-        description: `Please wait a moment: ${blockerMessage}`,
-      });
-      return;
-    }
-
-    if (!isSessionStable) {
-      console.warn("⚠️ Session not fully stable, proceeding with caution:", {
-        isContextReady,
-        isSessionStable,
-        userId,
-        orgId,
-        hasSessionUser: !!user,
-        hasUserMetadata: user ? !!user.user_metadata : false
-      });
-    }
-
-    console.log("🚀 Sending message with context:", {
-      userId,
-      orgId,
-      hasSessionUser: !!user,
-      hasUserMetadata: user ? !!user.user_metadata : false,
-      isContextReady,
-      isSessionStable,
-      readySince: readySince ? new Date(readySince).toISOString() : null
-    });
-
-    try {
-      await handleSendMessage(content);
-    } catch (error) {
-      console.error("Error sending message:", error);
-      toast({
-        variant: "destructive",
-        title: "Message Failed",
-        description: error instanceof Error ? error.message : "Unknown error occurred",
-      });
-    }
-  }, [userId, orgId, handleSendMessage, user, isContextReady, isSessionStable, blockers, isReadyToRender, isSessionReady, isOrgReady, isVoiceReady, readySince]);
-
-  const handleSelectQuestion = useCallback((question: string) => {
-    console.log("Selected suggested question:", question);
-    sendMessageToSage(question);
-  }, [sendMessageToSage]);
-
+  }, [authLoading, isAuthenticated, pageInitialized]);
+  
   console.groupEnd();
 
   return {
+    // Auth context
     user,
     userId,
     orgId,
     authLoading,
     isAuthenticated,
     
-    sidebarOpen,
-    setSidebarOpen,
-    isRecoveryVisible,
-    showWelcomeMessage,
+    // UI state
+    ...uiState,
     
+    // Chat state
     messages,
     isLoading,
     suggestedQuestions,
-    showReflection,
-    setShowReflection,
+    ...reflectionHandler,
     
-    handleReflectionSubmit,
+    // Message handlers
     sendMessageToSage,
     handleSelectQuestion,
     handleFeedback,
     
+    // Context state
     isRecoveringOrg,
     voiceParam,
     
+    // Debug and readiness
     debugPanel,
-    isContextReady,
+    isContextReady: contextReadiness.isContextReady,
     sessionUserReady,
     
-    isReadyToRender,
-    isSessionReady,
-    isOrgReady,
-    isVoiceReady,
-    isSessionStable,
-    blockers,
-    readySince
+    // Detailed readiness flags
+    isReadyToRender: contextReadiness.isReadyToRender,
+    isSessionReady: contextReadiness.isSessionReady,
+    isOrgReady: contextReadiness.isOrgReady,
+    isVoiceReady: contextReadiness.isVoiceReady,
+    isSessionStable: contextReadiness.isSessionStable,
+    blockers: contextReadiness.blockers,
+    readySince: contextReadiness.readySince
   };
 };
