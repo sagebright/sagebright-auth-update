@@ -1,3 +1,4 @@
+
 import { useEffect, useRef, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/auth/AuthContext';
@@ -10,10 +11,11 @@ export const useOrgRedirect = () => {
   const { isAuthenticated, loading, userId } = useAuth();
   const { orgSlug } = useOrgContext(userId, isAuthenticated);
   const redirectAttempted = useRef(false);
+  const redirectLocked = useRef(false);
   const lastPathRef = useRef(pathname);
   
   useEffect(() => {
-    if (pathname !== lastPathRef.current) {
+    if (pathname !== lastPathRef.current && !redirectLocked.current) {
       console.log(`🧭 Path changed from ${lastPathRef.current} to ${pathname}, resetting redirect flag`);
       redirectAttempted.current = false;
       lastPathRef.current = pathname;
@@ -29,6 +31,7 @@ export const useOrgRedirect = () => {
     if (pathname === '/ask-sage' && !redirectAttempted.current) {
       console.log("🛑 Blocking all fallback redirects — already on /ask-sage");
       redirectAttempted.current = true;
+      redirectLocked.current = true;
       return;
     }
 
@@ -36,6 +39,7 @@ export const useOrgRedirect = () => {
       console.log(`✅ Already on the stored redirect path: ${pathname}, clearing redirectAfterLogin`);
       localStorage.removeItem("redirectAfterLogin");
       redirectAttempted.current = true;
+      redirectLocked.current = true;
       return;
     }
 
@@ -44,6 +48,7 @@ export const useOrgRedirect = () => {
         console.log("🏢 Redirecting to correct org subdomain:", orgSlug);
         console.trace("Org subdomain redirect stack trace");
         redirectAttempted.current = true;
+        redirectLocked.current = true;
         sessionStorage.setItem('lastAuthenticatedPath', pathname);
         redirectToOrgUrl(orgSlug);
         return;
@@ -54,6 +59,7 @@ export const useOrgRedirect = () => {
       console.log("🔑 On subdomain but not authenticated, redirecting to login");
       console.trace("Unauthenticated subdomain redirect stack trace");
       redirectAttempted.current = true;
+      redirectLocked.current = true;
 
       if (pathname !== '/auth/login' && pathname !== '/') {
         console.log(`📝 Storing current path for post-login: ${pathname}${search}`);
@@ -76,6 +82,7 @@ export const useOrgRedirect = () => {
         console.log(`🚀 Redirecting to stored path: ${redirectPath}`);
         localStorage.removeItem("redirectAfterLogin");
         redirectAttempted.current = true;
+        redirectLocked.current = true;
         navigate(redirectPath, { replace: true });
       } else {
         if (pathname !== '/ask-sage') {
@@ -85,6 +92,7 @@ export const useOrgRedirect = () => {
           console.log("🔕 Skipping dashboard redirect — already on /ask-sage");
         }
         redirectAttempted.current = true;
+        redirectLocked.current = true;
       }
     }
   }, [orgSlug, isAuthenticated, loading, pathname, search, navigate]);
