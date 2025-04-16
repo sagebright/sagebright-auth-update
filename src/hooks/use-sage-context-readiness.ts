@@ -1,5 +1,4 @@
-
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 
 export interface SageContextReadiness {
   // Core readiness flags
@@ -8,7 +7,7 @@ export interface SageContextReadiness {
   isVoiceReady: boolean;
   isReadyToRender: boolean;
   
-  // Backward compatibility properties for existing code
+  // Backward compatibility properties
   isContextReady: boolean;
   contextCheckComplete: boolean;
   missingContext: boolean;
@@ -20,9 +19,15 @@ export interface SageContextReadiness {
   blockers: string[];
 }
 
+// Type for individual readiness check results
+interface ReadinessCheck {
+  isReady: boolean;
+  blockers: string[];
+}
+
 /**
  * Enhanced hook that provides granular context readiness states for Sage
- * Serves as the single source of truth for determining when Sage is ready to render
+ * with decoupled checks, better error handling, and improved logging
  */
 export function useSageContextReadiness(
   userId: string | null,
@@ -49,82 +54,157 @@ export function useSageContextReadiness(
   // Track previous state for transition logging
   const prevReadinessRef = useRef<SageContextReadiness | null>(null);
   
+  // Decoupled session readiness check
+  const checkSessionReadiness = useMemo((): ReadinessCheck => {
+    const blockers: string[] = [];
+    
+    if (!userId) blockers.push('User ID missing');
+    if (!isSessionUserReady) blockers.push('Session user not ready');
+    if (!currentUserData) blockers.push('User data not loaded');
+    
+    return {
+      isReady: !!userId && isSessionUserReady && !!currentUserData,
+      blockers
+    };
+  }, [userId, isSessionUserReady, currentUserData]);
+  
+  // Decoupled organization readiness check
+  const checkOrgReadiness = useMemo((): ReadinessCheck => {
+    const blockers: string[] = [];
+    
+    if (!orgId) blockers.push('Organization ID missing');
+    if (!orgSlug) blockers.push('Organization slug missing');
+    
+    return {
+      isReady: !!orgId && !!orgSlug,
+      blockers
+    };
+  }, [orgId, orgSlug]);
+  
+  // Decoupled voice parameter readiness check
+  const checkVoiceReadiness = useMemo((): ReadinessCheck => {
+    const blockers: string[] = [];
+    
+    if (!voiceParam) blockers.push('Voice parameter not initialized');
+    
+    return {
+      isReady: !!voiceParam,
+      blockers
+    };
+  }, [voiceParam]);
+  
   useEffect(() => {
     // Don't evaluate until auth loading is complete
     if (authLoading) {
       return;
     }
     
-    // Start with empty blockers array, we'll add to it as needed
-    const blockers: string[] = [];
-    
-    // Check each context requirement and add specific blockers
-    if (!userId) blockers.push('User ID missing');
-    if (!orgId) blockers.push('Organization ID missing');
-    if (!orgSlug) blockers.push('Organization slug missing');
-    if (!currentUserData) blockers.push('User data not loaded');
-    if (!isSessionUserReady) blockers.push('Session user not ready');
-    if (!voiceParam) blockers.push('Voice parameter not initialized');
-    
-    // Determine individual readiness flags
-    const isSessionReady = !!userId && isSessionUserReady;
-    const isOrgReady = !!orgId && !!orgSlug;
-    const isVoiceReady = !!voiceParam;
-    
-    // Overall readiness requires all individual flags
-    const isReadyToRender = isSessionReady && isOrgReady && isVoiceReady && !!currentUserData;
-    
-    // For backward compatibility
-    const isContextReady = isReadyToRender;
-    const contextCheckComplete = true;
-    const missingContext = !isReadyToRender;
-    
-    // Calculate readySince timestamp only when ready
-    const readySince = isReadyToRender 
-      ? (readiness.readySince ?? Date.now()) 
-      : null;
-    
-    // Prepare new state
-    const newReadiness: SageContextReadiness = {
-      isOrgReady,
-      isSessionReady,
-      isVoiceReady,
-      isReadyToRender,
-      isContextReady,
-      contextCheckComplete,
-      missingContext,
-      readySince,
-      blockers
-    };
-    
-    // Log transitions in readiness state
-    if (prevReadinessRef.current?.isReadyToRender !== isReadyToRender) {
-      if (isReadyToRender) {
-        console.log(`🔁 Context Transition: NOT READY → READY at ${new Date().toISOString()}`);
-      } else {
-        console.log(`🔁 Context Transition: READY → NOT READY at ${new Date().toISOString()}`);
-        console.log(`🛑 Context Blocked: ${blockers.join(', ')}`);
+    try {
+      // Start a console group for readiness evaluation
+      console.group('🔍 Context Readiness Evaluation');
+      console.log('Timestamp:', new Date().toISOString());
+      console.log('Auth state:', { userId, orgId, isSessionUserReady });
+      
+      // Get results from individual checks
+      const sessionCheck = checkSessionReadiness;
+      const orgCheck = checkOrgReadiness;
+      const voiceCheck = checkVoiceReadiness;
+      
+      // Log individual check results
+      console.log('Session readiness:', sessionCheck);
+      console.log('Organization readiness:', orgCheck);
+      console.log('Voice readiness:', voiceCheck);
+      
+      // Combine all blockers
+      const allBlockers = [
+        ...sessionCheck.blockers,
+        ...orgCheck.blockers,
+        ...voiceCheck.blockers
+      ];
+      
+      // Overall readiness requires all individual checks
+      const isReadyToRender = 
+        sessionCheck.isReady && 
+        orgCheck.isReady && 
+        voiceCheck.isReady;
+      
+      // For backward compatibility
+      const isContextReady = isReadyToRender;
+      const contextCheckComplete = true;
+      const missingContext = !isReadyToRender;
+      
+      // Calculate readySince timestamp only when ready
+      const readySince = isReadyToRender 
+        ? (readiness.readySince ?? Date.now()) 
+        : null;
+      
+      if (allBlockers.length === 0 && !isReadyToRender) {
+        console.warn('No blockers identified but context is not ready. This may indicate a logic issue.');
+        allBlockers.push('Unknown readiness issue');
       }
-    } else if (blockers.length !== prevReadinessRef.current?.blockers.length) {
-      // Log when blockers change, even if overall ready state remains the same
-      console.log(`🔁 Context Blockers Changed: ${blockers.join(', ')}`);
+      
+      // Prepare new state
+      const newReadiness: SageContextReadiness = {
+        isOrgReady: orgCheck.isReady,
+        isSessionReady: sessionCheck.isReady,
+        isVoiceReady: voiceCheck.isReady,
+        isReadyToRender,
+        isContextReady,
+        contextCheckComplete,
+        missingContext,
+        readySince,
+        blockers: allBlockers
+      };
+      
+      // Log transitions in readiness state
+      if (prevReadinessRef.current?.isReadyToRender !== isReadyToRender) {
+        console.group('🔄 Context Readiness Transition');
+        if (isReadyToRender) {
+          console.log(`NOT READY → READY at ${new Date().toISOString()}`);
+          console.log(`Time to ready: ${readySince ? (readySince - performance.now()) + 'ms' : 'unknown'}`);
+        } else {
+          console.log(`READY → NOT READY at ${new Date().toISOString()}`);
+          console.log(`Blockers: ${allBlockers.join(', ')}`);
+        }
+        console.groupEnd();
+      } else if (
+        JSON.stringify(prevReadinessRef.current?.blockers) !== 
+        JSON.stringify(allBlockers)
+      ) {
+        // Log when blockers change, even if overall ready state remains the same
+        console.log(`🔄 Context Blockers Changed: ${allBlockers.join(', ')}`);
+      }
+      
+      // Update refs and state
+      prevReadinessRef.current = newReadiness;
+      setReadiness(newReadiness);
+      
+    } catch (error) {
+      console.error('Error in context readiness evaluation:', error);
+      
+      // Safe fallback on error
+      setReadiness({
+        ...readiness,
+        contextCheckComplete: true,
+        blockers: [...readiness.blockers, `Error in readiness check: ${error instanceof Error ? error.message : 'Unknown error'}`]
+      });
+    } finally {
+      console.groupEnd();
     }
     
-    // Detailed debug log
-    console.log("[SageContext] Context readiness check:", {
-      isSessionReady,
-      isOrgReady,
-      isVoiceReady,
-      isReadyToRender,
-      blockers,
-      timestamp: new Date().toISOString()
-    });
-    
-    // Update refs and state
-    prevReadinessRef.current = newReadiness;
-    setReadiness(newReadiness);
-    
-  }, [userId, orgId, orgSlug, currentUserData, authLoading, isSessionUserReady, voiceParam, readiness.readySince]);
+  }, [
+    userId, 
+    orgId, 
+    orgSlug, 
+    currentUserData, 
+    authLoading, 
+    isSessionUserReady, 
+    voiceParam, 
+    readiness.readySince,
+    checkSessionReadiness,
+    checkOrgReadiness,
+    checkVoiceReadiness
+  ]);
   
   return readiness;
 }

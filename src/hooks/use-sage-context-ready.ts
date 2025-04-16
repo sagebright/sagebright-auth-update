@@ -12,7 +12,8 @@ export function useSageContextReady(
   orgSlug: string | null,
   currentUserData: any | null,
   authLoading: boolean,
-  isSessionUserReady: boolean
+  isSessionUserReady: boolean,
+  voiceParam: string | null = null
 ) {
   const { 
     isContextReady, 
@@ -24,7 +25,8 @@ export function useSageContextReady(
     orgSlug,
     currentUserData,
     authLoading,
-    isSessionUserReady
+    isSessionUserReady,
+    voiceParam
   );
 
   return {

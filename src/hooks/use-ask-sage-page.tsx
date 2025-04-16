@@ -11,6 +11,7 @@ import { useSageContextReadiness } from '@/hooks/use-sage-context-readiness';
 import { toast } from '@/components/ui/use-toast';
 
 export const useAskSagePage = () => {
+  console.group('🌟 Ask Sage Page Initialization');
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { 
@@ -33,6 +34,7 @@ export const useAskSagePage = () => {
   
   // Get voice parameter first so we can pass it to the context readiness hook
   const voiceParam = useVoiceParam();
+  console.log('🎤 Voice parameter detected:', voiceParam);
   
   // Use the enhanced hook with the voice parameter
   const { 
@@ -58,27 +60,25 @@ export const useAskSagePage = () => {
   const debugPanel = useDebugPanel();
 
   useEffect(() => {
-    console.log("[Sage Init] Context readiness from useSageContextReadiness:", {
+    console.log("🔍 Context readiness from useSageContextReadiness:", {
       isContextReady,
       contextCheckComplete,
       missingContext,
       isReadyToRender,
       blockers,
+      readySince: readySince ? new Date(readySince).toISOString() : null,
       timestamp: new Date().toISOString()
     });
-  }, [isContextReady, contextCheckComplete, missingContext, isReadyToRender, blockers]);
+  }, [isContextReady, contextCheckComplete, missingContext, isReadyToRender, blockers, readySince]);
 
   useEffect(() => {
-    console.log("🎤 AskSagePage voice parameter (timestamp: %s): %s", 
-                new Date().toISOString(), 
-                voiceParam);
     console.log("🌐 Current URL state:", { 
       pathname: window.location.pathname,
       search: window.location.search,
       href: window.location.href,
       historyLength: window.history.length
     });
-  }, [voiceParam]);
+  }, []);
 
   const {
     messages,
@@ -95,7 +95,7 @@ export const useAskSagePage = () => {
     if (!authLoading && isAuthenticated && !pageInitialized) {
       setPageInitialized(true);
       
-      console.log("[Sage Init] AskSage page initialized with auth state:", { 
+      console.log("🚀 AskSage page initialized with auth state:", { 
         userId, 
         orgId, 
         isRecoveringOrg,
@@ -127,35 +127,53 @@ export const useAskSagePage = () => {
 
   const sendMessageToSage = useCallback(async (content: string) => {
     if (!isContextReady) {
-      console.error("❌ Cannot send message - context not ready");
+      console.error("❌ Cannot send message - context not ready:", {
+        blockers,
+        isReadyToRender,
+        isSessionReady,
+        isOrgReady,
+        isVoiceReady
+      });
+      
+      const blockerMessage = blockers.length > 0 
+        ? blockers.join(', ') 
+        : "Unknown issue with session data";
+      
       toast({
         variant: "destructive",
         title: "Sage isn't quite ready",
-        description: "Please wait a moment while we load your session data.",
+        description: `Please wait a moment: ${blockerMessage}`,
       });
       return;
     }
 
-    console.log("[Sage Init] Preparing to send message with context:", {
+    console.log("🚀 Sending message with context:", {
       userId,
       orgId,
       hasSessionUser: !!user,
       hasUserMetadata: user ? !!user.user_metadata : false,
       isContextReady,
-      blockers
+      readySince: readySince ? new Date(readySince).toISOString() : null
     });
 
     try {
       await handleSendMessage(content);
     } catch (error) {
       console.error("Error sending message:", error);
+      toast({
+        variant: "destructive",
+        title: "Message Failed",
+        description: error instanceof Error ? error.message : "Unknown error occurred",
+      });
     }
-  }, [userId, orgId, handleSendMessage, user, isContextReady, blockers]);
+  }, [userId, orgId, handleSendMessage, user, isContextReady, blockers, isReadyToRender, isSessionReady, isOrgReady, isVoiceReady, readySince]);
 
   const handleSelectQuestion = useCallback((question: string) => {
     console.log("Selected suggested question:", question);
     sendMessageToSage(question);
   }, [sendMessageToSage]);
+
+  console.groupEnd();
 
   return {
     user,
@@ -187,11 +205,12 @@ export const useAskSagePage = () => {
     isContextReady,
     sessionUserReady,
     
-    // Add additional readiness flags for more granular control
+    // Enhanced readiness flags
     isReadyToRender,
     isSessionReady,
     isOrgReady,
     isVoiceReady,
-    blockers
+    blockers,
+    readySince
   };
 };
