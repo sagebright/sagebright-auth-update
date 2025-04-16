@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
@@ -20,7 +19,7 @@ export const useAskSagePage = () => {
     isAuthenticated 
   } = useRequireAuth(navigate);
   
-  // Get currentUser from AuthContext directly since it's not in useRequireAuth
+  // Get currentUser from AuthContext directly 
   const { currentUser: currentUserData } = useAuth();
   
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -28,37 +27,28 @@ export const useAskSagePage = () => {
   const [pageInitialized, setPageInitialized] = useState(false);
   
   // Context readiness check
-  const isOrgReady = !!orgSlug && !!currentUserData;
+  const isOrgReady = !!orgSlug && !!currentUserData && !!orgId;
   const sessionUserReady = !!user;
   
-  // Use our custom hook to get the voice parameter
+  // Use our custom hooks
   const voiceParam = useVoiceParam();
-  
-  // Get debug panel state and functions
   const debugPanel = useDebugPanel();
-  
+
+  // Log context readiness state
   useEffect(() => {
-    // Log context readiness state
     console.log("[Sage Init] Context readiness check:", {
       isOrgReady,
       sessionUserReady,
       hasOrgSlug: !!orgSlug,
       hasCurrentUserData: !!currentUserData,
+      hasOrgId: !!orgId,
       timestamp: new Date().toISOString()
     });
 
-    if (!authLoading && isAuthenticated && !pageInitialized) {
-      // Only initialize if we have full context
-      if (sessionUserReady && isOrgReady) {
-        console.log("[Sage Init] ✅ Full context ready, initializing page");
-        setPageInitialized(true);
-      } else {
-        console.log("[Sage Init] ⏳ Waiting for full context...");
-        if (!orgSlug) console.warn("[Sage Init] ⚠️ orgSlug missing");
-        if (!currentUserData) console.warn("[Sage Init] ⚠️ currentUserData missing");
-      }
-    }
-  }, [authLoading, isAuthenticated, sessionUserReady, isOrgReady, pageInitialized, orgSlug, currentUserData]);
+    if (!orgSlug) console.warn("[Sage Init] ⚠️ orgSlug missing");
+    if (!currentUserData) console.warn("[Sage Init] ⚠️ currentUserData missing");
+    if (!orgId) console.warn("[Sage Init] ⚠️ orgId missing");
+  }, [orgSlug, currentUserData, orgId, isOrgReady, sessionUserReady]);
 
   useEffect(() => {
     console.log("🎤 AskSagePage voice parameter (timestamp: %s): %s", 
@@ -183,5 +173,6 @@ export const useAskSagePage = () => {
     // Debug panel
     debugPanel,
     isOrgReady,
+    sessionUserReady,
   };
 };

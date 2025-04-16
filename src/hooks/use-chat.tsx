@@ -1,9 +1,8 @@
-
 import { useState, useCallback } from 'react';
 import { useDebugPanel } from '@/hooks/use-debug-panel';
 import { v4 as uuidv4 } from 'uuid';
 
-// Define the type expected for debug panel based on the actual implementation
+// Define the type expected for debug panel
 type DebugPanelState = ReturnType<typeof useDebugPanel>;
 
 export const useChat = (debugPanel: DebugPanelState, isOrgReady: boolean = false) => {
@@ -18,6 +17,11 @@ export const useChat = (debugPanel: DebugPanelState, isOrgReady: boolean = false
       console.warn("[Sage Chat] ⚠️ Cannot send message - waiting for org context");
       return;
     }
+
+    console.log("[Sage Message] Sending with context:", {
+      isOrgReady,
+      timestamp: new Date().toISOString()
+    });
 
     setIsLoading(true);
     setMessages((prevMessages) => [
@@ -59,7 +63,7 @@ export const useChat = (debugPanel: DebugPanelState, isOrgReady: boolean = false
     } finally {
       setIsLoading(false);
     }
-  }, [isOrgReady, debugPanel]);
+  }, [isOrgReady]);
 
   const handleFeedback = async (messageId: string, feedback: string) => {
     console.log('Feedback submitted:', { messageId, feedback });

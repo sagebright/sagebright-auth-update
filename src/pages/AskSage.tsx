@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { DashboardContainer } from '@/components/layout/DashboardContainer';
 import { ChatHeader } from '@/components/ask-sage/ChatHeader';
@@ -7,26 +6,25 @@ import { ChatMessage } from '@/components/ask-sage/ChatMessage';
 import { ChatInputBar } from '@/components/ask-sage/ChatInputBar';
 import { TypingIndicator } from '@/components/ask-sage/TypingIndicator';
 import { ReflectionForm } from '@/components/ask-sage/ReflectionForm';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { useIsMobile } from '@/hooks/use-mobile';
-import { AuthRequiredUI } from '@/components/ask-sage/AuthRequiredUI';
-import { OrgRecoveryUI } from '@/components/ask-sage/OrgRecoveryUI';
-import { LoadingUI } from '@/components/ask-sage/LoadingUI';
+import { LoadingSage } from '@/components/ask-sage/LoadingSage';
 import { useAskSagePage } from '@/hooks/use-ask-sage-page';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { useLocation } from 'react-router-dom';
-import { useAuth } from '@/contexts/auth/AuthContext';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { DebugPanel } from '@/components/debug/DebugPanel';
+import { useAuth } from '@/contexts/auth/AuthContext';
 
 const AskSage = () => {
   const isMobile = useIsMobile();
   const location = useLocation();
-  const { user, currentUser, orgId, orgSlug } = useAuth(); // Add direct access to auth context
   
   const {
     userId,
     authLoading,
     isAuthenticated,
+    isOrgReady,
+    sessionUserReady,
     
     sidebarOpen,
     setSidebarOpen,
@@ -49,6 +47,25 @@ const AskSage = () => {
     debugPanel
   } = useAskSagePage();
 
+  const isReady = sessionUserReady && isOrgReady && !authLoading;
+
+  useEffect(() => {
+    console.log("[Sage Init] Readiness check:", {
+      sessionUserReady,
+      isOrgReady,
+      authLoading,
+      isReady,
+      location: location.pathname,
+      timestamp: new Date().toISOString()
+    });
+  }, [sessionUserReady, isOrgReady, authLoading, isReady, location.pathname]);
+
+  if (!isReady) {
+    return <LoadingSage />;
+  }
+
+  const { user, currentUser, orgId, orgSlug } = useAuth(); // Add direct access to auth context
+  
   useEffect(() => {
     console.log("[Sage Init] AskSage component mounted with context:", {
       pathname: location.pathname,
