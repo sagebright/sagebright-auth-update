@@ -1,73 +1,76 @@
+import { useState, useCallback } from 'react';
+import { DebugPanelState } from '@/hooks/use-debug-panel';
+import { v4 as uuidv4 } from 'uuid';
 
-import { useState, useEffect } from 'react';
-import { Message, ChatHookReturn } from '@/types/chat';
-import { useAuth } from "@/contexts/auth/AuthContext";
-import { SUGGESTED_QUESTIONS } from '@/data/suggestedQuestions';
-import { useOrgRecovery } from './use-org-recovery';
-import { useFeedback } from './use-feedback';
-import { useSendMessage } from './use-send-message';
-import { useReflection } from './use-reflection';
-import { createSageMessage } from '@/utils/messageUtils';
+export const useChat = (debugPanel: DebugPanelState, isOrgReady: boolean = false) => {
+  const [messages, setMessages] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [suggestedQuestions, setSuggestedQuestions] = useState<string[]>([]);
+  const [showReflection, setShowReflection] = useState(false);
+  const [isRecoveringOrg, setIsRecoveringOrg] = useState(false);
 
-export const useChat = (debugPanel?: ReturnType<typeof import('./use-debug-panel').useDebugPanel>): ChatHookReturn => {
-  const { userId, orgId, user, currentUser, isAuthenticated } = useAuth();
-  const { isRecoveringOrg } = useOrgRecovery(userId, orgId, isAuthenticated);
-  
-  // Initialize feedback system
-  const { messages, setMessages, handleFeedback } = useFeedback([]);
-  
-  // Initialize reflection system
-  const { showReflection, setShowReflection } = useReflection(userId, messages.length);
-  
-  // Initialize message sending system with debug panel options
-  const { isLoading, handleSendMessage } = useSendMessage(
-    messages,
-    setMessages,
-    userId,
-    orgId,
-    user || currentUser, // Use whatever user data is available
-    debugPanel ? {
-      setRequestLoading: debugPanel.setRequestLoading,
-      setRequestSuccess: debugPanel.setRequestSuccess,
-      setRequestError: debugPanel.setRequestError
-    } : undefined
-  );
-
-  // Log comprehensive auth state for debugging
-  console.log("✅ Final Sage auth context:", {
-    userId,
-    orgId,
-    role: user?.user_metadata?.role || currentUser?.role || 'unknown',
-    hasSessionMetadata: user ? !!user.user_metadata : false,
-    hasCurrentUser: !!currentUser,
-    isAuthenticated
-  });
-  
-  // Add initial greeting message if no messages exist
-  useEffect(() => {
-    if (messages.length === 0) {
-      if (!userId) {
-        console.warn("⚠️ User authenticated but missing userId:", { userId });
-        return;
-      }
-      
-      if (!isRecoveringOrg) {
-        const welcomeMessage = createSageMessage(
-          "Hi there! I'm Sage, your onboarding assistant. How can I help you today?"
-        );
-        setMessages([welcomeMessage]);
-      }
+  const handleSendMessage = useCallback(async (content: string) => {
+    if (!isOrgReady) {
+      console.warn("[Sage Chat] ⚠️ Cannot send message - waiting for org context");
+      return;
     }
-  }, [messages.length, userId, isRecoveringOrg, setMessages]);
+
+    setIsLoading(true);
+    setMessages((prevMessages) => [
+      ...prevMessages,
+      { id: uuidv4(), content: content, role: 'user' },
+    ]);
+
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message: content, debugPanel }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data && data.output) {
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          { id: uuidv4(), content: data.output, role: 'sage' },
+        ]);
+        setSuggestedQuestions(data.suggestedQuestions || []);
+        setShowReflection(data.showReflection);
+      } else {
+        console.warn("Empty response from /api/chat");
+      }
+    } catch (error) {
+      console.error("Error in handleSendMessage:", error);
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { id: uuidv4(), content: "Sorry, I encountered an error. Please try again.", role: 'sage' },
+      ]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isOrgReady, debugPanel]);
+
+  const handleFeedback = async (messageId: string, feedback: string) => {
+    console.log('Feedback submitted:', { messageId, feedback });
+    // Here you would typically send the feedback to your server
+    // for storage and/or analysis.
+  };
 
   return {
     messages,
-    suggestedQuestions: SUGGESTED_QUESTIONS,
+    isLoading,
+    suggestedQuestions,
     showReflection,
     setShowReflection,
     handleSendMessage,
     handleFeedback,
-    isLoading,
     isRecoveringOrg
   };
 };

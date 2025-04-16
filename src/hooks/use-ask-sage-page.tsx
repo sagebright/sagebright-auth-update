@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
@@ -10,11 +9,23 @@ import { useDebugPanel } from '@/hooks/use-debug-panel';
 export const useAskSagePage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user, userId, orgId, loading: authLoading, isAuthenticated } = useRequireAuth(navigate);
+  const { 
+    user, 
+    userId, 
+    orgId, 
+    orgSlug,
+    currentUser: currentUserData,
+    loading: authLoading, 
+    isAuthenticated 
+  } = useRequireAuth(navigate);
   
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isRecoveryVisible, setIsRecoveryVisible] = useState(false);
   const [pageInitialized, setPageInitialized] = useState(false);
+  
+  // Context readiness check
+  const isOrgReady = !!orgSlug && !!currentUserData;
+  const sessionUserReady = !!user;
   
   // Use our custom hook to get the voice parameter
   const voiceParam = useVoiceParam();
@@ -22,6 +33,29 @@ export const useAskSagePage = () => {
   // Get debug panel state and functions
   const debugPanel = useDebugPanel();
   
+  useEffect(() => {
+    // Log context readiness state
+    console.log("[Sage Init] Context readiness check:", {
+      isOrgReady,
+      sessionUserReady,
+      hasOrgSlug: !!orgSlug,
+      hasCurrentUserData: !!currentUserData,
+      timestamp: new Date().toISOString()
+    });
+
+    if (!authLoading && isAuthenticated && !pageInitialized) {
+      // Only initialize if we have full context
+      if (sessionUserReady && isOrgReady) {
+        console.log("[Sage Init] ✅ Full context ready, initializing page");
+        setPageInitialized(true);
+      } else {
+        console.log("[Sage Init] ⏳ Waiting for full context...");
+        if (!orgSlug) console.warn("[Sage Init] ⚠️ orgSlug missing");
+        if (!currentUserData) console.warn("[Sage Init] ⚠️ currentUserData missing");
+      }
+    }
+  }, [authLoading, isAuthenticated, sessionUserReady, isOrgReady, pageInitialized, orgSlug, currentUserData]);
+
   useEffect(() => {
     console.log("🎤 AskSagePage voice parameter (timestamp: %s): %s", 
                 new Date().toISOString(), 
@@ -34,7 +68,7 @@ export const useAskSagePage = () => {
     });
   }, [voiceParam]);
 
-  // Modify useChat to pass debug panel options
+  // Modify useChat to pass context readiness
   const {
     messages,
     isLoading,
@@ -44,7 +78,7 @@ export const useAskSagePage = () => {
     handleSendMessage,
     handleFeedback,
     isRecoveringOrg
-  } = useChat(debugPanel);
+  } = useChat(debugPanel, isOrgReady);
 
   // Initialize page after auth is done loading (only need basic auth, not full currentUser)
   useEffect(() => {
@@ -143,6 +177,7 @@ export const useAskSagePage = () => {
     voiceParam,
     
     // Debug panel
-    debugPanel
+    debugPanel,
+    isOrgReady, // Add this to the return object
   };
 };

@@ -1,6 +1,3 @@
-
-// src/lib/buildSageContext.ts
-
 import { fetchOrgContext } from '@/lib/fetchOrgContext';
 import { fetchUserContext } from '@/lib/fetchUserContext';
 import { validateContextIds, validateOrgContext, validateUserContext } from '@/lib/contextValidation';
@@ -11,15 +8,34 @@ import { validateSageContext } from './validation/contextSchema';
  * Constructs the full context for Sage based on the user and org.
  *
  * @param userId - ID of the current user
- * @param orgId - ID of the user's organization
+ * @param orgId - ID of the user's organization 
+ * @param orgSlug - Slug of the organization
+ * @param currentUserData - Full user data object
  * @returns Enriched context object Sage will use
  */
-export async function buildSageContext(userId: string, orgId: string) {
+export async function buildSageContext(
+  userId: string, 
+  orgId: string,
+  orgSlug: string | null,
+  currentUserData: any | null
+) {
+  // Log detailed context state
   console.log("[Sage Init] Starting buildSageContext with:", {
     userId,
     orgId,
+    orgSlug,
+    hasCurrentUserData: !!currentUserData,
     timestamp: new Date().toISOString()
   });
+
+  // Validate required context
+  if (!orgSlug || !currentUserData) {
+    console.warn("[Sage Init] ⚠️ Missing required context:", {
+      hasOrgSlug: !!orgSlug,
+      hasCurrentUserData: !!currentUserData
+    });
+    return null;
+  }
   
   try {
     // Validate input parameters
