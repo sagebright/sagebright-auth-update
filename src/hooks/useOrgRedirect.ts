@@ -1,4 +1,3 @@
-
 import { useEffect, useRef } from 'react';
 import { NavigateFunction } from 'react-router-dom';
 import { getOrgFromUrl, redirectToOrgUrl } from '@/lib/subdomainUtils';
@@ -23,6 +22,7 @@ export const useOrgRedirect = ({
   useEffect(() => {
     const currentOrgSlug = getOrgFromUrl();
     
+    // Handle org subdomain redirects - ensure user is on the correct org subdomain
     if (orgSlug && !redirectAttempted.current && isAuthenticated) {
       if (orgSlug && (!currentOrgSlug || currentOrgSlug !== orgSlug)) {
         console.log("🏢 Redirecting to correct org subdomain:", orgSlug);
@@ -44,6 +44,29 @@ export const useOrgRedirect = ({
       }
       
       navigate('/auth/login', { replace: true });
+    }
+    
+    // Only redirect to dashboard if user is on root or login page, not already on a specific route
+    if (isAuthenticated && !loading && !redirectAttempted.current) {
+      // Only redirect if the user is on / or /auth/login - don't bounce them from other valid routes
+      if (pathname === '/' || pathname === '/auth/login') {
+        console.log("👤 Authenticated user on root/login, redirecting to dashboard");
+        redirectAttempted.current = true;
+        
+        // Get the stored redirect path if available
+        const redirectPath = localStorage.getItem("redirectAfterLogin");
+        if (redirectPath && redirectPath !== '/auth/login' && redirectPath !== '/') {
+          console.log("🔄 Redirecting to stored path:", redirectPath);
+          localStorage.removeItem("redirectAfterLogin");
+          navigate(redirectPath, { replace: true });
+        } else {
+          // Otherwise default to user dashboard
+          console.log("🔄 No stored path, redirecting to default dashboard");
+          navigate('/user-dashboard', { replace: true });
+        }
+      } else {
+        console.log("👤 Authenticated user already on valid route:", pathname);
+      }
     }
   }, [orgSlug, isAuthenticated, loading, pathname, navigate]);
 };

@@ -37,12 +37,13 @@ export function useRouteProtection(navigate: NavigateFunction) {
       console.log("✅ Session data fully stabilized:", {
         userId: auth.userId,
         role: auth.user?.user_metadata?.role || 'unknown',
-        orgId: auth.orgId
+        orgId: auth.orgId,
+        currentPath: location.pathname
       });
       
       sessionStabilizedRef.current = true;
     }
-  }, [auth.loading, auth.isAuthenticated, auth.user, auth.userId, auth.orgId]);
+  }, [auth.loading, auth.isAuthenticated, auth.user, auth.userId, auth.orgId, location.pathname]);
 
   // Special route protection for /ask-sage to prevent unwanted redirects
   useEffect(() => {
@@ -57,6 +58,12 @@ export function useRouteProtection(navigate: NavigateFunction) {
       }, 10000);
       
       return () => clearTimeout(timerId);
+    } else {
+      // If we navigate away from /ask-sage, clear the blocker
+      if (userDashboardRedirectBlocker.current) {
+        console.log("🛡️ Clearing ask-sage protection flag due to route change");
+        userDashboardRedirectBlocker.current = false;
+      }
     }
   }, [location.pathname]);
 
