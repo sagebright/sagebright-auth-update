@@ -1,9 +1,5 @@
-
 import { RedirectIntent, IntentValidationResult } from './types';
-
-const DEFAULT_EXPIRY_MS = 30 * 60 * 1000; // 30 minutes
-const STORAGE_KEY = 'sagebright_redirect_intent';
-const MAX_RECENT_INTENTS = 5;
+import { STORAGE_KEY, MAX_RECENT_INTENTS, DEFAULT_EXPIRY_MS } from './constants';
 
 /**
  * Validates a redirect intent to ensure it's still valid
@@ -79,109 +75,8 @@ export function createRedirectIntent(
 /**
  * Generates a unique ID for tracing intents through logs
  */
-function generateIntentId(): string {
+export function generateIntentId(): string {
   return `intent_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-}
-
-/**
- * Persists a redirect intent to storage
- */
-export function persistIntent(intent: RedirectIntent): boolean {
-  try {
-    const serialized = JSON.stringify(intent);
-    localStorage.setItem(STORAGE_KEY, serialized);
-    
-    const timestamp = new Date().toISOString();
-    console.log(`🔄 [${timestamp}] Persisted redirect intent:`, { 
-      intentId: intent.metadata?.intentId,
-      destination: intent.destination, 
-      reason: intent.reason,
-      priority: intent.priority,
-      expiry: new Date(intent.expiry || 0).toISOString() 
-    });
-    
-    return true;
-  } catch (error) {
-    console.error('❌ Failed to persist redirect intent:', error);
-    return false;
-  }
-}
-
-/**
- * Retrieves a redirect intent from storage
- */
-export function retrieveIntent(): RedirectIntent | null {
-  try {
-    const serialized = localStorage.getItem(STORAGE_KEY);
-    
-    if (!serialized) {
-      return null;
-    }
-    
-    const intent = JSON.parse(serialized) as RedirectIntent;
-    const validation = validateIntent(intent);
-    
-    if (!validation.isValid) {
-      console.warn(`⚠️ Retrieved invalid intent: ${validation.reason}`);
-      clearPersistedIntent();
-      return null;
-    }
-    
-    return intent;
-  } catch (error) {
-    console.error('❌ Failed to retrieve redirect intent:', error);
-    clearPersistedIntent();
-    return null;
-  }
-}
-
-/**
- * Clears a persisted redirect intent
- */
-export function clearPersistedIntent(): void {
-  try {
-    const existingIntent = retrieveIntent();
-    if (existingIntent) {
-      console.log('🧹 Clearing persisted redirect intent:', {
-        intentId: existingIntent.metadata?.intentId,
-        destination: existingIntent.destination
-      });
-    }
-    
-    localStorage.removeItem(STORAGE_KEY);
-  } catch (error) {
-    console.error('❌ Error clearing persisted intent:', error);
-  }
-}
-
-/**
- * Detects potential redirect loops by checking frequency of redirects
- */
-export function detectRedirectLoop(recentIntents: RedirectIntent[]): boolean {
-  if (recentIntents.length < 3) {
-    return false;
-  }
-  
-  // Check if we have 3+ redirects to the same destination in a short time window
-  const last3Intents = recentIntents.slice(-3);
-  const sameDestination = last3Intents.every(intent => 
-    intent.destination === last3Intents[0].destination
-  );
-  
-  // Check if these redirects happened within 5 seconds of each other
-  const timeWindow = last3Intents[last3Intents.length - 1].timestamp - last3Intents[0].timestamp;
-  const tooFrequent = timeWindow < 5000; // 5 seconds
-  
-  if (sameDestination && tooFrequent) {
-    console.error('🔄🔄🔄 Detected potential redirect loop!', { 
-      destination: last3Intents[0].destination,
-      intentIds: last3Intents.map(i => i.metadata?.intentId),
-      timeWindowMs: timeWindow
-    });
-    return true;
-  }
-  
-  return false;
 }
 
 /**
@@ -196,27 +91,6 @@ export function updateRecentIntents(
   
   // Keep only the most recent intents up to maxHistory
   return updated.slice(-maxHistory);
-}
-
-/**
- * Cleans up stale intents from storage
- */
-export function cleanupStaleIntents(): void {
-  try {
-    const intent = retrieveIntent();
-    
-    if (intent && intent.expiry && Date.now() > intent.expiry) {
-      console.log('🧹 Cleaning up stale intent:', {
-        intentId: intent.metadata?.intentId,
-        destination: intent.destination,
-        expiredAgo: Date.now() - intent.expiry
-      });
-      
-      clearPersistedIntent();
-    }
-  } catch (error) {
-    console.error('❌ Error cleaning up stale intents:', error);
-  }
 }
 
 /**
@@ -271,4 +145,3 @@ export function createIntentAuditLog(
     ...details
   };
 }
-
