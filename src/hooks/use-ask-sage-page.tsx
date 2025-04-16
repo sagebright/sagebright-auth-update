@@ -6,7 +6,7 @@ import { ReflectionData } from '@/components/ask-sage/ReflectionForm';
 import { useVoiceParam } from '@/hooks/use-voice-param';
 import { useDebugPanel } from '@/hooks/use-debug-panel';
 import { useAuth } from '@/contexts/auth/AuthContext';
-import { useSageContextReady } from '@/hooks/use-sage-context-ready';
+import { useSageContextReadiness } from '@/hooks/use-sage-context-readiness';
 import { toast } from '@/components/ui/use-toast';
 
 export const useAskSagePage = () => {
@@ -30,7 +30,7 @@ export const useAskSagePage = () => {
   
   const sessionUserReady = !!user;
   
-  const { isContextReady, contextCheckComplete, missingContext } = useSageContextReady(
+  const { isContextReady, contextCheckComplete, missingContext } = useSageContextReadiness(
     userId,
     orgId,
     orgSlug,
@@ -43,7 +43,7 @@ export const useAskSagePage = () => {
   const debugPanel = useDebugPanel();
 
   useEffect(() => {
-    console.log("[Sage Init] Context readiness from useSageContextReady:", {
+    console.log("[Sage Init] Context readiness from useSageContextReadiness:", {
       isContextReady,
       contextCheckComplete,
       missingContext,
