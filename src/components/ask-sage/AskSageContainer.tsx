@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { DashboardContainer } from '@/components/layout/DashboardContainer';
 import { ChatHeader } from '@/components/ask-sage/ChatHeader';
 import { ResourcesSidebar } from '@/components/ask-sage/ResourcesSidebar';
@@ -56,9 +56,7 @@ export const AskSageContainer: React.FC = () => {
 
   const { orgId } = useAuth();
 
-  // Capture intent on /ask-sage page load to ensure we can get back here
   useEffect(() => {
-    // Only capture if we have a valid non-default voice parameter
     if (voiceParamState.isValid && voiceParamState.currentVoice !== 'default') {
       console.log(`📝 Preserving voice parameter ${voiceParamState.currentVoice} for /ask-sage`);
       
@@ -71,14 +69,12 @@ export const AskSageContainer: React.FC = () => {
           timestamp: Date.now(),
           context: 'page_load_protection'
         },
-        60 // High priority - protect ask-sage state
+        60
       );
     }
   }, [captureIntent, voiceParamState.currentVoice, voiceParamState.isValid]);
 
-  // Render protection and loading states
   if (!shouldRender) {
-    // Prioritize rendering based on context readiness
     if (!canInteract) {
       console.warn('🚧 Ask Sage not ready. Blockers:', readinessBlockers);
       return <LoadingSage />;
@@ -86,7 +82,6 @@ export const AskSageContainer: React.FC = () => {
     return null;
   }
 
-  // Keep existing route protection logic
   if (authLoading) return <LoadingUI />;
   if (!authLoading && !userId) return <AuthRequiredUI />;
   if (!authLoading && userId && !orgId && !isRecoveringOrg) return <OrgRecoveryUI />;
@@ -136,7 +131,6 @@ export const AskSageContainer: React.FC = () => {
           isMobile={isMobile}
         />
         
-        {/* Add Debug Panel */}
         <DebugPanel />
       </div>
     </DashboardContainer>
