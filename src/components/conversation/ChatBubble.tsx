@@ -25,6 +25,19 @@ export function ChatBubble({
   const isSage = sender === "sage";
   const isUser = sender === "user";
   const isSystem = sender === "system";
+  
+  // Safe date formatting
+  const formatTimestamp = (timestamp?: Date) => {
+    try {
+      if (!timestamp || !(timestamp instanceof Date) || isNaN(timestamp.getTime())) {
+        return "";
+      }
+      return timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return "";
+    }
+  };
 
   return (
     <div
@@ -75,7 +88,7 @@ export function ChatBubble({
               isUser ? "text-right" : "text-left"
             )}
           >
-            {timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+            {formatTimestamp(timestamp)}
           </div>
         )}
       </div>

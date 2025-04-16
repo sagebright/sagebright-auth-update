@@ -1,3 +1,4 @@
+
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { Message } from '@/types/chat';
 import { useVoiceParam } from './use-voice-param';
@@ -82,6 +83,14 @@ export const useSendMessage = (
         throw new Error("No access token found. User might not be authenticated.");
       }
 
+      // Log context at time of sending message
+      console.log("[Sage Message] Sending with context:", {
+        userId,
+        orgId,
+        hasUser: !!user,
+        timestamp: new Date().toISOString()
+      });
+
       const response = await fetch("https://sagebright-backend-production.up.railway.app/api/ask-sage", {
         method: "POST",
         headers: {
@@ -92,10 +101,19 @@ export const useSendMessage = (
       });
 
       if (!response.ok) {
-        throw new Error("Failed to get response from Sage");
+        const errorText = await response.text();
+        console.error(`API Error (${response.status}):`, errorText);
+        throw new Error(`Failed to get response from Sage: ${response.status}`);
       }
 
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch (parseError) {
+        console.error("🧨 Failed to parse Sage response as JSON:", parseError);
+        console.log("Raw response:", await response.clone().text());
+        throw new Error("Invalid response format from Sage server");
+      }
 
       const sageMessage = createSageMessage(data.reply);
       setMessages(prev =>

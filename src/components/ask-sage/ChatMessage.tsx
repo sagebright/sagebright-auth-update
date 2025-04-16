@@ -31,6 +31,20 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, onFeedback })
   const avatarUrl = message.sender === 'sage' 
     ? "/lovable-uploads/sage_avatar.png" 
     : message.avatar_url;
+    
+  // Safe date formatting
+  const formatTimestamp = (timestamp: Date) => {
+    try {
+      if (!timestamp || !(timestamp instanceof Date) || isNaN(timestamp.getTime())) {
+        console.warn("🛑 Invalid date passed to formatter:", timestamp);
+        return "";
+      }
+      return format(timestamp, 'h:mm a');
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return "";
+    }
+  };
 
   return (
     <div className={`flex items-start gap-2 ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
@@ -55,7 +69,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, onFeedback })
         </div>
         <div className="flex items-center mt-1 px-1">
           <span className="text-xs text-gray-500">
-            {format(message.timestamp, 'h:mm a')}
+            {formatTimestamp(message.timestamp)}
           </span>
           {message.sender === 'sage' && (
             <div className="flex ml-2">

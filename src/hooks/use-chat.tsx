@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from 'react';
 import { useDebugPanel } from '@/hooks/use-debug-panel';
 import { v4 as uuidv4 } from 'uuid';
@@ -8,7 +9,12 @@ type DebugPanelState = ReturnType<typeof useDebugPanel>;
 export const useChat = (debugPanel: DebugPanelState, isOrgReady: boolean = false) => {
   const [messages, setMessages] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [suggestedQuestions, setSuggestedQuestions] = useState<string[]>([]);
+  const [suggestedQuestions, setSuggestedQuestions] = useState<string[]>([
+    "What resources are available for onboarding?",
+    "Who should I meet on my team?",
+    "What's the best way to get started?",
+    "How does the development environment work?",
+  ]);
   const [showReflection, setShowReflection] = useState(false);
   const [isRecoveringOrg, setIsRecoveringOrg] = useState(false);
 
@@ -26,7 +32,7 @@ export const useChat = (debugPanel: DebugPanelState, isOrgReady: boolean = false
     setIsLoading(true);
     setMessages((prevMessages) => [
       ...prevMessages,
-      { id: uuidv4(), content: content, role: 'user' },
+      { id: uuidv4(), content: content, role: 'user', timestamp: new Date() },
     ]);
 
     try {
@@ -39,17 +45,27 @@ export const useChat = (debugPanel: DebugPanelState, isOrgReady: boolean = false
       });
 
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`API Error (${response.status}):`, errorText);
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch (parseError) {
+        console.error("🧨 Failed to parse Sage response as JSON", parseError);
+        throw new Error("Sage server error. Check logs for HTML response.");
+      }
 
       if (data && data.output) {
         setMessages((prevMessages) => [
           ...prevMessages,
-          { id: uuidv4(), content: data.output, role: 'sage' },
+          { id: uuidv4(), content: data.output, role: 'sage', timestamp: new Date() },
         ]);
-        setSuggestedQuestions(data.suggestedQuestions || []);
+        if (data.suggestedQuestions) {
+          setSuggestedQuestions(data.suggestedQuestions);
+        }
         setShowReflection(data.showReflection);
       } else {
         console.warn("Empty response from /api/chat");
@@ -58,7 +74,7 @@ export const useChat = (debugPanel: DebugPanelState, isOrgReady: boolean = false
       console.error("Error in handleSendMessage:", error);
       setMessages((prevMessages) => [
         ...prevMessages,
-        { id: uuidv4(), content: "Sorry, I encountered an error. Please try again.", role: 'sage' },
+        { id: uuidv4(), content: "Sorry, I encountered an error. Please try again.", role: 'sage', timestamp: new Date() },
       ]);
     } finally {
       setIsLoading(false);

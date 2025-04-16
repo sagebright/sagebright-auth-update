@@ -18,6 +18,7 @@ import { useAuth } from '@/contexts/auth/AuthContext';
 import { LoadingUI } from '@/components/ask-sage/LoadingUI'; 
 import { AuthRequiredUI } from '@/components/ask-sage/AuthRequiredUI';
 import { OrgRecoveryUI } from '@/components/ask-sage/OrgRecoveryUI';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 const AskSage = () => {
   const isMobile = useIsMobile();
@@ -65,6 +66,7 @@ const AskSage = () => {
   }, [sessionUserReady, isOrgReady, authLoading, isReady, location.pathname]);
 
   if (!isReady) {
+    console.log("[Sage Init] ⏳ Waiting for full context before initializing...");
     return <LoadingSage />;
   }
 
@@ -132,16 +134,42 @@ const AskSage = () => {
         <div className="flex flex-1 overflow-hidden">
           <div className="flex-1 flex flex-col min-w-0 h-full">
             <div className="flex-1 overflow-y-auto p-4">
-              <div className="max-w-3xl mx-auto space-y-6">
-                {messages.map((message) => (
-                  <ChatMessage 
-                    key={message.id} 
-                    message={message} 
-                    onFeedback={handleFeedback} 
-                  />
-                ))}
-                {isLoading && <TypingIndicator />}
-              </div>
+              <ErrorBoundary fallback={
+                <div className="p-4 bg-red-50 text-red-800 rounded-lg my-4">
+                  <h3 className="font-medium">Something went wrong displaying messages</h3>
+                  <p>Try refreshing the page or contact support if the issue persists.</p>
+                </div>
+              }>
+                <div className="max-w-3xl mx-auto space-y-6">
+                  {messages.map((message) => (
+                    <ChatMessage 
+                      key={message.id} 
+                      message={message} 
+                      onFeedback={handleFeedback} 
+                    />
+                  ))}
+                  {isLoading && <TypingIndicator />}
+                </div>
+              </ErrorBoundary>
+              
+              {isReady && suggestedQuestions && suggestedQuestions.length > 0 && !isLoading && messages.length === 0 && (
+                <div className="mt-6">
+                  <h3 className="text-lg font-medium text-charcoal mb-3">
+                    What would you like to ask Sage?
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {suggestedQuestions.map((question, index) => (
+                      <button
+                        key={index}
+                        className="bg-white border border-gray-200 hover:bg-gray-50 p-3 rounded-lg text-left"
+                        onClick={() => handleSelectQuestion(question)}
+                      >
+                        {question}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="flex-shrink-0">
@@ -155,7 +183,7 @@ const AskSage = () => {
             </div>
           </div>
 
-          {sidebarOpen && (
+          {isReady && sidebarOpen && (
             <div className="hidden md:flex flex-col w-80 border-l border-border bg-background p-4 overflow-y-auto">
               <ResourcesSidebar />
             </div>
