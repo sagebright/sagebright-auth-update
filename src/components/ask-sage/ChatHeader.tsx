@@ -9,9 +9,14 @@ import { ResourcesSidebar } from './ResourcesSidebar';
 interface ChatHeaderProps {
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
+  isProtected?: boolean; // Added optional isProtected prop
 }
 
-export const ChatHeader: React.FC<ChatHeaderProps> = ({ sidebarOpen, setSidebarOpen }) => {
+export const ChatHeader: React.FC<ChatHeaderProps> = ({ 
+  sidebarOpen, 
+  setSidebarOpen,
+  isProtected = false // Default to false
+}) => {
   return (
     <div className="sticky top-0 z-10 bg-white border-b border-gray-100 shadow-sm">
       <div className="max-w-5xl mx-auto px-4 py-4 sm:px-6 flex justify-between items-center">
@@ -22,6 +27,9 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({ sidebarOpen, setSidebarO
           <div>
             <h1 className="text-xl font-helvetica font-medium text-charcoal">Ask Sage</h1>
             <p className="text-sm text-gray-500">Answers that help you move forward</p>
+            {isProtected && (
+              <span className="text-xs text-primary">🛡️ Protection active</span>
+            )}
           </div>
         </div>
         

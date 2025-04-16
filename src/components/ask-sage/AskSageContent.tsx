@@ -20,6 +20,8 @@ interface AskSageContentProps {
   isContextReady: boolean;
   showWelcomeMessage: boolean;
   voiceParam: string | null;
+  isProtected?: boolean; // Added missing props to interface
+  canInteract?: boolean;  
 }
 
 export const AskSageContent: React.FC<AskSageContentProps> = ({
@@ -32,7 +34,9 @@ export const AskSageContent: React.FC<AskSageContentProps> = ({
   handleFeedback,
   isContextReady,
   showWelcomeMessage,
-  voiceParam
+  voiceParam,
+  isProtected = false, // Default value
+  canInteract = true   // Default value
 }) => {
   const { currentUser } = useAuth();
 
@@ -82,7 +86,7 @@ export const AskSageContent: React.FC<AskSageContentProps> = ({
           isLoading={isLoading}
           suggestedQuestions={suggestedQuestions}
           onSelectQuestion={handleSelectQuestion}
-          disabled={!isContextReady}
+          disabled={!isContextReady || !canInteract || isProtected}
         />
       </div>
     </div>
