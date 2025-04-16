@@ -8,8 +8,9 @@ import { getOrgFromUrl, redirectToOrgUrl } from '@/lib/subdomainUtils';
 export const useOrgRedirect = () => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const { orgSlug } = useOrgContext();
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, userId } = useAuth();
+  // Call useOrgContext with the expected arguments from our implementation
+  const { orgSlug } = useOrgContext(userId, isAuthenticated);
   const redirectAttempted = useRef(false);
 
   useEffect(() => {

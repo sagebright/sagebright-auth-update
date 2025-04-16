@@ -31,14 +31,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     pathname: location.pathname + location.search
   });
 
-  // Handle org-specific redirects
-  useOrgRedirect({
-    orgSlug,
-    isAuthenticated,
-    loading,
-    pathname: location.pathname + location.search,
-    navigate
-  });
+  // Handle org-specific redirects - now called without arguments
+  useOrgRedirect();
   
   if (loading) {
     return (
