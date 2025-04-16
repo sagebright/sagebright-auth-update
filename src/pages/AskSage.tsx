@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { DashboardContainer } from '@/components/layout/DashboardContainer';
 import { ChatHeader } from '@/components/ask-sage/ChatHeader';
@@ -14,6 +15,9 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { useIsMobile } from '@/hooks/use-mobile';
 import { DebugPanel } from '@/components/debug/DebugPanel';
 import { useAuth } from '@/contexts/auth/AuthContext';
+import { LoadingUI } from '@/components/ask-sage/LoadingUI'; 
+import { AuthRequiredUI } from '@/components/ask-sage/AuthRequiredUI';
+import { OrgRecoveryUI } from '@/components/ask-sage/OrgRecoveryUI';
 
 const AskSage = () => {
   const isMobile = useIsMobile();
