@@ -1,5 +1,5 @@
 
-import { useSageContextReadiness } from './use-sage-context-readiness';
+import { useSageContextReadiness } from './sage-context';
 
 /**
  * @deprecated Use useSageContextReadiness instead
