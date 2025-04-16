@@ -75,16 +75,21 @@
 │   │   │       ├── integrations
 │   │   │       └── questions
 │   │   ├── ask-sage
+│   │   │   ├── AskSageContainer.tsx
+│   │   │   ├── AskSageContent.tsx
+│   │   │   ├── AskSageReflectionDialog.tsx
 │   │   │   ├── AuthRequiredUI.tsx
 │   │   │   ├── ChatHeader.tsx
 │   │   │   ├── ChatInputBar.tsx
 │   │   │   ├── ChatMessage.tsx
+│   │   │   ├── LoadingSage.tsx
 │   │   │   ├── LoadingUI.tsx
 │   │   │   ├── OrgRecoveryUI.tsx
 │   │   │   ├── ReflectionForm.tsx
 │   │   │   ├── ResourcesSidebar.tsx
 │   │   │   ├── SuggestedQuestions.tsx
-│   │   │   └── TypingIndicator.tsx
+│   │   │   ├── TypingIndicator.tsx
+│   │   │   └── WelcomeMessage.tsx
 │   │   ├── auth
 │   │   │   ├── AuthDivider.tsx
 │   │   │   ├── AuthLayout.tsx
@@ -256,6 +261,19 @@
 │   ├── data
 │   │   └── suggestedQuestions.ts
 │   ├── hooks
+│   │   ├── ask-sage
+│   │   │   ├── index.ts
+│   │   │   ├── use-context-monitor.ts
+│   │   │   ├── use-question-selection.ts
+│   │   │   ├── use-reflection-handler.ts
+│   │   │   ├── use-sage-messenger.ts
+│   │   │   └── use-sage-ui-state.ts
+│   │   ├── sage-context
+│   │   │   ├── index.ts
+│   │   │   ├── readiness-checks.ts
+│   │   │   ├── readiness-logger.ts
+│   │   │   ├── types.ts
+│   │   │   └── use-sage-context-readiness.ts
 │   │   ├── use-ask-sage-page.tsx
 │   │   ├── use-chat.tsx
 │   │   ├── use-debug-panel.ts
@@ -264,6 +282,8 @@
 │   │   ├── use-mobile.tsx
 │   │   ├── use-org-recovery.tsx
 │   │   ├── use-reflection.ts
+│   │   ├── use-sage-context-readiness.ts
+│   │   ├── use-sage-context-ready.ts
 │   │   ├── use-send-message.ts
 │   │   ├── use-toast.ts
 │   │   ├── use-voice-param.ts
@@ -310,6 +330,11 @@
 │   │   ├── performance.ts
 │   │   ├── permissions.ts
 │   │   ├── promptBuilder.ts
+│   │   ├── redirect-intent
+│   │   │   ├── index.ts
+│   │   │   ├── types.ts
+│   │   │   ├── use-redirect-intent-manager.ts
+│   │   │   └── utils.ts
 │   │   ├── routing
 │   │   │   └── types.ts
 │   │   ├── subdomainUtils.ts
@@ -326,6 +351,7 @@
 │   │   ├── AdminDashboard.tsx
 │   │   ├── ApiDebug.tsx
 │   │   ├── AskSage.tsx
+│   │   ├── AuthDebug.tsx
 │   │   ├── ContactUs.tsx
 │   │   ├── Dashboard.tsx
 │   │   ├── DesignSystem.tsx
@@ -379,4 +405,4 @@
 ├── tsconfig.node.json
 └── vite.config.ts
 
-56 directories, 324 files
+59 directories, 347 files
