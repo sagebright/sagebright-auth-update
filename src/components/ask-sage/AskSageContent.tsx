@@ -78,7 +78,7 @@ export const AskSageContent: React.FC<AskSageContentProps> = ({
       <div className="flex-shrink-0">
         <ChatInputBar 
           onSendMessage={sendMessageToSage} 
-          onReflectionSubmit={handleReflectionSubmit}
+          onReflectionSubmit={(data: ReflectionData) => handleReflectionSubmit(data)}
           isLoading={isLoading}
           suggestedQuestions={suggestedQuestions}
           onSelectQuestion={handleSelectQuestion}
