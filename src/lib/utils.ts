@@ -13,6 +13,16 @@ export function getRedirectPath(locationState: any): string {
 }
 
 /**
+ * Check if a voice parameter is valid (exists in voiceprints)
+ * @param voice The voice parameter to validate
+ * @returns Boolean indicating if the voice is valid
+ */
+export function isValidVoice(voice: string | null | undefined): boolean {
+  if (!voice) return false;
+  return voice in voiceprints || voice === 'default';
+}
+
+/**
  * Extract and validate voice parameter from URL search params
  * @param search The search string from useLocation().search
  * @returns The validated voice value from URL or 'default' if not present or invalid
@@ -27,11 +37,11 @@ export function getVoiceFromUrl(search: string): string {
     console.log("🔊 Parsed voice param:", voiceParam);
     
     // Return the voice parameter if it exists and is valid, otherwise 'default'
-    if (voiceParam && typeof voiceParam === 'string' && voiceParam in voiceprints) {
+    if (voiceParam && isValidVoice(voiceParam)) {
       return voiceParam;
     }
     
-    if (voiceParam && !(voiceParam in voiceprints)) {
+    if (voiceParam && !isValidVoice(voiceParam)) {
       console.warn(`⚠️ Invalid voice parameter: "${voiceParam}". Falling back to "default".`);
     }
     
@@ -41,3 +51,4 @@ export function getVoiceFromUrl(search: string): string {
     return 'default';
   }
 }
+

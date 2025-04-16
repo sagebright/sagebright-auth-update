@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { DashboardContainer } from '@/components/layout/DashboardContainer';
 import { ChatHeader } from '@/components/ask-sage/ChatHeader';
 import { ResourcesSidebar } from '@/components/ask-sage/ResourcesSidebar';
@@ -14,10 +14,14 @@ import { AskSageContent } from '@/components/ask-sage/AskSageContent';
 import { AskSageReflectionDialog } from '@/components/ask-sage/AskSageReflectionDialog';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/contexts/auth/AuthContext';
+import { useVoiceParamState } from '@/hooks/use-voice-param';
+import { useRedirectIntentManager } from '@/lib/redirect-intent';
 
 export const AskSageContainer: React.FC = () => {
   const isMobile = useIsMobile();
   const location = useLocation();
+  const voiceParamState = useVoiceParamState();
+  const { captureIntent } = useRedirectIntentManager();
   
   const {
     userId,
@@ -51,6 +55,26 @@ export const AskSageContainer: React.FC = () => {
 
   const { orgId } = useAuth();
 
+  // Capture intent on /ask-sage page load to ensure we can get back here
+  useEffect(() => {
+    // Only capture if we have a valid non-default voice parameter
+    if (voiceParamState.isValid && voiceParamState.currentVoice !== 'default') {
+      console.log(`📝 Preserving voice parameter ${voiceParamState.currentVoice} for /ask-sage`);
+      
+      captureIntent(
+        '/ask-sage',
+        'user-initiated',
+        {
+          voiceParam: voiceParamState.currentVoice,
+          source: 'ask_sage_protection',
+          timestamp: Date.now(),
+          context: 'page_load_protection'
+        },
+        60 // High priority - protect ask-sage state
+      );
+    }
+  }, [captureIntent, voiceParamState.currentVoice, voiceParamState.isValid]);
+
   // Only wait for basic auth checks, not full current user data
   if (authLoading) {
     return <LoadingUI />;
@@ -78,7 +102,7 @@ export const AskSageContainer: React.FC = () => {
 
         {process.env.NODE_ENV === 'development' && (
           <div className="bg-secondary/10 px-4 py-1 text-xs text-charcoal">
-            🎤 Voice: <strong>{voiceParam}</strong> | {location.search}
+            🎤 Voice: <strong>{voiceParam}</strong> | Source: <strong>{voiceParamState.source}</strong>
             {!voiceParam && (
               <span className="text-accent1"> (Missing voice param!)</span>
             )}
@@ -122,3 +146,4 @@ export const AskSageContainer: React.FC = () => {
     </DashboardContainer>
   );
 };
+

@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useVoiceParamState } from '@/hooks/use-voice-param';
 
 interface WelcomeMessageProps {
   voiceParam?: string | null;
@@ -7,12 +8,24 @@ interface WelcomeMessageProps {
 }
 
 export const WelcomeMessage: React.FC<WelcomeMessageProps> = ({ voiceParam, userName }) => {
+  // Get detailed voice param state for enhanced data
+  const voiceParamState = useVoiceParamState();
+  
   // Determine the appropriate greeting based on voice parameter
   const getGreeting = () => {
-    if (voiceParam === 'onboarding') {
+    // Use voiceParam from props, which should match voiceParamState.currentVoice
+    const voice = voiceParam || 'default';
+    
+    if (voice === 'onboarding') {
       return "Hi there! I'm Sage, your onboarding assistant. How can I help you get started today?";
-    } else if (voiceParam === 'troubleshooting') {
+    } else if (voice === 'troubleshooting') {
       return "Hello! I'm Sage, here to help you troubleshoot any issues you're facing. What can I assist with?";
+    } else if (voice === 'coach') {
+      return `Welcome${userName ? ` ${userName}` : ''}. I'm Sage, your executive coach. What would you like to work on today?`;
+    } else if (voice === 'analyst') {
+      return `Hello${userName ? ` ${userName}` : ''}. I'm Sage, ready to analyze data and identify patterns for you.`;
+    } else if (voice === 'companion') {
+      return `Hi${userName ? ` ${userName}` : ''}. I'm Sage, here to provide support and companionship through your workday.`;
     } else {
       return `Hi${userName ? ` ${userName}` : ''}! I'm Sage, your AI assistant. How can I help you today?`;
     }
@@ -25,6 +38,13 @@ export const WelcomeMessage: React.FC<WelcomeMessageProps> = ({ voiceParam, user
       <p className="text-sm text-gray-600 mt-2">
         I can answer questions about your onboarding, company policies, team members, and more.
       </p>
+      {process.env.NODE_ENV === 'development' && (
+        <div className="mt-2 p-1 bg-gray-100 rounded text-xs text-gray-700">
+          Voice: {voiceParam} | Source: {voiceParamState.source} | 
+          Valid: {voiceParamState.isValid ? 'Yes' : 'No'}
+        </div>
+      )}
     </div>
   );
 };
+

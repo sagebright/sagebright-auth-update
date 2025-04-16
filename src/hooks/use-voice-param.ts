@@ -1,20 +1,37 @@
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { getVoiceFromUrl } from '@/lib/utils';
 import { useRedirectIntentManager } from '@/lib/redirect-intent';
+import { voiceprints } from '@/lib/voiceprints';
 
-interface VoiceParamState {
+export interface VoiceParamState {
   currentVoice: string;
   previousVoice: string | null;
   source: 'url' | 'storage' | 'intent' | 'default';
   timestamp: number;
   isValid: boolean;
+  sourceDetails?: {
+    urlParam?: string;
+    intentId?: string;
+    storageTimestamp?: number;
+  };
+}
+
+type VoiceParamSource = 'url' | 'storage' | 'intent' | 'default';
+
+interface VoiceSourceCandidate {
+  value: string;
+  source: VoiceParamSource;
+  priority: number;
+  isValid: boolean;
+  timestamp: number;
+  sourceDetails?: Record<string, any>;
 }
 
 /**
- * Enhanced hook that manages voice parameter state with history, source tracking and validation
- * Now with intent system integration
+ * Enhanced hook that manages voice parameter state with better tracing and validation
+ * Now fully integrated with intent system for persistence across page transitions
  * @returns A string representing the current voice parameter
  */
 export function useVoiceParam(): string {
@@ -30,80 +47,174 @@ export function useVoiceParam(): string {
   const loggedWarningRef = useRef<boolean>(false);
   
   // Get active intent for voice parameter preservation
-  const { activeIntent } = useRedirectIntentManager();
+  const { activeIntent, captureIntent } = useRedirectIntentManager();
+
+  // Validates if a voice parameter is valid (exists in voiceprints)
+  const validateVoice = useCallback((voice: string): boolean => {
+    if (!voice) return false;
+    return voice in voiceprints || voice === 'default';
+  }, []);
   
+  // Choose the best voice parameter from all available sources
+  const selectBestVoiceSource = useCallback((sources: VoiceSourceCandidate[]): VoiceSourceCandidate => {
+    // Sort by priority (higher is better) and then by timestamp (newer is better)
+    const validSources = sources.filter(s => s.isValid);
+    
+    if (validSources.length === 0) {
+      console.log('🎤 No valid voice sources found, defaulting to "default"');
+      return {
+        value: 'default',
+        source: 'default',
+        priority: 0,
+        isValid: true,
+        timestamp: Date.now()
+      };
+    }
+    
+    // Sort by priority (descending) then by timestamp (descending)
+    validSources.sort((a, b) => {
+      if (a.priority !== b.priority) {
+        return b.priority - a.priority; // Higher priority first
+      }
+      return b.timestamp - a.timestamp; // Newer timestamp first
+    });
+    
+    const selected = validSources[0];
+    console.log(`🎤 Selected voice source: ${selected.source} (${selected.value})`);
+    return selected;
+  }, []);
+
   useEffect(() => {
     // Start a console group for voice parameter logging
     console.group('🎤 Voice Parameter Detection');
     
     try {
-      // Get voice from URL search params - this is our canonical source of truth
+      // Collect all possible voice parameter sources
+      const sources: VoiceSourceCandidate[] = [];
+
+      // 1. URL source (highest priority - explicit user choice)
       const voiceFromUrl = getVoiceFromUrl(location.search);
-      const storedVoice = localStorage.getItem('lastVoiceParam');
-      
-      // Check for voice in active intent (new high-priority source)
-      const intentVoice = activeIntent?.metadata?.voiceParam;
-      
-      console.log(`Current path: ${location.pathname}, search: ${location.search}`);
-      console.log(`Voice sources: URL: ${voiceFromUrl}, Storage: ${storedVoice}, Intent: ${intentVoice}`);
-      
-      // Check if we've navigated to a new path
-      if (location.pathname !== lastPathRef.current) {
-        console.log(`Path changed from ${lastPathRef.current} to ${location.pathname}`);
-        lastPathRef.current = location.pathname;
-      }
-      
-      // Clear warning log flag when search params change
-      if (loggedWarningRef.current && location.search) {
-        loggedWarningRef.current = false;
-      }
-      
-      // Determine the new voice parameter and its source - now with intent priority
-      let newVoice = 'default';
-      let source: 'url' | 'storage' | 'intent' | 'default' = 'default';
-      let isValid = true;
-      
-      // Priority 1: Check URL (highest priority)
       if (location.search.includes('voice=')) {
-        newVoice = voiceFromUrl;
-        source = 'url';
+        const isUrlVoiceValid = validateVoice(voiceFromUrl);
+        sources.push({
+          value: voiceFromUrl,
+          source: 'url',
+          priority: 100, // Highest priority
+          isValid: isUrlVoiceValid,
+          timestamp: Date.now(),
+          sourceDetails: { urlParam: location.search }
+        });
         
-        // Only log warning once per parameter lifecycle
-        if (newVoice === 'default' && !loggedWarningRef.current) {
-          console.warn('⚠️ URL contains voice parameter but it\'s invalid. Using default.');
+        if (!isUrlVoiceValid && !loggedWarningRef.current) {
+          console.warn(`⚠️ URL contains invalid voice parameter: "${voiceFromUrl}". This will not be used.`);
           loggedWarningRef.current = true;
-          isValid = false;
+        }
+      }
+      
+      // 2. Intent metadata (second highest - preserved through redirects)
+      const intentVoice = activeIntent?.metadata?.voiceParam;
+      if (intentVoice) {
+        const isIntentVoiceValid = validateVoice(intentVoice);
+        sources.push({
+          value: intentVoice,
+          source: 'intent',
+          priority: 90, // Second highest
+          isValid: isIntentVoiceValid,
+          timestamp: activeIntent.timestamp,
+          sourceDetails: { 
+            intentId: activeIntent.metadata?.intentId,
+            intentDestination: activeIntent.destination 
+          }
+        });
+        
+        if (!isIntentVoiceValid) {
+          console.warn(`⚠️ Intent contains invalid voice parameter: "${intentVoice}". This will not be used.`);
+        }
+      }
+      
+      // 3. localStorage (fallback - persistent but lower priority)
+      const storedVoice = localStorage.getItem('lastVoiceParam');
+      const storedTimestamp = localStorage.getItem('lastVoiceParamTimestamp');
+      if (storedVoice) {
+        const isStoredVoiceValid = validateVoice(storedVoice);
+        sources.push({
+          value: storedVoice, 
+          source: 'storage',
+          priority: 80, // Third highest
+          isValid: isStoredVoiceValid,
+          timestamp: storedTimestamp ? parseInt(storedTimestamp, 10) : 0,
+          sourceDetails: { storageTimestamp: storedTimestamp ? parseInt(storedTimestamp, 10) : undefined }
+        });
+        
+        if (!isStoredVoiceValid) {
+          console.warn(`⚠️ Stored voice parameter is invalid: "${storedVoice}". This will not be used.`);
+        }
+      }
+      
+      // 4. Default fallback (always valid)
+      sources.push({
+        value: 'default',
+        source: 'default',
+        priority: 0, // Lowest priority
+        isValid: true,
+        timestamp: 0
+      });
+      
+      // Debug log all voice sources
+      console.log('Available voice sources:', sources);
+      
+      // Pick the best voice source
+      const bestSource = selectBestVoiceSource(sources);
+      
+      // Create new voice state
+      const newVoiceState: VoiceParamState = {
+        currentVoice: bestSource.value,
+        previousVoice: voiceState.currentVoice,
+        source: bestSource.source,
+        timestamp: bestSource.timestamp || Date.now(),
+        isValid: bestSource.isValid,
+        sourceDetails: bestSource.sourceDetails
+      };
+      
+      // Only update if something relevant changed
+      if (
+        newVoiceState.currentVoice !== voiceState.currentVoice ||
+        newVoiceState.source !== voiceState.source ||
+        newVoiceState.isValid !== voiceState.isValid
+      ) {
+        console.log(`Voice transition: ${voiceState.currentVoice} → ${newVoiceState.currentVoice} (via ${newVoiceState.source})`);
+        setVoiceState(newVoiceState);
+        
+        // Always persist valid voices to localStorage
+        if (newVoiceState.isValid && newVoiceState.currentVoice !== 'default') {
+          localStorage.setItem('lastVoiceParam', newVoiceState.currentVoice);
+          localStorage.setItem('lastVoiceParamTimestamp', Date.now().toString());
         }
         
-        // Store for later use
-        localStorage.setItem('lastVoiceParam', voiceFromUrl);
-      } 
-      // Priority 2: Check intent metadata (new high priority source)
-      else if (intentVoice) {
-        console.log(`Using voice from intent metadata: ${intentVoice}`);
-        newVoice = intentVoice;
-        source = 'intent';
-        
-        // Store for persistence
-        localStorage.setItem('lastVoiceParam', intentVoice);
-      }
-      // Priority 3: Check localStorage
-      else if (storedVoice) {
-        console.log(`Restoring voice from storage: ${storedVoice}`);
-        newVoice = storedVoice;
-        source = 'storage';
+        // Update intent when voice changes on a path change
+        if (
+          location.pathname !== lastPathRef.current &&
+          newVoiceState.isValid && 
+          newVoiceState.currentVoice !== 'default' &&
+          !location.search.includes('voice=')
+        ) {
+          // Preserve voice parameter in intent for possible redirects
+          captureIntent(
+            location.pathname + location.search,
+            'user-initiated',
+            {
+              voiceParam: newVoiceState.currentVoice,
+              source: 'voice_param_preservation',
+              timestamp: Date.now()
+            },
+            50 // Medium priority - not as high as explicit redirects
+          );
+        }
       }
       
-      // Only update state if voice has changed or validity changed
-      if (newVoice !== voiceState.currentVoice || isValid !== voiceState.isValid || source !== voiceState.source) {
-        console.log(`Voice transition: ${voiceState.currentVoice} → ${newVoice} (via ${source})`);
-        setVoiceState({
-          currentVoice: newVoice,
-          previousVoice: voiceState.currentVoice,
-          source,
-          timestamp: Date.now(),
-          isValid
-        });
+      // Update lastPathRef when path changes
+      if (location.pathname !== lastPathRef.current) {
+        lastPathRef.current = location.pathname;
       }
     } catch (error) {
       console.error('Error in voice parameter processing:', error);
@@ -120,7 +231,7 @@ export function useVoiceParam(): string {
     }
     
     console.groupEnd();
-  }, [location.search, location.pathname, activeIntent]);
+  }, [location.search, location.pathname, activeIntent, validateVoice, selectBestVoiceSource, captureIntent, voiceState]);
   
   return voiceState.currentVoice;
 }
@@ -128,7 +239,6 @@ export function useVoiceParam(): string {
 /**
  * Returns detailed information about the voice parameter state
  * Useful for debugging and analytics
- * Now with intent system integration
  */
 export function useVoiceParamState(): VoiceParamState {
   const location = useLocation();
@@ -143,61 +253,144 @@ export function useVoiceParamState(): VoiceParamState {
   const loggedWarningRef = useRef<boolean>(false);
   
   // Get active intent for voice parameter preservation
-  const { activeIntent } = useRedirectIntentManager();
+  const { activeIntent, captureIntent } = useRedirectIntentManager();
+  
+  // Validates if a voice parameter is valid (exists in voiceprints)
+  const validateVoice = useCallback((voice: string): boolean => {
+    if (!voice) return false;
+    return voice in voiceprints || voice === 'default';
+  }, []);
+  
+  // Choose the best voice parameter from all available sources
+  const selectBestVoiceSource = useCallback((sources: VoiceSourceCandidate[]): VoiceSourceCandidate => {
+    // Filter for valid sources
+    const validSources = sources.filter(s => s.isValid);
+    
+    if (validSources.length === 0) {
+      return {
+        value: 'default',
+        source: 'default',
+        priority: 0,
+        isValid: true,
+        timestamp: Date.now()
+      };
+    }
+    
+    // Sort by priority (descending) then by timestamp (descending)
+    validSources.sort((a, b) => {
+      if (a.priority !== b.priority) {
+        return b.priority - a.priority; // Higher priority first
+      }
+      return b.timestamp - a.timestamp; // Newer timestamp first
+    });
+    
+    return validSources[0];
+  }, []);
   
   useEffect(() => {
     try {
+      // Collect all possible voice parameter sources
+      const sources: VoiceSourceCandidate[] = [];
+      
+      // 1. URL source (highest priority)
       const voiceFromUrl = getVoiceFromUrl(location.search);
-      const storedVoice = localStorage.getItem('lastVoiceParam');
-      const intentVoice = activeIntent?.metadata?.voiceParam;
-      
-      let newVoice = 'default';
-      let source: 'url' | 'storage' | 'intent' | 'default' = 'default';
-      let isValid = true;
-      
-      // Priority 1: URL (highest)
       if (location.search.includes('voice=')) {
-        newVoice = voiceFromUrl;
-        source = 'url';
-        
-        if (newVoice === 'default' && !loggedWarningRef.current) {
-          loggedWarningRef.current = true;
-          isValid = false;
-        }
-        
-        localStorage.setItem('lastVoiceParam', voiceFromUrl);
-      } 
-      // Priority 2: Intent metadata
-      else if (intentVoice) {
-        newVoice = intentVoice;
-        source = 'intent';
-        localStorage.setItem('lastVoiceParam', intentVoice);
-      }
-      // Priority 3: Storage
-      else if (storedVoice) {
-        newVoice = storedVoice;
-        source = 'storage';
-      }
-      
-      if (newVoice !== voiceState.currentVoice || isValid !== voiceState.isValid || source !== voiceState.source) {
-        setVoiceState({
-          currentVoice: newVoice,
-          previousVoice: voiceState.currentVoice,
-          source,
-          timestamp: Date.now(),
-          isValid
+        sources.push({
+          value: voiceFromUrl,
+          source: 'url',
+          priority: 100,
+          isValid: validateVoice(voiceFromUrl),
+          timestamp: Date.now()
         });
       }
-    } catch (error) {
-      setVoiceState({
-        currentVoice: 'default',
-        previousVoice: voiceState.currentVoice,
+      
+      // 2. Intent metadata (second highest)
+      const intentVoice = activeIntent?.metadata?.voiceParam;
+      if (intentVoice) {
+        sources.push({
+          value: intentVoice,
+          source: 'intent',
+          priority: 90,
+          isValid: validateVoice(intentVoice),
+          timestamp: activeIntent.timestamp
+        });
+      }
+      
+      // 3. localStorage (fallback)
+      const storedVoice = localStorage.getItem('lastVoiceParam');
+      const storedTimestamp = localStorage.getItem('lastVoiceParamTimestamp');
+      if (storedVoice) {
+        sources.push({
+          value: storedVoice,
+          source: 'storage',
+          priority: 80,
+          isValid: validateVoice(storedVoice),
+          timestamp: storedTimestamp ? parseInt(storedTimestamp, 10) : 0
+        });
+      }
+      
+      // 4. Default fallback
+      sources.push({
+        value: 'default',
         source: 'default',
-        timestamp: Date.now(),
-        isValid: false
+        priority: 0,
+        isValid: true,
+        timestamp: 0
       });
+      
+      // Pick the best voice source
+      const bestSource = selectBestVoiceSource(sources);
+      
+      // Create new voice state
+      const newVoiceState: VoiceParamState = {
+        currentVoice: bestSource.value,
+        previousVoice: voiceState.currentVoice,
+        source: bestSource.source,
+        timestamp: bestSource.timestamp || Date.now(),
+        isValid: bestSource.isValid
+      };
+      
+      // Only update if something changed
+      if (
+        newVoiceState.currentVoice !== voiceState.currentVoice ||
+        newVoiceState.source !== voiceState.source ||
+        newVoiceState.isValid !== voiceState.isValid
+      ) {
+        setVoiceState(newVoiceState);
+        
+        // Store for persistence if valid
+        if (newVoiceState.isValid && newVoiceState.currentVoice !== 'default') {
+          localStorage.setItem('lastVoiceParam', newVoiceState.currentVoice);
+          localStorage.setItem('lastVoiceParamTimestamp', Date.now().toString());
+        }
+      }
+      
+      if (location.pathname !== lastPathRef.current) {
+        lastPathRef.current = location.pathname;
+      }
+    } catch (error) {
+      // Fallback to default on error
+      if (voiceState.currentVoice !== 'default') {
+        setVoiceState({
+          currentVoice: 'default',
+          previousVoice: voiceState.currentVoice,
+          source: 'default',
+          timestamp: Date.now(),
+          isValid: false
+        });
+      }
     }
-  }, [location.search, location.pathname, activeIntent]);
+  }, [location.search, location.pathname, activeIntent, validateVoice, selectBestVoiceSource, captureIntent, voiceState]);
   
   return voiceState;
 }
+
+/**
+ * Hook to check if the current voice parameter was provided explicitly via URL
+ * This is useful to determine if the voice param should be persisted or replaced
+ */
+export function useExplicitVoiceParam(): boolean {
+  const location = useLocation();
+  return location.search.includes('voice=');
+}
+
