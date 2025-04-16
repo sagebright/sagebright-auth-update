@@ -1,3 +1,4 @@
+
 /**
  * Core types for the redirect intent management system
  */
@@ -24,10 +25,19 @@ export interface RedirectIntent {
     
     // Any additional context state to restore
     contextState?: Record<string, unknown>;
+    
+    // Track the intent ID for tracing through logs
+    intentId?: string;
+    
+    // User's session ID when intent was created (if authenticated)
+    sessionId?: string | null;
   };
   
   // When this intent should be considered stale (milliseconds since epoch)
   expiry?: number;
+  
+  // Priority level for competing intents (higher wins)
+  priority?: number;
 }
 
 export interface RedirectIntentState {
@@ -45,6 +55,16 @@ export interface RedirectIntentState {
   
   // Reason why intent restoration is blocked, if applicable
   blockReason?: string;
+  
+  // Current status of intent processing
+  status: 'idle' | 'capturing' | 'validating' | 'executing' | 'completed' | 'failed';
+  
+  // Detailed error information if intent failed
+  error?: {
+    code: string;
+    message: string;
+    details?: unknown;
+  };
 }
 
 /**
@@ -70,4 +90,11 @@ export interface RedirectIntentOptions {
   
   // Storage key for persisting intents
   storageKey?: string;
+  
+  // Default priority for new intents
+  defaultPriority?: number;
+  
+  // Whether to automatically clear stale intents on startup
+  cleanupStaleIntents?: boolean;
 }
+

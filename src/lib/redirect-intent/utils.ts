@@ -1,3 +1,4 @@
+
 import { RedirectIntent, IntentValidationResult } from './types';
 
 const DEFAULT_EXPIRY_MS = 30 * 60 * 1000; // 30 minutes
@@ -52,17 +53,34 @@ export function createRedirectIntent(
   destination: string,
   reason: RedirectIntent['reason'],
   metadata?: RedirectIntent['metadata'],
-  expiryMs: number = DEFAULT_EXPIRY_MS
+  expiryMs: number = DEFAULT_EXPIRY_MS,
+  priority: number = 0
 ): RedirectIntent {
   const now = Date.now();
+  const intentId = generateIntentId();
+  
+  // Merge existing metadata with new metadata
+  const enhancedMetadata = {
+    ...metadata,
+    intentId,
+    source: metadata?.source || window.location.pathname + window.location.search
+  };
   
   return {
     destination: sanitizePath(destination),
     reason,
     timestamp: now,
-    metadata,
-    expiry: now + expiryMs
+    metadata: enhancedMetadata,
+    expiry: now + expiryMs,
+    priority
   };
+}
+
+/**
+ * Generates a unique ID for tracing intents through logs
+ */
+function generateIntentId(): string {
+  return `intent_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 }
 
 /**
@@ -75,8 +93,10 @@ export function persistIntent(intent: RedirectIntent): boolean {
     
     const timestamp = new Date().toISOString();
     console.log(`🔄 [${timestamp}] Persisted redirect intent:`, { 
+      intentId: intent.metadata?.intentId,
       destination: intent.destination, 
       reason: intent.reason,
+      priority: intent.priority,
       expiry: new Date(intent.expiry || 0).toISOString() 
     });
     
@@ -110,6 +130,7 @@ export function retrieveIntent(): RedirectIntent | null {
     return intent;
   } catch (error) {
     console.error('❌ Failed to retrieve redirect intent:', error);
+    clearPersistedIntent();
     return null;
   }
 }
@@ -118,8 +139,19 @@ export function retrieveIntent(): RedirectIntent | null {
  * Clears a persisted redirect intent
  */
 export function clearPersistedIntent(): void {
-  localStorage.removeItem(STORAGE_KEY);
-  console.log('🧹 Cleared persisted redirect intent');
+  try {
+    const existingIntent = retrieveIntent();
+    if (existingIntent) {
+      console.log('🧹 Clearing persisted redirect intent:', {
+        intentId: existingIntent.metadata?.intentId,
+        destination: existingIntent.destination
+      });
+    }
+    
+    localStorage.removeItem(STORAGE_KEY);
+  } catch (error) {
+    console.error('❌ Error clearing persisted intent:', error);
+  }
 }
 
 /**
@@ -143,6 +175,7 @@ export function detectRedirectLoop(recentIntents: RedirectIntent[]): boolean {
   if (sameDestination && tooFrequent) {
     console.error('🔄🔄🔄 Detected potential redirect loop!', { 
       destination: last3Intents[0].destination,
+      intentIds: last3Intents.map(i => i.metadata?.intentId),
       timeWindowMs: timeWindow
     });
     return true;
@@ -164,3 +197,78 @@ export function updateRecentIntents(
   // Keep only the most recent intents up to maxHistory
   return updated.slice(-maxHistory);
 }
+
+/**
+ * Cleans up stale intents from storage
+ */
+export function cleanupStaleIntents(): void {
+  try {
+    const intent = retrieveIntent();
+    
+    if (intent && intent.expiry && Date.now() > intent.expiry) {
+      console.log('🧹 Cleaning up stale intent:', {
+        intentId: intent.metadata?.intentId,
+        destination: intent.destination,
+        expiredAgo: Date.now() - intent.expiry
+      });
+      
+      clearPersistedIntent();
+    }
+  } catch (error) {
+    console.error('❌ Error cleaning up stale intents:', error);
+  }
+}
+
+/**
+ * Determines if a new intent should replace an existing one based on priority and timestamp
+ */
+export function shouldReplaceIntent(existingIntent: RedirectIntent | null, newIntent: RedirectIntent): boolean {
+  // If no existing intent, always use the new one
+  if (!existingIntent) {
+    return true;
+  }
+  
+  // Check if existing intent has expired
+  if (existingIntent.expiry && Date.now() > existingIntent.expiry) {
+    return true;
+  }
+  
+  // Higher priority intents replace lower priority ones
+  if ((newIntent.priority || 0) > (existingIntent.priority || 0)) {
+    return true;
+  }
+  
+  // For equal priority, prefer the newer intent
+  if ((newIntent.priority || 0) === (existingIntent.priority || 0) && 
+      newIntent.timestamp > existingIntent.timestamp) {
+    return true;
+  }
+  
+  return false;
+}
+
+/**
+ * Creates enhanced logging information about intent transitions
+ */
+export function createIntentAuditLog(
+  action: 'create' | 'execute' | 'clear' | 'block' | 'validate',
+  intent: RedirectIntent | null,
+  details?: Record<string, unknown>
+): Record<string, unknown> {
+  const now = new Date().toISOString();
+  
+  return {
+    timestamp: now,
+    action,
+    intent: intent ? {
+      intentId: intent.metadata?.intentId,
+      destination: intent.destination,
+      reason: intent.reason,
+      age: intent ? Date.now() - intent.timestamp : null,
+      priority: intent.priority
+    } : null,
+    currentPath: window.location.pathname + window.location.search,
+    ...details
+  };
+}
+

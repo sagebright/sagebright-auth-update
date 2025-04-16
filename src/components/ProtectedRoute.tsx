@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
 import { useAuthCheck } from '@/hooks/useAuthCheck';
@@ -21,7 +21,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const navigate = useNavigate();
   const location = useLocation();
   const { loading, isAuthenticated, user, orgId, orgSlug } = useRequireAuth(navigate);
-  const { captureIntent } = useRedirectIntentManager();
+  const { captureIntent, status: intentStatus } = useRedirectIntentManager();
   
   // Extract voice param if present
   const voiceParam = getVoiceFromUrl(location.search);
@@ -41,21 +41,22 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const { redirectAttempted } = useOrgRedirect();
   
   // Add enhanced logging for protected route rendering
-  console.log(`🛡️ ProtectedRoute rendering: [path: ${location.pathname}] [authenticated: ${isAuthenticated}] [loading: ${loading}] [redirectAttempted: ${redirectAttempted}]`);
+  console.log(`🛡️ ProtectedRoute rendering: [path: ${location.pathname}] [authenticated: ${isAuthenticated}] [loading: ${loading}] [redirectAttempted: ${redirectAttempted}] [intentStatus: ${intentStatus}]`);
   
   // Capture redirect intent if not authenticated and not loading
-  React.useEffect(() => {
+  useEffect(() => {
     if (!isAuthenticated && !loading && !redirectAttempted) {
       console.log(`🔒 Capturing intent for protected route: ${location.pathname}${location.search}`);
       
       // Create metadata with voice parameter if it exists and isn't default
       const metadata = voiceParam !== 'default' ? { voiceParam } : undefined;
       
-      // Capture the intent with full path including search parameters
+      // Set a high priority (2) for auth-based redirects since these are critical path
       captureIntent(
         location.pathname + location.search,
         'auth',
-        metadata
+        metadata,
+        2
       );
     }
   }, [isAuthenticated, loading, location.pathname, location.search, captureIntent, redirectAttempted, voiceParam]);

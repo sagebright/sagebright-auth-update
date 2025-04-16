@@ -28,12 +28,13 @@ export default function Login() {
   const [loginTimestamp, setLoginTimestamp] = useState<number | null>(null);
   const sessionStableRef = useRef(false);
   
-  // Use our new redirect intent manager
+  // Use our redirect intent manager
   const { 
     activeIntent,
     captureIntent,
     executeRedirect,
-    clearIntent
+    clearIntent,
+    status: intentStatus
   } = useRedirectIntentManager();
   
   // Capture voice parameter from URL if present
@@ -46,11 +47,12 @@ export default function Login() {
     if (storedRedirectPath && !activeIntent) {
       console.log("🔄 Migrating legacy redirect path to intent system:", storedRedirectPath);
       
-      // Capture intent with voice parameter if available
+      // Set a higher priority for the legacy intent (1) as it was explicitly set
       captureIntent(
         storedRedirectPath,
         "auth",
-        voiceParam !== 'default' ? { voiceParam } : undefined
+        voiceParam !== 'default' ? { voiceParam } : undefined,
+        1 // Higher priority for user-driven redirects
       );
       
       // Clear legacy storage
@@ -105,13 +107,19 @@ export default function Login() {
       
       // Check for stored intent first
       if (activeIntent) {
-        console.log(`🎯 [${timestamp}] Using stored redirect intent:`, activeIntent.destination);
+        console.log(`🎯 [${timestamp}] Using stored redirect intent:`, {
+          destination: activeIntent.destination,
+          intentId: activeIntent.metadata?.intentId,
+          reason: activeIntent.reason
+        });
+        
         targetPath = activeIntent.destination;
         
         // Include any voice parameter from the intent
         if (activeIntent.metadata?.voiceParam && !targetPath.includes('voice=')) {
           const separator = targetPath.includes('?') ? '&' : '?';
           targetPath += `${separator}voice=${activeIntent.metadata.voiceParam}`;
+          console.log(`🎤 Adding voice parameter to redirect: ${activeIntent.metadata.voiceParam}`);
         }
         
         // Clear the intent after use
@@ -144,6 +152,7 @@ export default function Login() {
     try {
       await signInWithGoogle();
     } catch (error) {
+      console.error("Google sign-in error:", error);
     }
   };
 
@@ -192,6 +201,12 @@ export default function Login() {
             isLoading={isLoading}
             authError={authError}
           />
+          
+          {activeIntent && (
+            <div className="text-xs text-gray-500 mt-2 italic">
+              You'll be redirected to your last location after signing in.
+            </div>
+          )}
         </div>
       </>
     </AuthLayout>
