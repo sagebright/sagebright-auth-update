@@ -34,6 +34,7 @@ const FormComponentsExample = lazy(() => import("@/pages/FormComponentsExample")
 const ErrorHandlingExample = lazy(() => import("@/pages/ErrorHandlingExample"));
 const SkeletonPreview = lazy(() => import("@/pages/SkeletonPreview"));
 const ImageComponentPreview = lazy(() => import("./pages/ImageComponentPreview"));
+const AuthDebug = lazy(() => import("@/pages/AuthDebug"));
 
 // Loading fallback component
 const PageLoadingFallback = () => (
@@ -175,6 +176,7 @@ const App = () => {
                     {/* Development and debugging routes */}
                     <Route path="/design-system" element={<DesignSystem />} />
                     <Route path="/dev-debug" element={<DevDebugPage />} />
+                    <Route path="/auth-debug" element={<AuthDebug />} />
                     <Route path="/api-debug" element={<ApiDebug />} />
                     <Route path="/form-components-example" element={<FormComponentsExample />} />
                     <Route path="/error-handling-example" element={<ErrorHandlingExample />} />
