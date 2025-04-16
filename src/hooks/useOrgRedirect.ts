@@ -29,12 +29,20 @@ export const useOrgRedirect = ({
         redirectAttempted.current = true;
         sessionStorage.setItem('lastAuthenticatedPath', pathname);
         redirectToOrgUrl(orgSlug);
+        return;
       }
     }
     
+    // Only redirect to login if on a subdomain, not authenticated, and not already redirecting
     if (currentOrgSlug && !loading && !isAuthenticated && !redirectAttempted.current) {
       console.log("🔑 On subdomain but not authenticated, redirecting to login");
       redirectAttempted.current = true;
+      
+      // Store current path before redirecting to login
+      if (pathname !== '/auth/login' && pathname !== '/') {
+        localStorage.setItem("redirectAfterLogin", pathname);
+      }
+      
       navigate('/auth/login', { replace: true });
     }
   }, [orgSlug, isAuthenticated, loading, pathname, navigate]);

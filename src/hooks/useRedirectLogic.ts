@@ -1,7 +1,6 @@
 
 import { useRef, useCallback } from 'react';
 import { NavigateFunction } from 'react-router-dom';
-import { ROLE_LANDING_PAGES } from './useRouteProtection';
 
 export function useRedirectLogic(
   navigate: NavigateFunction,
@@ -13,7 +12,6 @@ export function useRedirectLogic(
   const lastRedirectPath = useRef<string | null>(null);
   const redirectDebounceTimer = useRef<number | null>(null);
 
-  // Debounced redirect function to prevent multiple redirects
   const safeRedirect = useCallback((path: string, options: { replace?: boolean } = {}) => {
     // Don't redirect while another redirect is in progress
     if (redirectInProgressRef.current) {
@@ -28,6 +26,14 @@ export function useRedirectLogic(
       console.log(`🛑 Blocked redirect from /ask-sage to /user-dashboard due to protection flag`);
       return;
     }
+
+    // Only set redirect path if not already stored and not on login page
+    if (!localStorage.getItem("redirectAfterLogin") && 
+        locationRef.current !== '/auth/login' &&
+        locationRef.current !== '/') {
+      console.log(`📝 Storing original path for post-login: ${locationRef.current}`);
+      localStorage.setItem("redirectAfterLogin", locationRef.current);
+    }
     
     // Don't redirect to the same path multiple times
     if (path === lastRedirectPath.current) {
@@ -41,27 +47,21 @@ export function useRedirectLogic(
       return;
     }
 
-    // Add timestamp to log for tracking race conditions
     const timestamp = new Date().toISOString();
     console.log(`🚀 [${timestamp}] Initiating redirect to: ${path} from ${locationRef.current}`);
     
-    // Store the path we're redirecting to
     lastRedirectPath.current = path;
     setRedirecting(true);
     redirectInProgressRef.current = true;
     
-    // Clear any existing redirect timer
     if (redirectDebounceTimer.current) {
       window.clearTimeout(redirectDebounceTimer.current);
     }
     
-    // Debounce the redirect to prevent race conditions
     redirectDebounceTimer.current = window.setTimeout(() => {
       console.log(`✅ [${new Date().toISOString()}] Executing redirect to: ${path}`);
       navigate(path, options);
       redirectDebounceTimer.current = null;
-      // Reset the redirect in progress flag after a short delay
-      // This prevents immediate subsequent redirects but allows new ones after a grace period
       setTimeout(() => {
         redirectInProgressRef.current = false;
       }, 1000);
