@@ -8,12 +8,10 @@ export const useOrgRedirect = () => {
   const navigate = useNavigate();
   const { pathname, search } = useLocation();
   const { isAuthenticated, loading, userId } = useAuth();
-  // Call useOrgContext with the expected arguments from our implementation
   const { orgSlug } = useOrgContext(userId, isAuthenticated);
   const redirectAttempted = useRef(false);
   const lastPathRef = useRef(pathname);
   
-  // Reset the redirect attempt flag when pathname changes
   useEffect(() => {
     if (pathname !== lastPathRef.current) {
       console.log(`🧭 Path changed from ${lastPathRef.current} to ${pathname}, resetting redirect flag`);
@@ -28,7 +26,12 @@ export const useOrgRedirect = () => {
     
     console.log(`🔍 useOrgRedirect evaluation: [path: ${pathname}${search}] [auth: ${isAuthenticated}] [loading: ${loading}] [redirectAttempted: ${redirectAttempted.current}] [storedRedirect: ${storedRedirect}]`);
 
-    // If we're already on a valid route that matches the stored redirect, don't redirect again
+    if (pathname === '/ask-sage' && !redirectAttempted.current) {
+      console.log("🛑 Blocking all fallback redirects — already on /ask-sage");
+      redirectAttempted.current = true;
+      return;
+    }
+
     if (storedRedirect && pathname === storedRedirect) {
       console.log(`✅ Already on the stored redirect path: ${pathname}, clearing redirectAfterLogin`);
       localStorage.removeItem("redirectAfterLogin");
@@ -36,7 +39,6 @@ export const useOrgRedirect = () => {
       return;
     }
 
-    // Handle org mismatch - highest priority redirect
     if (orgSlug && !redirectAttempted.current && isAuthenticated) {
       if (!currentOrgSlug || currentOrgSlug !== orgSlug) {
         console.log("🏢 Redirecting to correct org subdomain:", orgSlug);
@@ -48,7 +50,6 @@ export const useOrgRedirect = () => {
       }
     }
 
-    // Handle unauthenticated user on subdomain
     if (currentOrgSlug && !loading && !isAuthenticated && !redirectAttempted.current) {
       console.log("🔑 On subdomain but not authenticated, redirecting to login");
       console.trace("Unauthenticated subdomain redirect stack trace");
@@ -63,11 +64,9 @@ export const useOrgRedirect = () => {
       return;
     }
 
-    // Handle authenticated user redirection
     if (isAuthenticated && !loading && !redirectAttempted.current) {
       console.log(`🔐 Auth complete, handling post-login navigation [currentPath: ${pathname}]`);
       
-      // Only attempt redirect once
       redirectAttempted.current = true;
 
       const redirectPath = localStorage.getItem("redirectAfterLogin");
