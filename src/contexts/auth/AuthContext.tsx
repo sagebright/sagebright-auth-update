@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -23,10 +22,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     currentUser,
     loading,
     isAuthenticated,
-    refreshSession, // Include the refreshSession function
+    refreshSession,
+    isRecoveringOrgContext,
+    sessionUserReady,
   } = authState;
 
-  // Debug log for the exact auth state being provided to context
   console.log("🔄 Auth context values being provided:", {
     hasUser: !!user,
     hasUserMetadata: user ? !!user.user_metadata : false,
@@ -74,7 +74,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           });
         }
       );
-      return result; // Return the result from authActions.signIn
+      return result;
     } catch (error) {
       // Error already handled in the action
       throw error;
@@ -140,25 +140,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await authActions.updateProfile(data);
   };
 
-  // Create a merged user object that prioritizes session metadata but includes currentUser data
   const mergedUser = {
-    ...currentUser, // Base properties from currentUser
-    ...user, // Override with session user properties
+    ...currentUser,
+    ...user,
     user_metadata: {
-      ...(currentUser?.user_metadata || {}), // Include currentUser metadata if available
-      ...(user?.user_metadata || {}) // Prioritize session metadata
+      ...(currentUser?.user_metadata || {}),
+      ...(user?.user_metadata || {})
     }
   };
 
   const value: AuthContextType = {
     session,
-    user: mergedUser, // Use the merged user object
+    user: mergedUser,
     userId,
     orgId,
     orgSlug,
-    currentUser: mergedUser, // Also update currentUser for consistency
+    currentUser: mergedUser,
     loading,
     isAuthenticated,
+    isRecoveringOrgContext,
+    sessionUserReady,
     signUp,
     signIn,
     signInWithGoogle,
@@ -166,7 +167,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     resetPassword,
     updateProfile,
     accessToken,
-    refreshSession, // Expose the refreshSession function
+    refreshSession,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

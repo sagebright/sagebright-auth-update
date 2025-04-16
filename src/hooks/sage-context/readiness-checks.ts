@@ -1,26 +1,31 @@
 
-import { ReadinessCheck, DependencyPriority, DependencyStatus } from './types';
+import { ReadinessCheck } from './types';
 
 /**
- * Check if user authentication is properly initialized
+ * Function to check if authentication is ready
  */
 export function checkAuthReadiness(
   userId: string | null,
-  isAuthenticated: boolean
+  isSessionUserReady: boolean
 ): ReadinessCheck {
   const blockers: string[] = [];
   
-  if (!isAuthenticated) blockers.push('User not authenticated');
-  if (!userId) blockers.push('User ID missing');
+  if (!userId) {
+    blockers.push('User ID not available');
+  }
+  
+  if (!isSessionUserReady) {
+    blockers.push('Session user not ready');
+  }
   
   return {
-    isReady: isAuthenticated && !!userId,
+    isReady: blockers.length === 0,
     blockers
   };
 }
 
 /**
- * Check if user session is properly initialized and ready
+ * Function to check if session is ready
  */
 export function checkSessionReadiness(
   userId: string | null,
@@ -29,42 +34,44 @@ export function checkSessionReadiness(
 ): ReadinessCheck {
   const blockers: string[] = [];
   
-  if (!userId) blockers.push('User ID missing');
-  if (!isSessionUserReady) blockers.push('Session user not ready');
-  if (!currentUserData) blockers.push('User data not loaded');
+  if (!userId) {
+    blockers.push('User ID not available for session');
+  }
+  
+  if (!isSessionUserReady) {
+    blockers.push('Session user not ready');
+  }
   
   return {
-    isReady: !!userId && isSessionUserReady && !!currentUserData,
+    isReady: blockers.length === 0,
     blockers
   };
 }
 
 /**
- * Check if user metadata is properly loaded
+ * Function to check if user metadata is ready
  */
 export function checkUserMetadataReadiness(
-  user: any | null
+  currentUserData: any | null
 ): ReadinessCheck {
   const blockers: string[] = [];
   
-  if (!user) {
-    blockers.push('User object missing');
-    return { isReady: false, blockers };
+  if (!currentUserData) {
+    blockers.push('Current user data not available');
   }
   
-  if (!user.user_metadata) blockers.push('User metadata missing');
-  
-  // Check for specific metadata fields if needed
-  // if (!user.user_metadata?.role) blockers.push('User role missing');
+  if (currentUserData && !currentUserData.user_metadata) {
+    blockers.push('User metadata missing');
+  }
   
   return {
-    isReady: !!user && !!user.user_metadata,
+    isReady: blockers.length === 0,
     blockers
   };
 }
 
 /**
- * Check if organization context is properly initialized and ready
+ * Function to check if organization is ready
  */
 export function checkOrgReadiness(
   orgId: string | null,
@@ -72,49 +79,58 @@ export function checkOrgReadiness(
 ): ReadinessCheck {
   const blockers: string[] = [];
   
-  if (!orgId) blockers.push('Organization ID missing');
-  if (!orgSlug) blockers.push('Organization slug missing');
+  if (!orgId) {
+    blockers.push('Organization ID not available');
+  }
+  
+  if (!orgSlug) {
+    blockers.push('Organization slug not available');
+  }
   
   return {
-    isReady: !!orgId && !!orgSlug,
+    isReady: blockers.length === 0,
     blockers
   };
 }
 
 /**
- * Check if backend-derived organization metadata is ready
+ * Function to check if organization metadata is ready
  */
 export function checkOrgMetadataReadiness(
   orgContext: any | null
 ): ReadinessCheck {
   const blockers: string[] = [];
   
-  if (!orgContext) blockers.push('Organization context not loaded');
+  if (!orgContext) {
+    blockers.push('Organization context not available');
+  }
   
   return {
-    isReady: !!orgContext,
+    isReady: blockers.length === 0,
     blockers
   };
 }
 
 /**
- * Check if voice parameter is properly initialized
+ * Function to check if voice parameter is ready
  */
 export function checkVoiceReadiness(
   voiceParam: string | null
 ): ReadinessCheck {
   const blockers: string[] = [];
   
-  if (!voiceParam) blockers.push('Voice parameter not initialized');
+  if (!voiceParam) {
+    blockers.push('Voice parameter not available');
+  }
   
   return {
-    isReady: !!voiceParam,
+    isReady: blockers.length === 0,
     blockers
   };
 }
 
 /**
- * Check if all backend-derived context is ready
+ * Function to check if backend context is ready
  */
 export function checkBackendContextReadiness(
   userContext: any | null,
@@ -122,8 +138,13 @@ export function checkBackendContextReadiness(
 ): ReadinessCheck {
   const blockers: string[] = [];
   
-  if (!userContext) blockers.push('User context not loaded from backend');
-  if (!orgContext) blockers.push('Organization context not loaded from backend');
+  if (!userContext) {
+    blockers.push('User context not available');
+  }
+  
+  if (!orgContext) {
+    blockers.push('Organization context not available');
+  }
   
   return {
     isReady: !!userContext && !!orgContext,
@@ -132,36 +153,43 @@ export function checkBackendContextReadiness(
 }
 
 /**
- * Check if session is stable (all critical auth components are available)
+ * Function to check if session is stable
  */
 export function checkSessionStability(
   isSessionUserReady: boolean,
-  orgId: string | null, 
+  orgId: string | null,
   orgSlug: string | null,
   currentUserData: any | null
 ): ReadinessCheck {
-  const blockers: string[] = [];
+  const sessionCheck = checkSessionReadiness(
+    currentUserData?.id ?? null,
+    isSessionUserReady,
+    currentUserData
+  );
   
-  // Check if signed in with Supabase
-  if (!isSessionUserReady) blockers.push('Supabase session not signed in');
+  const orgCheck = checkOrgReadiness(
+    orgId,
+    orgSlug
+  );
   
-  // Check if org context is available
-  if (!orgId || !orgSlug) blockers.push('Organization context incomplete');
+  const userMetadataCheck = checkUserMetadataReadiness(
+    currentUserData
+  );
   
-  // Check if user metadata is available
-  if (!currentUserData?.user_metadata) blockers.push('User metadata missing');
-  
-  const isStable = isSessionUserReady && !!orgId && !!orgSlug && !!currentUserData?.user_metadata;
+  const allChecks = [
+    ...sessionCheck.blockers,
+    ...orgCheck.blockers,
+    ...userMetadataCheck.blockers
+  ];
   
   return {
-    isReady: isStable,
-    blockers
+    isReady: allChecks.length === 0,
+    blockers: allChecks
   };
 }
 
 /**
- * Check if the context is ready for sending messages to Sage
- * This is a more stringent check than isReadyToRender
+ * Function to check if context is ready to send messages
  */
 export function checkReadyToSend(
   isAuthReady: boolean,
@@ -172,55 +200,77 @@ export function checkReadyToSend(
 ): ReadinessCheck {
   const blockers: string[] = [];
   
-  if (!isAuthReady) blockers.push('Authentication not ready');
-  if (!isSessionReady) blockers.push('Session not ready');
-  if (!isOrgReady) blockers.push('Organization not ready');
-  if (!isVoiceReady) blockers.push('Voice parameter not ready');
-  if (!isBackendContextReady) blockers.push('Backend context not ready');
+  if (!isAuthReady) {
+    blockers.push('Authentication not ready');
+  }
   
-  const isReady = isAuthReady && isSessionReady && isOrgReady && isVoiceReady && isBackendContextReady;
+  if (!isSessionReady) {
+    blockers.push('Session not ready');
+  }
+  
+  if (!isOrgReady) {
+    blockers.push('Organization not ready');
+  }
+  
+  if (!isVoiceReady) {
+    blockers.push('Voice not ready');
+  }
+  
+  if (!isBackendContextReady) {
+    blockers.push('Backend context not ready');
+  }
   
   return {
-    isReady,
+    isReady: blockers.length === 0,
     blockers
   };
 }
 
 /**
- * Create a dependency status object for tracking
- */
-export function createDependencyStatus(
-  name: string,
-  isReady: boolean,
-  priority: DependencyPriority,
-  blockers: string[] = []
-): DependencyStatus {
-  return {
-    name,
-    isReady,
-    priority,
-    blockers,
-    readySince: isReady ? Date.now() : undefined
-  };
-}
-
-/**
- * Group blockers by category
+ * Utility to categorize blockers by type
  */
 export function categorizeBlockers(
-  authBlockers: string[] = [],
-  userBlockers: string[] = [],
-  orgBlockers: string[] = [],
-  voiceBlockers: string[] = [],
-  backendBlockers: string[] = []
-): Record<string, string[]> {
-  const blockersByCategory: Record<string, string[]> = {};
+  authBlockers: string[],
+  userBlockers: string[],
+  orgBlockers: string[],
+  voiceBlockers: string[],
+  backendBlockers: string[]
+): {
+  auth?: string[];
+  user?: string[];
+  org?: string[];
+  voice?: string[];
+  backend?: string[];
+  system?: string[];
+} {
+  const result: {
+    auth?: string[];
+    user?: string[];
+    org?: string[];
+    voice?: string[];
+    backend?: string[];
+    system?: string[];
+  } = {};
   
-  if (authBlockers.length > 0) blockersByCategory.auth = authBlockers;
-  if (userBlockers.length > 0) blockersByCategory.user = userBlockers;
-  if (orgBlockers.length > 0) blockersByCategory.org = orgBlockers;
-  if (voiceBlockers.length > 0) blockersByCategory.voice = voiceBlockers;
-  if (backendBlockers.length > 0) blockersByCategory.backend = backendBlockers;
+  if (authBlockers.length > 0) {
+    result.auth = authBlockers;
+  }
   
-  return blockersByCategory;
+  if (userBlockers.length > 0) {
+    result.user = userBlockers;
+  }
+  
+  if (orgBlockers.length > 0) {
+    result.org = orgBlockers;
+  }
+  
+  if (voiceBlockers.length > 0) {
+    result.voice = voiceBlockers;
+  }
+  
+  if (backendBlockers.length > 0) {
+    result.backend = backendBlockers;
+  }
+  
+  return result;
 }

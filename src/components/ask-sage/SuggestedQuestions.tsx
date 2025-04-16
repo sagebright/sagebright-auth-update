@@ -11,7 +11,7 @@ import {
   ChevronUp
 } from 'lucide-react';
 
-interface SuggestedQuestionsProps {
+export interface SuggestedQuestionsProps {
   questions: string[];
   onSelectQuestion: (question: string) => void;
 }

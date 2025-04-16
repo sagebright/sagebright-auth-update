@@ -16,10 +16,10 @@ export interface Message {
 
 interface ChatMessageProps {
   message: Message;
-  onFeedback: (messageId: string, feedback: 'like' | 'dislike') => void;
+  handleFeedback?: (messageId: string, feedback: 'like' | 'dislike') => void;
 }
 
-export const ChatMessage: React.FC<ChatMessageProps> = ({ message, onFeedback }) => {
+export const ChatMessage: React.FC<ChatMessageProps> = ({ message, handleFeedback }) => {
   // Get initials for avatar fallback
   const getInitials = () => {
     return message.sender === 'sage' 
@@ -80,16 +80,16 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, onFeedback })
           <span className="text-xs text-gray-500">
             {formatTimestamp(message.timestamp)}
           </span>
-          {message.sender === 'sage' && (
+          {message.sender === 'sage' && handleFeedback && (
             <div className="flex ml-2">
               <button 
-                onClick={() => onFeedback(message.id, 'like')}
+                onClick={() => handleFeedback(message.id, 'like')}
                 className={`p-1 rounded-full hover:bg-gray-100 ${message.liked ? 'text-sagebright-green' : 'text-gray-400'}`}
               >
                 <ThumbsUp size={14} />
               </button>
               <button 
-                onClick={() => onFeedback(message.id, 'dislike')}
+                onClick={() => handleFeedback(message.id, 'dislike')}
                 className={`p-1 rounded-full hover:bg-gray-100 ${message.disliked ? 'text-bittersweet' : 'text-gray-400'}`}
               >
                 <ThumbsDown size={14} />

@@ -6,6 +6,7 @@ import { SuggestedQuestions } from '@/components/ask-sage/SuggestedQuestions';
 import { WelcomeMessage } from '@/components/ask-sage/WelcomeMessage';
 import { TypingIndicator } from '@/components/ask-sage/TypingIndicator';
 import { Message } from '@/types/chat';
+import { ReflectionData } from '@/components/ask-sage/ReflectionForm';
 
 interface AskSageContentProps {
   messages: Message[];
@@ -13,7 +14,7 @@ interface AskSageContentProps {
   suggestedQuestions?: string[];
   handleSelectQuestion: (question: string) => void;
   sendMessageToSage: (content: string) => void;
-  handleReflectionSubmit?: (reflection: string) => void;
+  handleReflectionSubmit?: (reflection: ReflectionData) => void;
   handleFeedback?: (messageId: string, feedback: 'like' | 'dislike') => void;
   isContextReady: boolean;
   showWelcomeMessage?: boolean;
@@ -77,7 +78,7 @@ export const AskSageContent: React.FC<AskSageContentProps> = ({
         {!isLoading && suggestedQuestions.length > 0 && messages.length > 0 && (
           <SuggestedQuestions
             questions={suggestedQuestions}
-            onSelect={handleSelectQuestion}
+            onSelectQuestion={handleSelectQuestion}
           />
         )}
         

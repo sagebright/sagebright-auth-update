@@ -13,8 +13,8 @@ export function useContextHydration(voiceParam: string | null = null) {
     userId, 
     orgId, 
     user, 
-    loading: authLoading, 
-    sessionUserReady 
+    loading: authLoading,
+    sessionUserReady = !!user  // Default to using user presence as fallback
   } = useAuth();
   
   const [backendContext, setBackendContext] = useState<{
