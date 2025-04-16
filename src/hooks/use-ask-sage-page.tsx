@@ -53,14 +53,14 @@ export const useAskSagePage = () => {
       setPageInitialized(true);
       
       // Log authentication state for debugging with timestamps
-      console.log("🔍 AskSage page initialized (timestamp: %s) with auth state:", 
-                  new Date().toISOString(), { 
+      console.log("[Sage Init] AskSage page initialized with auth state:", { 
         userId, 
         orgId, 
         isRecoveringOrg,
         hasSessionMetadata: user ? !!user.user_metadata : false,
         voiceParam,
-        urlSearch: window.location.search
+        urlSearch: window.location.search,
+        timestamp: new Date().toISOString()
       });
     }
   }, [authLoading, isAuthenticated, userId, orgId, isRecoveringOrg, pageInitialized, voiceParam, user]);
@@ -93,12 +93,19 @@ export const useAskSagePage = () => {
       return;
     }
 
+    console.log("[Sage Init] Preparing to send message with context:", {
+      userId,
+      orgId,
+      hasSessionUser: !!user,
+      hasUserMetadata: user ? !!user.user_metadata : false
+    });
+
     try {
       await handleSendMessage(content);
     } catch (error) {
       console.error("Error sending message:", error);
     }
-  }, [userId, orgId, handleSendMessage]);
+  }, [userId, orgId, handleSendMessage, user, setIsRecoveryVisible]);
 
   const handleSelectQuestion = useCallback((question: string) => {
     console.log("Selected suggested question:", question);

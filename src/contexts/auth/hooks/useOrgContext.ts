@@ -76,6 +76,8 @@ export function useOrgContext(userId: string | null, isAuthenticated: boolean) {
           console.log("🏢 Set orgSlug via direct query:", orgData.slug);
         }
       }
+      
+      console.log("[useOrgContext] Final orgSlug:", orgSlug);
     } catch (error) {
       console.error("❌ Error fetching org details:", error);
     }
@@ -159,6 +161,18 @@ export function useOrgContext(userId: string | null, isAuthenticated: boolean) {
       return false;
     }
   };
+
+  // Add a final check to log the finalized org context when it's fully loaded
+  useEffect(() => {
+    if (orgId && orgSlug) {
+      console.log("[useOrgContext] Final org context:", {
+        orgId,
+        orgSlug,
+        isAuthenticated,
+        userId
+      });
+    }
+  }, [orgId, orgSlug, isAuthenticated, userId]);
 
   return {
     orgId,

@@ -15,7 +15,11 @@ import { validateSageContext } from './validation/contextSchema';
  * @returns Enriched context object Sage will use
  */
 export async function buildSageContext(userId: string, orgId: string) {
-  console.log("🔍 Building context for userId:", userId, "and orgId:", orgId);
+  console.log("[Sage Init] Starting buildSageContext with:", {
+    userId,
+    orgId,
+    timestamp: new Date().toISOString()
+  });
   
   try {
     // Validate input parameters
@@ -27,9 +31,11 @@ export async function buildSageContext(userId: string, orgId: string) {
       fetchUserContext(userId),
     ]);
 
-    console.log("✅ Context fetched from database:", { 
+    console.log("[Sage Init] Context fetch completed:", { 
       hasOrgContext: !!orgContext, 
-      hasUserContext: !!userContext 
+      hasUserContext: !!userContext,
+      orgId,
+      userId
     });
 
     // Construct the context object with the fetched data

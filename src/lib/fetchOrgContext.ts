@@ -16,7 +16,7 @@ export async function fetchOrgContext(orgId: string) {
     return null;
   }
 
-  console.log("🔍 Fetching org context for orgId:", orgId);
+  console.log("[fetchOrgContext] Input orgId:", orgId);
   
   try {
     const { data, error } = await supabase
@@ -35,7 +35,12 @@ export async function fetchOrgContext(orgId: string) {
       return null;
     }
 
-    console.log("📦 Org context found:", data);
+    console.log("[fetchOrgContext] Successfully found org context data:", {
+      orgId: orgId,
+      hasName: !!data.name,
+      dataKeys: Object.keys(data)
+    });
+    
     return {
       orgId: orgId,
       name: data.name || "Default Organization",

@@ -21,11 +21,10 @@ import { DebugPanel } from '@/components/debug/DebugPanel';
 const AskSage = () => {
   const isMobile = useIsMobile();
   const location = useLocation();
-  const { user } = useAuth(); // Add direct access to auth context
+  const { user, currentUser, orgId, orgSlug } = useAuth(); // Add direct access to auth context
   
   const {
     userId,
-    orgId,
     authLoading,
     isAuthenticated,
     
@@ -51,28 +50,34 @@ const AskSage = () => {
   } = useAskSagePage();
 
   useEffect(() => {
-    console.log("🔍 AskSage route location:", {
+    console.log("[Sage Init] AskSage component mounted with context:", {
       pathname: location.pathname,
       search: location.search,
       hash: location.hash,
-      voiceParam
+      voiceParam,
+      timestamp: new Date().toISOString()
     });
     
-    console.log("🌐 Window location:", {
+    console.log("[Sage Init] Window location:", {
       href: window.location.href,
       search: window.location.search,
       voiceFromWindowSearch: new URLSearchParams(window.location.search).get('voice')
     });
     
     // Log auth state in AskSage to verify what's available
-    console.log("👤 AskSage user metadata check:", {
+    console.log("[Sage Init] AskSage user metadata check:", {
       hasSessionUser: !!user,
       hasUserMetadata: user ? !!user.user_metadata : false,
+      hasCurrentUser: !!currentUser,
       userId,
       orgId,
-      voiceParam
+      orgSlug,
+      voiceParam,
+      timestamp: new Date().toISOString(),
+      sessionUserReady: !!user,
+      currentUserReady: !!currentUser
     });
-  }, [location, voiceParam, user, userId, orgId]);
+  }, [location, voiceParam, user, userId, orgId, orgSlug, currentUser]);
 
   // Only wait for basic auth checks, not full current user data
   if (authLoading) {
