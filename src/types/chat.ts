@@ -19,6 +19,15 @@ export interface SageContext {
   userId: string;
   orgId: string;
   messages?: string[];
+  _meta?: {
+    source?: string;
+    hydratedAt?: string;
+    timeout?: boolean;
+    userContextSource?: string;
+    orgContextSource?: string;
+    error?: string;
+    voiceConfig?: any;
+  };
 }
 
 export interface ChatHookReturn {
