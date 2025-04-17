@@ -2,7 +2,7 @@
 import { SageContextReadiness } from '../types';
 import { checkReadyToSend, categorizeBlockers } from '../readiness-checks';
 import { logDependencyStatus } from '../readiness-logger';
-import { ReadinessCheck } from '../readiness-checks/readiness-utils';
+import { ReadinessCheck } from '../types';
 
 /**
  * Calculate the final readiness state based on all checks

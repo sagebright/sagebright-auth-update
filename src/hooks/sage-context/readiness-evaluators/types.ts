@@ -1,8 +1,6 @@
 
 import { SageContextReadiness } from '../types';
-import { 
-  ReadinessCheck 
-} from '../readiness-checks/readiness-utils';
+import { ReadinessCheck } from '../types';
 
 /**
  * Result of the readiness evaluator
