@@ -1,4 +1,3 @@
-
 import { apiRequest } from './coreApiClient';
 import { validateSageContext } from '../validation/contextSchema';
 import { SageContext } from '@/types/chat';
@@ -8,10 +7,14 @@ import { SageContext } from '@/types/chat';
  * This is the recommended approach for getting context data
  */
 export async function fetchSageContext(userId: string, orgId: string, orgSlug: string | null = null, options = {}) {
+  console.log("📡 fetchSageContext API call", { userId, orgId, orgSlug });
+  
   // Construct the API endpoint with proper query parameters
   const endpoint = `/api/context/sage?userId=${encodeURIComponent(userId)}&orgId=${encodeURIComponent(orgId)}${
     orgSlug ? `&orgSlug=${encodeURIComponent(orgSlug)}` : ''
   }`;
+  
+  console.log(`🛠️ backendApi route reached: ${endpoint}`);
   
   const res = await apiRequest(endpoint, {}, {
     context: 'fetching Sage context',
@@ -63,7 +66,7 @@ export async function fetchSageOrgContext(orgId: string, options = {}) {
  * This should be the primary way to get context going forward
  */
 export async function hydrateSageContext(userId: string, orgId: string, orgSlug: string | null = null, timeout: number = 5000): Promise<SageContext | null> {
-  console.log('🔄 Hydrating Sage context with unified endpoint');
+  console.log('🔄 hydrateSageContext called', { userId, orgId, orgSlug, timeout });
   
   // Create a promise that rejects after the timeout
   const timeoutPromise = new Promise<null>((_, reject) => {

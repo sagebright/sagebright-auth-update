@@ -18,6 +18,8 @@ export async function buildSageContext(
   orgSlug: string | null,
   currentUserData: any | null
 ) {
+  console.log("🔥 buildSageContext invoked", { userId, orgId, orgSlug, hasUserData: !!currentUserData });
+  
   // Log detailed context state
   contextLogger.info("Starting buildSageContext", {
     userId,
@@ -198,3 +200,4 @@ export async function buildSageContext(
     };
   }
 }
+

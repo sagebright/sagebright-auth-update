@@ -11,6 +11,8 @@ import { supabase } from '@/lib/supabaseClient';
  * @returns Object containing org-level configuration for Sage, or null if not found
  */
 export async function fetchOrgContext(orgId: string) {
+  console.log("📡 fetchOrgContext triggered", { orgId });
+  
   if (!orgId) {
     console.warn("⚠️ Cannot fetch org context: No orgId provided");
     return null;
@@ -66,3 +68,4 @@ export async function fetchOrgContext(orgId: string) {
     return null;
   }
 }
+

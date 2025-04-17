@@ -6,6 +6,9 @@ export * from './api/departmentsApi';
 export * from './api/roadmapsApi';
 export * from './api/sageContextApi';
 
+// Log backend API access
+console.log("🛠️ backendApi module loaded");
+
 // Export generic data mutation creator for reusability
 export function createMutation(
   path: string,
@@ -14,6 +17,8 @@ export function createMutation(
   fallbackMessage: string
 ) {
   return async (data?: any) => {
+    console.log(`🛠️ backendApi route reached: ${path} with method ${method}`);
+    
     const { apiRequest } = await import('./api/coreApiClient');
     
     const options: RequestInit = {
@@ -34,3 +39,4 @@ export function createMutation(
     return res?.data;
   };
 }
+

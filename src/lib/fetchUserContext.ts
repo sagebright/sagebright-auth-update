@@ -11,6 +11,8 @@ import { supabase } from '@/lib/supabaseClient';
  * @returns User context object or null if not found
  */
 export async function fetchUserContext(userId: string) {
+  console.log("📡 fetchUserContext triggered", { userId });
+  
   if (!userId) {
     console.warn("⚠️ Cannot fetch user context: No userId provided");
     return null;
@@ -48,3 +50,4 @@ export async function fetchUserContext(userId: string) {
     return null;
   }
 }
+
