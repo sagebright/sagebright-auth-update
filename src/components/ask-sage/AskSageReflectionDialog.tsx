@@ -1,7 +1,6 @@
-
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { ReflectionForm, ReflectionData } from '@/components/ask-sage/ReflectionForm';
+import { ReflectionForm } from './ReflectionForm';
+import { ReflectionData } from '@/types/reflection';
 
 interface AskSageReflectionDialogProps {
   showReflection: boolean;
@@ -14,7 +13,7 @@ export const AskSageReflectionDialog: React.FC<AskSageReflectionDialogProps> = (
   showReflection,
   setShowReflection,
   handleReflectionSubmit,
-  isMobile
+  isMobile,
 }) => {
   return (
     <Dialog open={showReflection} onOpenChange={setShowReflection}>

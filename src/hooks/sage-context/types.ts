@@ -41,7 +41,7 @@ export interface SageContextReadiness {
     org?: string[];
     voice?: string[];
     backend?: string[];
-    system?: string[]; // Add system category for general errors
+    system?: string[]; // Added system category for general errors
   };
 }
 

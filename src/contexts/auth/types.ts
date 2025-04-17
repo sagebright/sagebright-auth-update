@@ -18,4 +18,6 @@ export interface AuthContextType {
   updateProfile: (data: any) => Promise<void>;
   accessToken: string | null;
   refreshSession?: (reason: string) => Promise<void>; // Add refreshSession function
+  isRecoveringOrgContext?: boolean; // Add isRecoveringOrgContext property
+  sessionUserReady?: boolean; // Add sessionUserReady property
 }
