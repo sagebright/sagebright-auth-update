@@ -1,5 +1,5 @@
 
-import { apiRequest } from './apiClient';
+import { apiRequest } from './coreApiClient';
 
 /**
  * Get users from the API

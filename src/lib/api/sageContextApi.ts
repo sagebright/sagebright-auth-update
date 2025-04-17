@@ -1,5 +1,5 @@
 
-import { apiRequest } from './apiClient';
+import { apiRequest } from './coreApiClient';
 
 /**
  * Fetches the complete Sage context from the unified endpoint

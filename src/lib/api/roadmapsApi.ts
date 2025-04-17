@@ -1,5 +1,5 @@
 
-import { apiRequest } from './apiClient';
+import { apiRequest } from './coreApiClient';
 
 /**
  * Get roadmaps from the API
