@@ -9,6 +9,7 @@ export * from './readiness-logger';
 export * from './use-sage-context-readiness';
 export * from './use-readiness-state';
 export * from './use-readiness-evaluator';
+export * from './readiness-evaluators';
 export * from './hydration';
 export * from './use-sage-context';
 
