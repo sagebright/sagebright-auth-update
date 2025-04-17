@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { DashboardContainer } from '@/components/layout/DashboardContainer';
 import { useAskSagePage } from '@/hooks/use-ask-sage-page';
 import { DebugPanel } from '@/components/debug/DebugPanel';
@@ -10,6 +10,10 @@ import { SageContentLayout } from '@/components/ask-sage/SageContentLayout';
 import { useSageContainerState } from '@/hooks/ask-sage/use-sage-container-state';
 
 export const AskSageContainer: React.FC = () => {
+  useEffect(() => {
+    console.log("🏗️ AskSageContainer component mounted");
+  }, []);
+
   const isMobile = useIsMobile();
   
   // Use our custom hook for container state management
@@ -24,6 +28,18 @@ export const AskSageContainer: React.FC = () => {
     orgId,
     canSendMessages
   } = useSageContainerState();
+  
+  console.log("🧩 AskSageContainer state:", {
+    hasContext: !!sageContext.context,
+    contextLoading: sageContext.loading,
+    hasError: !!sageContext.error,
+    userId,
+    orgId,
+    canInteract,
+    shouldRender,
+    isProtected,
+    canSendMessages
+  });
   
   // Use the main page logic hook
   const {
@@ -71,9 +87,11 @@ export const AskSageContainer: React.FC = () => {
   
   // If we should show a loading state, return it
   if (loadingElement) {
+    console.log("🔄 AskSageContainer rendering loading state");
     return loadingElement;
   }
 
+  console.log("✅ AskSageContainer rendering full UI");
   return (
     <DashboardContainer showSagePanel={false}>
       <SageContentLayout 

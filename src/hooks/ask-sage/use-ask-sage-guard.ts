@@ -6,7 +6,11 @@ import { useSageContextReadiness } from '@/hooks/sage-context';
 import { useVoiceParamState } from '@/hooks/use-voice-param';
 
 export function useAskSageGuard() {
+  console.log("🛡️ useAskSageGuard initialized");
+  
   const { userId, orgId, user, loading: authLoading } = useAuth();
+  console.log("🔐 Auth state in useAskSageGuard:", { userId, orgId, hasUser: !!user, authLoading });
+  
   const { sessionStable, stabilityTimeMs, readinessBlockers } = useSageSessionStability();
   const { protectionActive, protectionStartTime } = useAskSageRouteProtection();
   const voiceParamState = useVoiceParamState();
@@ -25,6 +29,13 @@ export function useAskSageGuard() {
     ? Date.now() - protectionStartTime 
     : null;
   
+  console.log("🚀 Preparing to evaluate context readiness with:", {
+    userId,
+    orgId,
+    orgSlug: user?.user_metadata?.org_slug ?? null,
+    voiceParam: voiceParamState.currentVoice
+  });
+  
   // Context readiness check
   const contextReadiness = useSageContextReadiness(
     userId,
@@ -39,6 +50,7 @@ export function useAskSageGuard() {
   // Release protection after timeout
   useEffect(() => {
     if (isProtected && !protectionTimeoutRef.current) {
+      console.log('⏱️ Setting up Ask Sage protection window timeout (8s)');
       protectionTimeoutRef.current = window.setTimeout(() => {
         console.log('🛡️ Ask Sage protection window expired after timeout');
         setIsProtected(false);
@@ -84,6 +96,11 @@ export function useAskSageGuard() {
     }
     
     setCanInteract(newCanInteract);
+    console.log('🤝 Can interact state updated:', { 
+      canInteract: newCanInteract, 
+      isProtected, 
+      isProtectedButReady
+    });
   }, [isProtected, isProtectedButReady, protectionTimeMs]);
   
   // Track should-render state
@@ -92,6 +109,7 @@ export function useAskSageGuard() {
     if (process.env.NODE_ENV === 'development') {
       if (!userId && authLoading) {
         // Still loading auth, don't render yet
+        console.log('⏳ Auth still loading in dev mode, delaying render');
         setShouldRender(false);
       } else if (protectionTimeMs && protectionTimeMs > 5000) {
         // If protection has been active for too long in dev mode, force render
@@ -99,13 +117,17 @@ export function useAskSageGuard() {
         setShouldRender(true);
       } else {
         // Otherwise, follow normal rules but be more permissive
-        setShouldRender(isProtectedButReady || !isProtected || contextReadiness.isReadyToRender);
+        const shouldRenderValue = isProtectedButReady || !isProtected || contextReadiness.isReadyToRender;
+        console.log('🖼️ Updating shouldRender in dev mode:', { shouldRenderValue });
+        setShouldRender(shouldRenderValue);
       }
       return;
     }
     
     // Production logic
-    setShouldRender(isProtectedButReady || !isProtected || contextReadiness.isReadyToRender);
+    const shouldRenderValue = isProtectedButReady || !isProtected || contextReadiness.isReadyToRender;
+    console.log('🖼️ Updating shouldRender in production:', { shouldRenderValue });
+    setShouldRender(shouldRenderValue);
   }, [
     isProtected, 
     isProtectedButReady, 
@@ -120,6 +142,13 @@ export function useAskSageGuard() {
     ...readinessBlockers,
     ...contextReadiness.blockers
   ].filter((blocker, index, self) => self.indexOf(blocker) === index);
+  
+  console.log("🛡️ useAskSageGuard returning final state:", { 
+    canInteract, 
+    shouldRender, 
+    isProtected,
+    blockerCount: combinedBlockers.length
+  });
   
   return {
     canInteract,

@@ -21,6 +21,17 @@ export function useSageContextReadiness(
     orgContext?: any | null
   } = {}
 ): SageContextReadiness {
+  console.log("🧪 useSageContextReadiness mounted", { 
+    userId, 
+    orgId, 
+    hasOrgSlug: !!orgSlug,
+    hasUserData: !!currentUserData,
+    authLoading,
+    isSessionUserReady,
+    voiceParam,
+    hasBackendContext: !!(backend.userContext || backend.orgContext)
+  });
+
   // Extract backend context values
   const { userContext = null, orgContext = null } = backend;
   
@@ -43,8 +54,15 @@ export function useSageContextReadiness(
   useEffect(() => {
     // Don't evaluate until auth loading is complete
     if (authLoading) {
+      console.log("⏳ Auth still loading, delaying readiness evaluation");
       return;
     }
+    
+    console.log("🔍 Evaluating context readiness with params:", {
+      hasUserId: !!userId,
+      hasOrgId: !!orgId,
+      authComplete: !authLoading
+    });
     
     // Evaluate readiness and update state
     const newReadiness = evaluateReadiness();
@@ -62,6 +80,15 @@ export function useSageContextReadiness(
     evaluateReadiness,
     setReadiness
   ]);
+  
+  console.log("📊 Context readiness state:", {
+    isReadyToRender: readiness.isReadyToRender,
+    isReadyToSend: readiness.isReadyToSend,
+    isContextReady: readiness.isContextReady,
+    contextCheckComplete: readiness.contextCheckComplete,
+    blockerCount: readiness.blockers.length,
+    blockers: readiness.blockers
+  });
   
   return readiness;
 }

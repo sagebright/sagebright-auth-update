@@ -1,9 +1,13 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { AskSageContainer } from '@/components/ask-sage/AskSageContainer';
 import ErrorBoundary from '@/components/ErrorBoundary';
 
 const AskSage = () => {
+  useEffect(() => {
+    console.log("🌟 AskSage component mounted");
+  }, []);
+
   return (
     <ErrorBoundary fallback={
       <div className="p-4 bg-red-50 text-red-800 rounded-lg my-4">

@@ -9,6 +9,8 @@ import { SageContext } from '@/types/chat';
  * This should be the primary way to access context in the frontend
  */
 export function useSageContext() {
+  console.log("🧠 useSageContext hook initialized");
+  
   const { userId, orgId, orgSlug, user: currentUserData, loading: authLoading } = useAuth();
   const [context, setContext] = useState<SageContext | null>(null);
   const [loading, setLoading] = useState(true);
@@ -21,8 +23,21 @@ export function useSageContext() {
   const HYDRATION_TIMEOUT = 5000;
   
   useEffect(() => {
+    console.log("🔄 useSageContext effect triggered", {
+      authLoading,
+      userId,
+      orgId,
+      hasOrgSlug: !!orgSlug,
+      hasUserData: !!currentUserData
+    });
+    
     // If auth is still loading or no userId or orgId, don't fetch context yet
     if (authLoading || !userId || !orgId) {
+      console.log("⏳ Auth loading or missing IDs, skipping context fetch", {
+        authLoading,
+        hasUserId: !!userId,
+        hasOrgId: !!orgId
+      });
       return;
     }
 
@@ -30,6 +45,13 @@ export function useSageContext() {
     
     const fetchContext = async () => {
       try {
+        console.log("🚀 Starting context fetch with hydrateSageContext", {
+          userId,
+          orgId,
+          orgSlug,
+          timeout: HYDRATION_TIMEOUT
+        });
+        
         setLoading(true);
         setHydrationAttempts(prev => prev + 1);
         
@@ -76,14 +98,16 @@ export function useSageContext() {
       }
     };
 
+    console.log("📞 Calling fetchContext from useSageContext");
     fetchContext();
 
     return () => {
+      console.log("🧹 Cleaning up useSageContext effect");
       isMounted = false;
     };
   }, [userId, orgId, orgSlug, authLoading, HYDRATION_TIMEOUT]);
 
-  return {
+  const result = {
     context,
     loading,
     error,
@@ -99,6 +123,17 @@ export function useSageContext() {
       "I'm sorry, but we're having trouble loading your information. You can continue, but some personalized features might be limited." : 
       null
   };
+
+  console.log("📤 useSageContext returning", {
+    loading,
+    hasError: !!error,
+    isReady: result.isReady,
+    hydrationAttempts,
+    timedOut,
+    hasContext: !!context
+  });
+
+  return result;
 }
 
 export default useSageContext;
