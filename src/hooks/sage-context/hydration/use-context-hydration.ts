@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useSageContextReadiness } from '../use-sage-context-readiness';
 import { useAuth } from '@/contexts/auth/AuthContext';
 import { HydrationState } from './types';

@@ -4,7 +4,7 @@ import { SageContextReadiness } from '../types';
 import { HydrationState } from './types';
 
 /**
- * Hook to track and update hydration progress
+ * Custom hook to track hydration steps based on context readiness changes
  */
 export function useHydrationTracking(
   userId: string | null,
@@ -15,7 +15,7 @@ export function useHydrationTracking(
   // Start tracking hydration when user signs in
   useEffect(() => {
     if (userId && !hydrationProgress.startTime) {
-      setHydrationProgress(prev => ({
+      setHydrationProgress((prev: HydrationState) => ({
         ...prev,
         startTime: Date.now(),
         completedSteps: [...prev.completedSteps, 'authentication']
@@ -28,7 +28,7 @@ export function useHydrationTracking(
     if (contextReadiness.isAuthReady && 
         !hydrationProgress.completedSteps.includes('auth') && 
         hydrationProgress.startTime) {
-      setHydrationProgress(prev => ({
+      setHydrationProgress((prev: HydrationState) => ({
         ...prev,
         completedSteps: [...prev.completedSteps, 'auth']
       }));
@@ -40,7 +40,7 @@ export function useHydrationTracking(
     if (contextReadiness.isSessionReady && 
         !hydrationProgress.completedSteps.includes('session') && 
         hydrationProgress.startTime) {
-      setHydrationProgress(prev => ({
+      setHydrationProgress((prev: HydrationState) => ({
         ...prev,
         completedSteps: [...prev.completedSteps, 'session']
       }));
@@ -52,7 +52,7 @@ export function useHydrationTracking(
     if (contextReadiness.isOrgReady && 
         !hydrationProgress.completedSteps.includes('org') && 
         hydrationProgress.startTime) {
-      setHydrationProgress(prev => ({
+      setHydrationProgress((prev: HydrationState) => ({
         ...prev,
         completedSteps: [...prev.completedSteps, 'org']
       }));
@@ -64,7 +64,7 @@ export function useHydrationTracking(
     if (contextReadiness.isVoiceReady && 
         !hydrationProgress.completedSteps.includes('voice') && 
         hydrationProgress.startTime) {
-      setHydrationProgress(prev => ({
+      setHydrationProgress((prev: HydrationState) => ({
         ...prev,
         completedSteps: [...prev.completedSteps, 'voice']
       }));
@@ -77,7 +77,7 @@ export function useHydrationTracking(
       const endTime = Date.now();
       const duration = endTime - hydrationProgress.startTime;
       
-      setHydrationProgress(prev => ({
+      setHydrationProgress((prev: HydrationState) => ({
         ...prev,
         endTime,
         duration
