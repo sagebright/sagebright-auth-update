@@ -1,7 +1,6 @@
-
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { supabase } from '@/lib/supabaseClient';
+import { fetchAuth } from '@/lib/backendAuth';
 import { contactFormSchema, ContactFormValues } from "./schema";
 import { useFormSubmit } from "@/hooks/use-form-submit";
 
@@ -26,16 +25,20 @@ export function useContactForm({ onSubmitSuccess }: UseContactFormProps = {}) {
   // Form submission handler using our custom hook
   const submitToSupabase = async (data: ContactFormValues) => {
     // Submit data to Supabase
-    const { error, data: result } = await supabase
-      .from('contact_submissions')
-      .insert({
-        first_name: data.firstName,
-        last_name: data.lastName,
-        email: data.email,
-        company: data.company || null,
-        is_beta_client: data.isBetaClient,
-        message: data.message
-      });
+    const { error, data: result } = await fetch('/api/contact-submissions', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            first_name: data.firstName,
+            last_name: data.lastName,
+            email: data.email,
+            company: data.company || null,
+            is_beta_client: data.isBetaClient,
+            message: data.message
+        })
+    }).then(res => res.json());
       
     if (error) {
       console.error("Error submitting form:", error);

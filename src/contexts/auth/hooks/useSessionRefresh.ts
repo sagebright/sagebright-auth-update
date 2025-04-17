@@ -1,6 +1,5 @@
-
 import { useCallback, useRef } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { fetchAuth } from '@/lib/backendAuth';
 import { syncUserRole } from '@/lib/syncUserRole';
 import { toast } from '@/components/ui/use-toast';
 
@@ -28,7 +27,7 @@ export function useSessionRefresh() {
     sessionRefreshPromiseRef.current = new Promise<void>(async (resolve, reject) => {
       try {
         console.log(`🔄 Refreshing session #${refreshCount} (reason: ${reason}, time since last: ${timeSinceLastRefresh}ms) at ${new Date().toISOString()}`);
-        const { data, error } = await supabase.auth.getSession();
+        const { data, error } = await fetchAuth();
         
         // Update the last refreshed timestamp
         sessionLastRefreshedRef.current = Date.now();
@@ -87,7 +86,7 @@ export function useSessionRefresh() {
       console.log('✅ Role synchronized on repair');
       
       // Refresh session to get updated metadata
-      const { data: refreshData } = await supabase.auth.getSession();
+      const { data: refreshData } = await fetchAuth();
       if (refreshData.session) {
         console.log('🔄 User metadata after role sync repair:', refreshData.session.user.user_metadata);
         return true;

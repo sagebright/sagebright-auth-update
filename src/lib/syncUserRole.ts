@@ -1,5 +1,4 @@
-
-import { supabase } from './supabaseClient';
+import { fetchAuth } from '@/lib/backendAuth';
 import { handleApiError } from './handleApiError';
 import { toast } from '@/hooks/use-toast';
 
@@ -10,46 +9,23 @@ import { toast } from '@/hooks/use-toast';
  */
 export async function syncUserRole(userId: string): Promise<any> {
   try {
-    console.log('🔄 Manually syncing user role for:', userId);
+    console.log('🔄 Checking user role sync for:', userId);
     
-    // First, try to call the sync-user-role edge function
-    try {
-      const { data, error } = await supabase.functions.invoke('sync-user-role', {
-        body: { userId }
-      });
-      
-      if (error) {
-        console.error('❌ Edge function error:', error);
-        throw error;
-      }
-      
-      console.log('✅ User role synchronized via edge function:', data);
-      return data;
-    } catch (edgeFunctionError) {
-      console.warn('⚠️ Edge function failed, falling back to direct access:', edgeFunctionError);
-      
-      // Fall back to direct auth data access
-      const { data: userData, error: authError } = await supabase.auth.getUser();
-      
-      if (authError || !userData) {
-        console.error('❌ Cannot get current user', authError);
-        throw new Error('Cannot retrieve user data: ' + (authError?.message || 'Unknown error'));
-      }
-      
-      console.log('✅ Got user data directly, using existing authentication');
-      return { 
-        message: 'Using direct auth data access',
-        userId,
-        role: userData.user.user_metadata?.role || 'user',
-        directAccess: true 
-      };
+    const authData = await fetchAuth();
+    
+    if (!authData?.user) {
+      throw new Error('Cannot retrieve user data');
     }
-  } catch (error: any) {
-    // Handle overall errors and provide user feedback
-    const errorMessage = error.message || 'Unknown error during role synchronization';
-    console.error('❌ Role sync failed:', errorMessage);
     
-    // Use handleApiError with silent option for background operations
+    return { 
+      message: 'Using auth data access',
+      userId,
+      role: authData.user.role,
+      directAccess: true 
+    };
+  } catch (error: any) {
+    console.error('❌ Role sync failed:', error);
+    
     handleApiError(error, { 
       context: 'role-sync',
       fallbackMessage: 'Unable to synchronize your account. Please try signing out and back in.',
@@ -57,7 +33,6 @@ export async function syncUserRole(userId: string): Promise<any> {
       silent: true
     });
     
-    // Rethrow to allow calling code to handle the error
     throw error;
   }
 }

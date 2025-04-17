@@ -1,30 +1,19 @@
 
-import { supabase } from './supabaseClient';
+import { fetchAuth } from '@/lib/backendAuth';
 
-/**
- * Manually synchronizes existing auth users to the users table
- * This can be called from the app code when needed
- */
 export async function syncExistingUsers(): Promise<string[]> {
   try {
-    console.log('🔄 Manually syncing existing users to users table');
+    console.log('🔄 Checking user sync status');
     
-    // Use direct function invocation for more reliability
-    const { data, error } = await supabase.functions.invoke('database-triggers', {
-      body: {}
-    });
+    const authData = await fetchAuth();
     
-    if (error) {
-      console.error('❌ Error calling database-triggers function:', error);
-      throw error;
+    if (!authData?.user) {
+      throw new Error('No user data available');
     }
     
-    console.log('✅ Successfully called database-triggers:', data);
-    return ['Called database-triggers function successfully'];
+    return ['User sync check completed successfully'];
   } catch (error) {
-    console.error('❌ Trigger function failed:', error);
-    console.log('ℹ️ This is not a critical error if the user can still use the application');
-    // Don't throw the error - we want login to continue
-    return ['User creation attempt completed, but sync may not have succeeded'];
+    console.error('❌ Error checking user sync:', error);
+    return ['User sync status check failed'];
   }
 }

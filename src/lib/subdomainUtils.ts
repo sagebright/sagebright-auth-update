@@ -1,4 +1,3 @@
-
 /**
  * Utility functions for handling subdomain-based organization routing
  */
@@ -51,29 +50,17 @@ export function getOrgFromUrl(): string | null {
  */
 export async function getOrgById(orgId: string): Promise<{ id: string; slug: string; name: string } | null> {
   try {
-    // Import supabase client here to avoid circular dependencies
-    const { supabase } = await import('@/lib/supabaseClient');
+    const authData = await fetchAuth();
     
-    console.log("🔍 Fetching org details for ID:", orgId);
-    
-    const { data, error } = await supabase
-      .from('orgs')
-      .select('id, slug, name')
-      .eq('id', orgId)
-      .single();
-    
-    if (error) {
-      console.error("❌ Error fetching org details:", error);
-      return null;
+    if (authData?.org?.id === orgId) {
+      return {
+        id: authData.org.id,
+        slug: authData.org.slug,
+        name: authData.org.slug // Using slug as name for now
+      };
     }
     
-    if (!data) {
-      console.warn("⚠️ No org found with ID:", orgId);
-      return null;
-    }
-    
-    console.log("✅ Found org details:", data);
-    return data;
+    return null;
   } catch (error) {
     console.error("❌ Error in getOrgById:", error);
     return null;

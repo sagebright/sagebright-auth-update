@@ -1,13 +1,8 @@
 
-import { supabase } from './supabaseClient'
+import { fetchAuth } from '@/lib/backendAuth';
 
 export async function insertOrgContext(data: any) {
-  const { data: result, error } = await supabase
-    .from('org_context')
-    .insert([data])
-
-  if (error) throw error
-  return result
+  throw new Error('insertOrgContext is deprecated - use backend APIs instead');
 }
 
 export async function getOrgContext(orgId: string) {
@@ -17,23 +12,16 @@ export async function getOrgContext(orgId: string) {
   }
   
   try {
-    const { data, error } = await supabase
-      .from('org_context')
-      .select('*')
-      .eq('org_id', orgId)
-      .maybeSingle()
-
-    if (error) {
-      console.warn('⚠️ Error fetching org_context:', error.message);
-      return null;
+    const authData = await fetchAuth();
+    
+    if (authData?.org?.id === orgId) {
+      return {
+        org_id: authData.org.id,
+        slug: authData.org.slug
+      };
     }
 
-    if (!data) {
-      console.warn(`⚠️ No org_context found for orgId: ${orgId}. This is expected during development.`);
-      return null;
-    }
-
-    return data;
+    return null;
   } catch (err) {
     console.warn('⚠️ Exception in getOrgContext:', err);
     return null;

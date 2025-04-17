@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { Message } from '@/types/chat';
 import { useVoiceParam } from './use-voice-param';
@@ -6,7 +5,7 @@ import { useAuth } from '@/contexts/auth/AuthContext';
 import { useVisibilityChange } from '@/contexts/auth/hooks/useVisibilityChange';
 import { toast } from '@/components/ui/use-toast';
 import { createUserMessage, createSageMessage, createLoadingMessage, createSageErrorMessage } from '@/utils/messageUtils';
-import { supabase } from '@/lib/supabaseClient';
+import { fetchAuth } from '@/lib/backendAuth';
 
 interface DebugPanelHandlers {
   setRequestLoading: () => void;
@@ -76,7 +75,7 @@ export const useSendMessage = (
     const startTime = Date.now();
 
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
+      const { data: sessionData } = await fetchAuth();
       const token = sessionData.session?.access_token;
 
       if (!token) {
