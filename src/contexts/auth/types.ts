@@ -17,7 +17,7 @@ export interface AuthContextType {
   resetPassword: (email: string) => Promise<void>;
   updateProfile: (data: any) => Promise<void>;
   accessToken: string | null;
-  refreshSession?: (reason: string) => Promise<void>; // Add refreshSession function
-  isRecoveringOrgContext?: boolean; // Add isRecoveringOrgContext property
-  sessionUserReady?: boolean; // Add sessionUserReady property
+  refreshSession?: (reason: string) => Promise<void>; 
+  isRecoveringOrgContext?: boolean;
+  sessionUserReady: boolean; // Changed from optional to required
 }

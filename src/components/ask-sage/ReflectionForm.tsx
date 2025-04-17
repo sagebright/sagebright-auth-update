@@ -2,17 +2,12 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { ReflectionData } from '@/types/reflection';
 
 interface ReflectionFormProps {
   onSubmit: (data: ReflectionData) => void;
   onCancel: () => void;
   isSubmitting?: boolean;
-}
-
-export interface ReflectionData {
-  wellResponse: string;
-  unclearResponse: string;
-  shareWithManager: boolean;
 }
 
 export const ReflectionForm: React.FC<ReflectionFormProps> = ({ onSubmit, onCancel, isSubmitting = false }) => {

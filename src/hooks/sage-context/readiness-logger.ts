@@ -46,11 +46,6 @@ export function logReadinessTransition(
   
   // Check for changes in blockers
   if (JSON.stringify(prevState.blockers) !== JSON.stringify(newState.blockers)) {
-    const blockerChanges: {
-      removedBlockers?: string[];
-      addedBlockers?: string[];
-    } = {};
-    
     const removedBlockers = prevState.blockers.filter(
       blocker => !newState.blockers.includes(blocker)
     );
@@ -59,16 +54,11 @@ export function logReadinessTransition(
       blocker => !prevState.blockers.includes(blocker)
     );
     
-    if (removedBlockers.length > 0) {
-      blockerChanges.removedBlockers = removedBlockers;
-    }
-    
-    if (addedBlockers.length > 0) {
-      blockerChanges.addedBlockers = addedBlockers;
-    }
-    
-    if (Object.keys(blockerChanges).length > 0) {
-      changes.blockers = blockerChanges;
+    if (removedBlockers.length > 0 || addedBlockers.length > 0) {
+      changes.blockers = {
+        from: prevState.blockers,
+        to: newState.blockers
+      };
     }
   }
   
