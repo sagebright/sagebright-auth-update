@@ -1,5 +1,4 @@
 
-// src/lib/fetchOrgContext.ts
 import { fetchAuth } from '@/lib/backendAuth';
 
 /**
@@ -32,7 +31,6 @@ export async function fetchOrgContext(orgId: string) {
       id: authData.org.id,
       org_id: authData.org.id, // Keep compatibility with existing code
       slug: authData.org.slug,
-      // Add additional org context fields as needed
     };
 
     console.log(`✅ Successfully found org context data for orgId: ${orgId}`, {

@@ -1,5 +1,4 @@
 
-// src/lib/fetchUserContext.ts
 import { fetchAuth } from '@/lib/backendAuth';
 
 /**
@@ -17,7 +16,6 @@ export async function fetchUserContext(userId: string) {
     return null;
   }
 
-  // Log the attempt with specific ID for debugging
   console.log(`[fetchUserContext] Attempting to fetch context for userId: ${userId}`);
 
   try {
@@ -33,7 +31,6 @@ export async function fetchUserContext(userId: string) {
       id: authData.user.id,
       user_id: authData.user.id, // Keep compatibility with existing code
       role: authData.user.role,
-      // Add additional user context fields as needed
     };
 
     console.log(`✅ Successfully retrieved user context for userId: ${userId}`, {
