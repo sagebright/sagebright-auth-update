@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { DashboardContainer } from '@/components/layout/DashboardContainer';
 import { ChatHeader } from '@/components/ask-sage/ChatHeader';
@@ -17,8 +18,8 @@ import { useAuth } from '@/contexts/auth/AuthContext';
 import { useVoiceParamState } from '@/hooks/use-voice-param';
 import { useRedirectIntentManager } from '@/lib/redirect-intent';
 import { useAskSageGuard } from '@/hooks/ask-sage/use-ask-sage-guard';
-import { useContextHydration } from '@/hooks/sage-context/use-context-hydration';
-import { useSageContext } from '@/hooks/sage-context/use-sage-context';
+import { useContextHydration } from '@/hooks/sage-context';
+import { useSageContext } from '@/hooks/sage-context';
 
 export const AskSageContainer: React.FC = () => {
   const isMobile = useIsMobile();

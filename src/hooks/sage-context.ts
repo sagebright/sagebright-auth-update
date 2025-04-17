@@ -1,5 +1,7 @@
 
 import { useSageContextReadiness } from './sage-context/use-sage-context-readiness';
+import { useSageContext as useSageContextHook } from './sage-context/use-sage-context';
+import { useContextHydration } from './sage-context/hydration';
 
 /**
  * Consolidated hook to provide all necessary context for Sage functionality
@@ -42,5 +44,8 @@ export function useSageContext(
   };
 }
 
+// For better semantic naming, export the hook with its proper name
+export { useSageContextHook as useSageContext };
+export { useContextHydration };
 export type { SageContextReadiness } from './sage-context/types';
 export { useSageContextReadiness };

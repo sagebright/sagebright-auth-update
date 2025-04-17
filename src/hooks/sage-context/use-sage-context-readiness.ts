@@ -1,6 +1,6 @@
 
 import { useEffect, useState, useRef, useMemo } from 'react';
-import { SageContextReadiness, DependencyPriority } from './types';
+import { SageContextReadiness } from './types';
 import { 
   checkAuthReadiness,
   checkSessionReadiness,

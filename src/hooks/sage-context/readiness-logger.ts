@@ -1,5 +1,5 @@
 
-import { SageContextReadiness, DependencyStatus } from './types';
+import { SageContextReadiness } from './types';
 
 /**
  * Logs a state transition in the readiness state
