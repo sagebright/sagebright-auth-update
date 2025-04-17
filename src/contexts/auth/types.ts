@@ -1,8 +1,6 @@
 
-import { User, Session } from "@supabase/supabase-js";
-
 export interface AuthContextType {
-  session: Session | null;
+  session: any | null;
   user: any | null;
   userId: string | null;
   orgId: string | null;
@@ -19,5 +17,5 @@ export interface AuthContextType {
   accessToken: string | null;
   refreshSession?: (reason: string) => Promise<void>; 
   isRecoveringOrgContext?: boolean;
-  sessionUserReady: boolean; // Changed from optional to required
+  sessionUserReady: boolean;
 }

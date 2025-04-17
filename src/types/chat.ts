@@ -1,42 +1,26 @@
 
-import { User } from "@supabase/supabase-js";
-
 export interface Message {
   id: string;
   content: string;
-  sender: 'user' | 'sage';
-  timestamp: Date;
-  avatar_url?: string;
-  liked?: boolean;
-  disliked?: boolean;
+  role: 'user' | 'assistant';
+  timestamp: number;
   isLoading?: boolean;
-  isError?: boolean;
-}
-
-export interface SageContext {
-  org: any | null;
-  user: any | null;
-  userId: string;
-  orgId: string;
-  messages?: string[];
-  _meta?: {
+  error?: boolean;
+  metadata?: {
     source?: string;
-    hydratedAt?: string;
-    timeout?: boolean;
-    userContextSource?: string;
-    orgContextSource?: string;
-    error?: string;
-    voiceConfig?: any;
+    context?: string;
   };
 }
 
-export interface ChatHookReturn {
+export interface ChatSession {
+  id: string;
   messages: Message[];
-  suggestedQuestions: string[];
-  showReflection: boolean;
-  setShowReflection: (show: boolean) => void;
-  handleSendMessage: (content: string) => Promise<void>;
-  handleFeedback: (messageId: string, feedback: 'like' | 'dislike') => void;
-  isLoading: boolean;
-  isRecoveringOrg: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ChatContext {
+  userId: string;
+  orgId: string;
+  sessionId?: string;
 }

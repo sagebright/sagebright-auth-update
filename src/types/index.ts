@@ -1,51 +1,35 @@
 
-/**
- * Shared type definitions for the Sagebright application
- */
-
-import { User } from '@supabase/supabase-js';
-
-// Auth types
-export interface LoginFormValues {
-  email: string;
-  password: string;
-}
-
-export interface SignupFormValues {
-  name: string;
-  email: string;
-  password: string;
-}
-
-export interface ForgotPasswordValues {
-  email: string;
-}
-
-// UI component props types
-export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  loading?: boolean;
-  loadingText?: string;
-  asChild?: boolean;
-  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
-  size?: 'default' | 'sm' | 'lg' | 'icon';
-}
-
-// Navbar component props
-export interface NavbarButtonProps {
-  user: User | null;
-}
-
-// Language/i18n types
 export interface Language {
   code: string;
   name: string;
   flag: string;
 }
 
-// Form field types
-export interface SelectOption {
-  value: string;
-  label: string;
+export interface UserProfile {
+  id: string;
+  email: string;
+  role: string;
+  firstName?: string;
+  lastName?: string;
+  fullName?: string;
+  avatar?: string;
+  preferences?: UserPreferences;
 }
 
-export type IconType = "mail" | "user" | "search" | "none";
+export interface UserPreferences {
+  language?: string;
+  theme?: 'light' | 'dark' | 'system';
+  notifications?: NotificationPreferences;
+}
+
+export interface NotificationPreferences {
+  email: boolean;
+  push: boolean;
+  desktop: boolean;
+}
+
+export interface Organization {
+  id: string;
+  name: string;
+  slug: string;
+}

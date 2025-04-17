@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -37,7 +36,6 @@ const WaitlistSection = () => {
     setIsSubmitting(true);
     
     try {
-      // Submit to API instead of direct Supabase access
       const response = await fetch('/api/waitlist/signup', {
         method: 'POST',
         headers: {

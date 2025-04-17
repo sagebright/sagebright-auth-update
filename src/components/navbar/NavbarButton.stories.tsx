@@ -1,65 +1,22 @@
 
-import type { Meta, StoryObj } from '@storybook/react';
-import NavbarButton from '@/components/navbar/NavbarButton';
-import { BrowserRouter } from 'react-router-dom';
+import React from 'react';
+import { NavbarButton } from './NavbarButton';
 
-/**
- * NavbarButton component stories for Storybook
- */
-const meta: Meta<typeof NavbarButton> = {
-  title: 'Sage/NavbarButton',
+export default {
+  title: 'Components/Navigation/NavbarButton',
   component: NavbarButton,
-  tags: ['autodocs'],
-  parameters: {
-    layout: 'centered',
-  },
-  decorators: [
-    (Story) => (
-      <BrowserRouter>
-        <Story />
-      </BrowserRouter>
-    ),
-  ],
-  argTypes: {
-    user: {
-      control: 'object',
-      description: 'The current user object from authentication context',
-    },
+};
+
+export const Default = {
+  args: {
+    children: 'Button Text',
+    variant: 'default',
   },
 };
 
-export default meta;
-type Story = StoryObj<typeof NavbarButton>;
-
-/**
- * NavbarButton when user is not logged in
- */
-export const LoggedOut: Story = {
+export const Secondary = {
   args: {
-    user: null,
-  },
-};
-
-/**
- * NavbarButton when user is logged in
- */
-export const LoggedIn: Story = {
-  args: {
-    user: {
-      id: '123',
-      email: 'user@example.com',
-      // Using properties that exist in the Supabase User type
-      // Removed firstName which was causing the error
-      app_metadata: {},
-      aud: 'authenticated',
-      confirmed_at: new Date().toISOString(),
-      created_at: new Date().toISOString(),
-      last_sign_in_at: new Date().toISOString(),
-      role: 'authenticated',
-      updated_at: new Date().toISOString(),
-      user_metadata: {
-        full_name: 'Test User'
-      }
-    },
+    children: 'Secondary Button',
+    variant: 'secondary',
   },
 };

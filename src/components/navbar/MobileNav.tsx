@@ -1,105 +1,135 @@
-
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-} from '@/components/ui/sheet';
 import { Menu } from 'lucide-react';
-import { User } from '@supabase/supabase-js';
+import { NavLink } from 'react-router-dom';
+import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/auth/AuthContext';
+import { Logo } from '@/components/Logo';
 
-interface MobileNavProps {
-  isContactPage: boolean;
-  user: User | null;
-}
+export function MobileNav() {
+  const [open, setOpen] = useState(false);
+  const { isAuthenticated, signOut } = useAuth();
 
-const MobileNav = ({ isContactPage, user }: MobileNavProps) => {
+  const handleSignOut = async () => {
+    await signOut();
+    setOpen(false);
+  };
+
+  const closeSheet = () => {
+    setOpen(false);
+  };
+
   return (
-    <div className="md:hidden ml-4">
-      <Sheet>
-        <SheetTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-10 w-10">
-            <Menu className="h-6 w-6" />
-            <span className="sr-only">Toggle menu</span>
-          </Button>
-        </SheetTrigger>
-        <SheetContent side="right" className="w-[80vw] sm:w-[350px] pt-12">
-          <div className="flex flex-col gap-6 py-4">
-            {isContactPage ? (
-              <>
-                <Link 
-                  to="/#employees" 
-                  className="text-lg font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 py-2"
-                >
-                  Meet Sage
-                </Link>
-                <Link 
-                  to="/#admins" 
-                  className="text-lg font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 py-2"
-                >
-                  Built for Teams
-                </Link>
-                <Link 
-                  to="/#how" 
-                  className="text-lg font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 py-2"
-                >
-                  From Intro to Impact
-                </Link>
-                <Link 
-                  to="/#human" 
-                  className="text-lg font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 py-2"
-                >
-                  Designed for People
-                </Link>
-              </>
-            ) : (
-              <>
-                <a 
-                  href="#employees" 
-                  className="text-lg font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 py-2"
-                >
-                  Meet Sage
-                </a>
-                <a 
-                  href="#admins" 
-                  className="text-lg font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 py-2"
-                >
-                  Built for Teams
-                </a>
-                <a 
-                  href="#how" 
-                  className="text-lg font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 py-2"
-                >
-                  From Intro to Impact
-                </a>
-                <a 
-                  href="#human" 
-                  className="text-lg font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 py-2"
-                >
-                  Designed for People
-                </a>
-              </>
-            )}
-            <Link 
-              to="/contact-us" 
-              className="text-lg font-medium font-helvetica tracking-tight text-charcoal hover:text-sagebright-green transition-colors duration-200 py-2"
-            >
-              Contact Us
-            </Link>
-            <div className="pt-4">
-              <Button asChild className="w-full bg-sagebright-coral hover:bg-sagebright-coral/90 text-white text-cta font-dmSans rounded-md">
-                <Link to={user ? "/user-dashboard" : "/auth/login"}>
-                  {user ? "Dashboard" : "Request Access"}
-                </Link>
-              </Button>
-            </div>
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
+        <Button variant="ghost" className="md:hidden" size="icon">
+          <Menu className="h-6 w-6" />
+          <span className="sr-only">Toggle menu</span>
+        </Button>
+      </SheetTrigger>
+      <SheetContent side="left" className="w-[300px] sm:w-[400px]">
+        <div className="px-2 py-6 flex flex-col h-full">
+          <div className="mb-8 flex justify-start">
+            <Logo />
           </div>
-        </SheetContent>
-      </Sheet>
-    </div>
+          <nav className="flex flex-col gap-4">
+            <NavLink
+              to="/"
+              onClick={closeSheet}
+              className={({ isActive }) =>
+                cn(
+                  "px-3 py-2 rounded-md text-lg font-medium transition-colors",
+                  isActive
+                    ? "bg-primary/10 text-primary"
+                    : "text-foreground/70 hover:text-foreground hover:bg-accent"
+                )
+              }
+            >
+              Home
+            </NavLink>
+            <NavLink
+              to="/features"
+              onClick={closeSheet}
+              className={({ isActive }) =>
+                cn(
+                  "px-3 py-2 rounded-md text-lg font-medium transition-colors",
+                  isActive
+                    ? "bg-primary/10 text-primary"
+                    : "text-foreground/70 hover:text-foreground hover:bg-accent"
+                )
+              }
+            >
+              Features
+            </NavLink>
+            <NavLink
+              to="/pricing"
+              onClick={closeSheet}
+              className={({ isActive }) =>
+                cn(
+                  "px-3 py-2 rounded-md text-lg font-medium transition-colors",
+                  isActive
+                    ? "bg-primary/10 text-primary"
+                    : "text-foreground/70 hover:text-foreground hover:bg-accent"
+                )
+              }
+            >
+              Pricing
+            </NavLink>
+            <NavLink
+              to="/about"
+              onClick={closeSheet}
+              className={({ isActive }) =>
+                cn(
+                  "px-3 py-2 rounded-md text-lg font-medium transition-colors",
+                  isActive
+                    ? "bg-primary/10 text-primary"
+                    : "text-foreground/70 hover:text-foreground hover:bg-accent"
+                )
+              }
+            >
+              About
+            </NavLink>
+          </nav>
+          <div className="mt-auto pt-6 border-t">
+            {isAuthenticated ? (
+              <div className="space-y-3">
+                <NavLink
+                  to="/dashboard"
+                  onClick={closeSheet}
+                  className="block w-full px-3 py-2 text-lg font-medium text-center rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
+                >
+                  Dashboard
+                </NavLink>
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={handleSignOut}
+                >
+                  Sign Out
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <NavLink
+                  to="/signin"
+                  onClick={closeSheet}
+                  className="block w-full px-3 py-2 text-lg font-medium text-center rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
+                >
+                  Sign In
+                </NavLink>
+                <NavLink
+                  to="/signup"
+                  onClick={closeSheet}
+                  className="block w-full px-3 py-2 text-lg font-medium text-center rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground"
+                >
+                  Sign Up
+                </NavLink>
+              </div>
+            )}
+          </div>
+        </div>
+      </SheetContent>
+    </Sheet>
   );
-};
-
-export default MobileNav;
+}
