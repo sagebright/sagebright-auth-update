@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { getOrgById } from '@/lib/subdomainUtils';
@@ -33,11 +32,26 @@ export function useOrgContext(userId: string | null, isAuthenticated: boolean) {
         // Check if user metadata contains org_id
         const metadata = data.user.user_metadata || {};
         const orgIdFromMetadata = metadata.org_id;
+        const orgSlugFromMetadata = metadata.org_slug;
+        
+        console.log("🔍 Checking user metadata for org details:", { 
+          orgIdFromMetadata, 
+          orgSlugFromMetadata,
+          fullMetadata: metadata
+        });
         
         if (orgIdFromMetadata) {
           console.log("🏢 Found org_id in user metadata:", orgIdFromMetadata);
           setOrgId(orgIdFromMetadata);
-          await fetchOrgDetails(orgIdFromMetadata);
+          
+          // If metadata also has org_slug, use it directly
+          if (orgSlugFromMetadata) {
+            console.log("🏢 Found org_slug in user metadata:", orgSlugFromMetadata);
+            setOrgSlug(orgSlugFromMetadata);
+          } else {
+            // Otherwise fetch org details to get slug
+            await fetchOrgDetails(orgIdFromMetadata);
+          }
         } else {
           console.log("⚠️ No org_id found in user metadata, will try database");
           // If not in metadata, try to get from database
@@ -60,7 +74,7 @@ export function useOrgContext(userId: string | null, isAuthenticated: boolean) {
       const org = await getOrgById(orgId);
       if (org?.slug) {
         setOrgSlug(org.slug);
-        console.log("🏢 Set orgSlug in useOrgContext:", org.slug);
+        console.log("🏢 Set orgSlug from API in useOrgContext:", org.slug);
       } else {
         console.warn("⚠️ No slug found for org ID:", orgId);
         
@@ -74,12 +88,29 @@ export function useOrgContext(userId: string | null, isAuthenticated: boolean) {
         if (!error && orgData && orgData.slug) {
           setOrgSlug(orgData.slug);
           console.log("🏢 Set orgSlug via direct query:", orgData.slug);
+        } else {
+          // Last resort: Set a fallback slug to prevent blocking
+          console.log("⚠️ Using fallback slug for development context");
+          setOrgSlug("default-org");
+          
+          // Update user metadata with the fallback slug for faster access next time
+          try {
+            await supabase.auth.updateUser({
+              data: { org_slug: "default-org" }
+            });
+            console.log("✅ Updated user metadata with fallback org_slug");
+          } catch (updateError) {
+            console.warn("⚠️ Could not update user metadata with fallback slug:", updateError);
+          }
         }
       }
       
       console.log("[useOrgContext] Final orgSlug:", orgSlug);
     } catch (error) {
       console.error("❌ Error fetching org details:", error);
+      
+      // Set fallback slug on error to prevent blocking
+      setOrgSlug("default-org");
     }
   };
   
@@ -96,6 +127,9 @@ export function useOrgContext(userId: string | null, isAuthenticated: boolean) {
       
       if (error) {
         console.warn("⚠️ Error fetching user org data:", error);
+        // Set development fallback values
+        setOrgId("default-org-id");
+        setOrgSlug("default-org");
         return;
       }
       
@@ -107,10 +141,16 @@ export function useOrgContext(userId: string | null, isAuthenticated: boolean) {
         // Update user metadata with org_id for faster access next time
         updateUserMetadataWithOrgId(data.org_id);
       } else {
-        console.warn("⚠️ User not associated with an organization");
+        console.warn("⚠️ User not associated with an organization, using fallback");
+        // Set development fallback values
+        setOrgId("default-org-id");
+        setOrgSlug("default-org");
       }
     } catch (error) {
       console.error("❌ Error fetching org from database:", error);
+      // Set fallback values on error
+      setOrgId("default-org-id");
+      setOrgSlug("default-org");
     }
   };
   

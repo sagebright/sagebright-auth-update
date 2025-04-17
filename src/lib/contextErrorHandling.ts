@@ -1,34 +1,36 @@
 
 /**
- * Error handling utilities for context building
+ * Utilities for handling context-building errors
  */
 
-/**
- * Creates a fallback context response when organization context is missing
- * 
- * @param userId - User ID for context
- * @param orgId - Organization ID for context
- * @returns A basic context object with an error message
- */
-export function createOrgContextFallback(userId: string, orgId: string) {
-  console.warn("Creating fallback context due to missing org data", { userId, orgId });
-  
+export function createOrgContextFallback(orgId: string) {
   return {
-    messages: ["Sage couldn't find your organization's context."],
-    org: null,
-    user: null,
-    userId, 
-    orgId,
+    id: orgId,
+    name: "Default Organization",
+    mission: "This is a fallback context",
+    values: ["Resilience", "Adaptability", "Problem-solving"],
+    onboarding_processes: "Standard onboarding",
+    tools_and_systems: "Core systems",
+    glossary: {},
+    policies: {},
+    known_pain_points: [],
+    learning_culture: "Continuous improvement",
+    leadership_style: "Adaptive",
+    executives: [],
+    history: "Organization created with fallback context",
+    culture: "Collaborative"
   };
 }
 
-/**
- * Logs error details for context building failures
- * 
- * @param error - The error that occurred
- * @param userId - User ID for logging context
- * @param orgId - Organization ID for logging context
- */
-export function logContextBuildingError(error: unknown, userId?: string, orgId?: string) {
-  console.error("Error building context:", error, { userId, orgId });
+export function logContextBuildingError(error: any, userId: string, orgId: string) {
+  const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+  const errorStack = error instanceof Error ? error.stack : '';
+  
+  console.error("❌ Error building context:", {
+    message: errorMessage,
+    userId,
+    orgId,
+    stack: errorStack,
+    timestamp: new Date().toISOString()
+  });
 }

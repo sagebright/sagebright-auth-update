@@ -1,106 +1,135 @@
-
-import { useMemo } from 'react';
-import { useAskSageRouteProtection } from './use-route-protection';
+import { useState, useEffect, useRef } from 'react';
+import { useAuth } from '@/contexts/auth/AuthContext';
 import { useSageSessionStability } from './use-session-stability';
+import { useAskSageRouteProtection } from './use-route-protection';
+import { useSageContextReadiness } from '@/hooks/sage-context';
+import { useVoiceParamState } from '@/hooks/use-voice-param';
 
-/**
- * Comprehensive guard for Ask Sage route and interactions
- * 
- * This hook combines route protection and session stability to provide
- * a unified API for determining when interaction with Sage is allowed
- * and when rendering should occur.
- */
 export function useAskSageGuard() {
-  // Route protection to prevent unwanted redirects during critical operations
-  const { 
-    protectionActive, 
-    isRedirectAllowed, 
-    protectionStartTime 
-  } = useAskSageRouteProtection();
+  const { userId, orgId, user, loading: authLoading } = useAuth();
+  const { sessionStable, stabilityTimeMs, readinessBlockers } = useSageSessionStability();
+  const { protectionActive, protectionStartTime } = useAskSageRouteProtection();
+  const voiceParamState = useVoiceParamState();
   
-  // Session stability to ensure a consistent user experience
-  const { 
-    sessionStable, 
-    readinessBlockers,
-    isContextReady,
-    stableTimestamp,
-    stabilityTimeMs
-  } = useSageSessionStability();
-
-  // Combine protection and stability checks to determine interaction states
-  const guardState = useMemo(() => {
-    // Start a console group for guard state evaluation
-    console.group('🛡️ Ask Sage Guard Evaluation');
-    console.log('Timestamp:', new Date().toISOString());
+  // Track protection status
+  const [isProtected, setIsProtected] = useState(true);
+  const [isProtectedButReady, setIsProtectedButReady] = useState(false);
+  const protectionTimeoutRef = useRef<number | null>(null);
+  
+  // Track readiness for interaction
+  const [canInteract, setCanInteract] = useState(false);
+  const [shouldRender, setShouldRender] = useState(false);
+  
+  // Calculate protection time
+  const protectionTimeMs = protectionStartTime 
+    ? Date.now() - protectionStartTime 
+    : null;
+  
+  // Context readiness check
+  const contextReadiness = useSageContextReadiness(
+    userId,
+    orgId,
+    user?.user_metadata?.org_slug ?? null,
+    user,
+    authLoading,
+    !!user,
+    voiceParamState.currentVoice
+  );
+  
+  // Release protection after timeout
+  useEffect(() => {
+    if (isProtected && !protectionTimeoutRef.current) {
+      protectionTimeoutRef.current = window.setTimeout(() => {
+        console.log('🛡️ Ask Sage protection window expired after timeout');
+        setIsProtected(false);
+        
+        // After timeout, if we're still loading but have enough context,
+        // we should allow limited interaction
+        if (!contextReadiness.isReadyToRender) {
+          console.log('⚠️ Context not fully ready after timeout, enabling limited interaction');
+          setIsProtectedButReady(true);
+        }
+      }, 8000); // 8-second protection window
+    }
     
-    // Determine if interaction with Sage should be allowed
-    const canInteract = sessionStable && isContextReady;
-    
-    // Determine if the route is currently under protection
-    const isProtected = protectionActive;
-
-    // Determine if Sage UI can be rendered
-    const shouldRender = canInteract;
-    
-    // When content is ready but still under active protection
-    const isProtectedButReady = canInteract && isProtected;
-    
-    // Calculate timing metrics
-    const protectionTimeMs = protectionStartTime ? Date.now() - protectionStartTime : null;
-    
-    // Log state transitions for debugging
-    console.log('Guard State:', {
-      canInteract,
-      isProtected,
-      shouldRender,
-      isProtectedButReady,
-      timings: {
-        protection: protectionTimeMs ? `${Math.round(protectionTimeMs / 1000)}s` : 'N/A',
-        stability: stabilityTimeMs ? `${Math.round(stabilityTimeMs / 1000)}s` : 'N/A'
-      },
-      blockers: readinessBlockers
-    });
-
-    console.groupEnd();
-    
-    // Additional dynamic flags based on state combinations
-    const showReady = canInteract && !isProtected;
-    const showProtected = isProtected;
-    const showLoading = !canInteract;
-    
-    return {
-      // Core state flags
-      canInteract,
-      isProtected,
-      isProtectedButReady,
-      shouldRender,
-      
-      // UI state indicators
-      showReady,
-      showProtected,
-      showLoading,
-      
-      // Detailed state information
-      readinessBlockers,
-      protectionTimeMs,
-      stabilityTimeMs,
-      
-      // Debug information
-      stableTimestamp,
-      protectionStartTime,
+    return () => {
+      if (protectionTimeoutRef.current) {
+        window.clearTimeout(protectionTimeoutRef.current);
+        protectionTimeoutRef.current = null;
+      }
     };
+  }, [isProtected, contextReadiness.isReadyToRender]);
+  
+  // Once context is ready, remove protection
+  useEffect(() => {
+    if (contextReadiness.isReadyToRender && isProtected) {
+      console.log('✅ Context ready, removing protection');
+      setIsProtected(false);
+    }
+  }, [contextReadiness.isReadyToRender, isProtected]);
+  
+  // Track can-interact state
+  useEffect(() => {
+    const newCanInteract = isProtectedButReady || !isProtected;
+    
+    // If in development mode and protection has been active for more than 5 seconds,
+    // forcibly enable interaction even if context isn't ready
+    if (process.env.NODE_ENV === 'development' && 
+        protectionTimeMs && 
+        protectionTimeMs > 5000 && 
+        !newCanInteract) {
+      console.log('🧪 Development mode: Forcing interaction after extended protection window');
+      setCanInteract(true);
+      return;
+    }
+    
+    setCanInteract(newCanInteract);
+  }, [isProtected, isProtectedButReady, protectionTimeMs]);
+  
+  // Track should-render state
+  useEffect(() => {
+    // In development, we're more permissive about rendering
+    if (process.env.NODE_ENV === 'development') {
+      if (!userId && authLoading) {
+        // Still loading auth, don't render yet
+        setShouldRender(false);
+      } else if (protectionTimeMs && protectionTimeMs > 5000) {
+        // If protection has been active for too long in dev mode, force render
+        console.log('🧪 Development mode: Forcing render after extended protection window');
+        setShouldRender(true);
+      } else {
+        // Otherwise, follow normal rules but be more permissive
+        setShouldRender(isProtectedButReady || !isProtected || contextReadiness.isReadyToRender);
+      }
+      return;
+    }
+    
+    // Production logic
+    setShouldRender(isProtectedButReady || !isProtected || contextReadiness.isReadyToRender);
   }, [
-    sessionStable, 
-    isContextReady, 
-    protectionActive, 
-    readinessBlockers,
-    protectionStartTime,
-    stableTimestamp,
-    stabilityTimeMs
+    isProtected, 
+    isProtectedButReady, 
+    contextReadiness.isReadyToRender, 
+    userId, 
+    authLoading,
+    protectionTimeMs
   ]);
-
+  
+  // Combine all readiness blockers
+  const combinedBlockers = [
+    ...readinessBlockers,
+    ...contextReadiness.blockers
+  ].filter((blocker, index, self) => self.indexOf(blocker) === index);
+  
   return {
-    ...guardState,
-    isRedirectAllowed
+    canInteract,
+    shouldRender,
+    isProtected,
+    isProtectedButReady,
+    isRedirectAllowed: !protectionActive,
+    readinessBlockers: combinedBlockers,
+    protectionTimeMs,
+    stabilityTimeMs,
+    showLoading: !canInteract || !shouldRender
   };
 }

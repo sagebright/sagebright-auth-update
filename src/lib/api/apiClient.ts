@@ -1,85 +1,72 @@
 
-import { supabase } from '../supabaseClient';
-import { getOrgFromUrl } from '../subdomainUtils';
+/**
+ * Base API client for making requests to the backend
+ */
 
-const API_BASE_URL = 'https://sagebright-backend-production.up.railway.app/api';
+import { toast } from '@/components/ui/use-toast';
 
-interface ApiErrorConfig {
+interface ApiRequestOptions {
   context?: string;
   fallbackMessage?: string;
-  showToast?: boolean;
   silent?: boolean;
 }
 
 /**
- * Fetch data from the API with authentication
- */
-async function fetchWithAuth(path: string, options: RequestInit = {}) {
-  const { data: { session } } = await supabase.auth.getSession();
-  const token = session?.access_token;
-
-  if (!token) {
-    throw new Error('No auth token found');
-  }
-
-  const orgId = getOrgFromUrl();
-
-  const res = await fetch(`${API_BASE_URL}${path}`, {
-    ...options,
-    credentials: 'include',
-    headers: {
-      ...(options.headers || {}),
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-      ...(orgId ? { 'X-Organization-ID': orgId } : {})
-    }
-  });
-
-  if (!res.ok) {
-    const text = await res.text();
-    let error;
-    try {
-      error = JSON.parse(text);
-    } catch (e) {
-      throw new Error(`Non-JSON error: ${text.slice(0, 100)}`);
-    }
-    throw new Error(error.message || 'API request failed');
-  }
-
-  return res.json();
-}
-
-/**
- * Generic API request with error handling
+ * Makes an API request with error handling and toast notifications
  */
 export async function apiRequest(
-  path: string,
-  options: RequestInit = {},
-  errorConfig: ApiErrorConfig = {}
+  endpoint: string, 
+  options: RequestInit = {}, 
+  config: ApiRequestOptions = {}
 ) {
+  const { context = 'API request', fallbackMessage = 'An error occurred', silent = false } = config;
+  
   try {
-    return await fetchWithAuth(path, options);
-  } catch (error: any) {
-    const isForbiddenRoleError =
-      error?.message?.includes('Forbidden: insufficient role') ||
-      error?.message?.includes('403') ||
-      error?.message?.includes('forbidden');
+    console.log(`🔄 Making API request to ${endpoint}`);
+    
+    // Check if we're in development mode and need to use mock data
+    if (process.env.NODE_ENV === 'development' && endpoint === '/users') {
+      console.log('🧪 Using mock data for /users endpoint in development');
+      return {
+        ok: true,
+        status: 200,
+        data: [
+          { id: '1', name: 'Development User', email: 'dev@example.com', role: 'admin' },
+          { id: '2', name: 'Test User', email: 'test@example.com', role: 'user' }
+        ]
+      };
+    }
+    
+    // Make the actual API request for non-mocked endpoints
+    const baseUrl = import.meta.env.VITE_API_URL || '';
+    const url = `${baseUrl}${endpoint}`;
+    
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
+    });
 
-    const shouldShowToast =
-      !errorConfig.silent &&
-      errorConfig.showToast !== false &&
-      !isForbiddenRoleError;
-
-    if (shouldShowToast) {
-      // Import handleApiError dynamically to avoid circular dependency
-      const { handleApiError } = await import('../handleApiError');
-      handleApiError(error, {
-        context: errorConfig.context || path,
-        fallbackMessage: errorConfig.fallbackMessage || 'Unable to complete request. Please try again.',
-        showToast: shouldShowToast
-      });
+    if (!response.ok) {
+      throw new Error(`${response.status}: ${response.statusText}`);
     }
 
-    return null;
+    const data = await response.json();
+    return { ok: true, status: response.status, data };
+    
+  } catch (error) {
+    console.error(`❌ Error in ${context}:`, error);
+    
+    if (!silent) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: fallbackMessage,
+      });
+    }
+    
+    return { ok: false, error };
   }
 }
