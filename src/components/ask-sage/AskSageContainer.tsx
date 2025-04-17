@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { DashboardContainer } from '@/components/layout/DashboardContainer';
 import { ChatHeader } from '@/components/ask-sage/ChatHeader';
@@ -19,12 +18,14 @@ import { useVoiceParamState } from '@/hooks/use-voice-param';
 import { useRedirectIntentManager } from '@/lib/redirect-intent';
 import { useAskSageGuard } from '@/hooks/ask-sage/use-ask-sage-guard';
 import { useContextHydration } from '@/hooks/sage-context/use-context-hydration';
+import { useSageContext } from '@/hooks/sage-context/use-sage-context';
 
 export const AskSageContainer: React.FC = () => {
   const isMobile = useIsMobile();
   const location = useLocation();
   const voiceParamState = useVoiceParamState();
   const { captureIntent } = useRedirectIntentManager();
+  const { context, userContext, orgContext, loading: contextLoading } = useSageContext();
   
   // Use the unified Ask Sage Guard for route, session and context protection
   const { 
@@ -36,8 +37,12 @@ export const AskSageContainer: React.FC = () => {
     showLoading
   } = useAskSageGuard();
   
-  // Use the enhanced context hydration system
-  const contextHydration = useContextHydration(voiceParamState.currentVoice);
+  // Use the enhanced context hydration system with our new context
+  const contextHydration = useContextHydration(
+    voiceParamState.currentVoice,
+    userContext,
+    orgContext
+  );
   
   const {
     userId,

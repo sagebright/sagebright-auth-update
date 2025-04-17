@@ -1,20 +1,18 @@
 
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import UserMenu from "./UserMenu";
-import { useAuth } from "@/contexts/auth/AuthContext";
-import { useCurrentUser } from "@/hooks/useCurrentUser";
+import useSageContext from "@/hooks/useSageContext";
 
 export default function DashboardHeader() {
-  const { userId } = useAuth();
-  const { user } = useCurrentUser();
+  const { userContext, loading } = useSageContext();
   const [fullName, setFullName] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user) return;
+    if (!userContext) return;
     
-    // Use the user data from the auth context instead of making a separate API call
-    setFullName(user?.full_name || null);
-  }, [user]);
+    // Use the user data from the context hook
+    setFullName(userContext?.name || null);
+  }, [userContext]);
 
   const getTimeOfDay = () => {
     const hour = new Date().getHours();

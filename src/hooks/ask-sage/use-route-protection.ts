@@ -1,8 +1,8 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/auth/AuthContext';
 import { useRedirectIntentManager } from '@/lib/redirect-intent';
+import { useContext as useLegacyContext } from '@/hooks/use-legacy-context';
 
 /**
  * Enhanced route protection specifically for the Ask Sage route
