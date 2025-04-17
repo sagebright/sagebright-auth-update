@@ -85,7 +85,8 @@ export function useSessionRefresh() {
       // Refresh session to get updated metadata
       const refreshData = await fetchAuth();
       if (refreshData.session) {
-        console.log('🔄 User metadata after role sync repair:', refreshData.session.user_metadata);
+        // Fix: Access user_metadata from the user object, not the session
+        console.log('🔄 User metadata after role sync repair:', refreshData.user ? refreshData.user.role : 'No user data');
         return true;
       }
       return false;
