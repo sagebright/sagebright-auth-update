@@ -1,10 +1,10 @@
 
 import { useEffect } from 'react';
-import { SageContextReadiness } from '../types';
 import { HydrationState } from './types';
+import { SageContextReadiness } from '../types';
 
 /**
- * Custom hook to track hydration steps based on context readiness changes
+ * Hook to track hydration progress for context
  */
 export function useHydrationTracking(
   userId: string | null,
@@ -12,82 +12,64 @@ export function useHydrationTracking(
   hydrationProgress: HydrationState,
   setHydrationProgress: React.Dispatch<React.SetStateAction<HydrationState>>
 ) {
-  // Start tracking hydration when user signs in
   useEffect(() => {
-    if (userId && !hydrationProgress.startTime) {
-      setHydrationProgress((prev: HydrationState) => ({
+    // Only track hydration if we have a userId
+    if (!userId) return;
+    
+    // Initialize startTime if not set and we're starting the process
+    if (hydrationProgress.startTime === null) {
+      setHydrationProgress(prev => ({
         ...prev,
-        startTime: Date.now(),
-        completedSteps: [...prev.completedSteps, 'authentication']
+        startTime: Date.now()
       }));
     }
-  }, [userId, hydrationProgress.startTime, setHydrationProgress]);
-  
-  // Track completion of auth step
-  useEffect(() => {
-    if (contextReadiness.isAuthReady && 
-        !hydrationProgress.completedSteps.includes('auth') && 
-        hydrationProgress.startTime) {
-      setHydrationProgress((prev: HydrationState) => ({
+    
+    // Track completed steps based on readiness flags
+    const completedSteps: string[] = [];
+    
+    if (contextReadiness.isAuthReady) {
+      completedSteps.push('auth');
+    }
+    
+    if (contextReadiness.isSessionReady) {
+      completedSteps.push('session');
+    }
+    
+    if (contextReadiness.isUserMetadataReady) {
+      completedSteps.push('user_metadata');
+    }
+    
+    if (contextReadiness.isOrgReady) {
+      completedSteps.push('org');
+    }
+    
+    if (contextReadiness.isVoiceReady) {
+      completedSteps.push('voice');
+    }
+    
+    // Update progress if steps have changed
+    if (JSON.stringify(completedSteps) !== JSON.stringify(hydrationProgress.completedSteps)) {
+      setHydrationProgress(prev => ({
         ...prev,
-        completedSteps: [...prev.completedSteps, 'auth']
+        completedSteps
       }));
     }
-  }, [contextReadiness.isAuthReady, hydrationProgress, setHydrationProgress]);
-  
-  // Track completion of session step
-  useEffect(() => {
-    if (contextReadiness.isSessionReady && 
-        !hydrationProgress.completedSteps.includes('session') && 
-        hydrationProgress.startTime) {
-      setHydrationProgress((prev: HydrationState) => ({
-        ...prev,
-        completedSteps: [...prev.completedSteps, 'session']
-      }));
-    }
-  }, [contextReadiness.isSessionReady, hydrationProgress, setHydrationProgress]);
-  
-  // Track completion of org step
-  useEffect(() => {
-    if (contextReadiness.isOrgReady && 
-        !hydrationProgress.completedSteps.includes('org') && 
-        hydrationProgress.startTime) {
-      setHydrationProgress((prev: HydrationState) => ({
-        ...prev,
-        completedSteps: [...prev.completedSteps, 'org']
-      }));
-    }
-  }, [contextReadiness.isOrgReady, hydrationProgress, setHydrationProgress]);
-  
-  // Track completion of voice step
-  useEffect(() => {
-    if (contextReadiness.isVoiceReady && 
-        !hydrationProgress.completedSteps.includes('voice') && 
-        hydrationProgress.startTime) {
-      setHydrationProgress((prev: HydrationState) => ({
-        ...prev,
-        completedSteps: [...prev.completedSteps, 'voice']
-      }));
-    }
-  }, [contextReadiness.isVoiceReady, hydrationProgress, setHydrationProgress]);
-  
-  // Calculate hydration completion
-  useEffect(() => {
-    if (contextReadiness.isReadyToRender && hydrationProgress.startTime && !hydrationProgress.endTime) {
+    
+    // Mark as complete when ready to render
+    if (contextReadiness.isReadyToRender && !hydrationProgress.endTime) {
       const endTime = Date.now();
-      const duration = endTime - hydrationProgress.startTime;
-      
-      setHydrationProgress((prev: HydrationState) => ({
+      setHydrationProgress(prev => ({
         ...prev,
         endTime,
-        duration
+        duration: prev.startTime ? endTime - prev.startTime : null
       }));
       
-      console.log(`✅ Context hydration complete in ${duration}ms`, {
-        startTime: new Date(hydrationProgress.startTime!).toISOString(),
-        endTime: new Date(endTime).toISOString(),
-        completedSteps: [...hydrationProgress.completedSteps, 'ready_to_render']
+      // Log completion
+      console.log('✅ Context hydration complete', {
+        duration: hydrationProgress.startTime ? `${endTime - hydrationProgress.startTime}ms` : 'unknown',
+        steps: completedSteps,
+        timestamp: new Date(endTime).toISOString()
       });
     }
-  }, [contextReadiness.isReadyToRender, hydrationProgress, setHydrationProgress]);
+  }, [userId, contextReadiness, hydrationProgress, setHydrationProgress]);
 }
