@@ -8,6 +8,9 @@ import JustForFunSection from "@/components/dashboard/JustForFunSection";
 import YourProgressSection from "@/components/dashboard/YourProgressSection";
 
 export default function Dashboard() {
+  // No need to make any direct API calls or Supabase queries here
+  // The auth context and context hook handle everything
+  
   return (
     <DashboardContainer>
       <div className="space-y-8">

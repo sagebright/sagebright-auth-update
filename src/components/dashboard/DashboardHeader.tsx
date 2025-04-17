@@ -1,22 +1,20 @@
+
 import React, { useEffect, useState } from "react";
 import UserMenu from "./UserMenu";
 import { useAuth } from "@/contexts/auth/AuthContext";
-import { getUsers } from "@/lib/backendApi";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 export default function DashboardHeader() {
-  const { userId } = useAuth(); // 👈 We trust this to be set after login
+  const { userId } = useAuth();
+  const { user } = useCurrentUser();
   const [fullName, setFullName] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!userId) return;
-
-    getUsers().then(users => {
-      const currentUser = users.find((u) => u.id === userId);
-      setFullName(currentUser?.full_name || null);
-    }).catch((err) => {
-      console.error("Error loading user data:", err);
-    });
-  }, [userId]);
+    if (!user) return;
+    
+    // Use the user data from the auth context instead of making a separate API call
+    setFullName(user?.full_name || null);
+  }, [user]);
 
   const getTimeOfDay = () => {
     const hour = new Date().getHours();

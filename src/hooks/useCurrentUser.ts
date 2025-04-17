@@ -9,46 +9,32 @@ import { hasRole, isOrgAdmin, isSuperAdmin, canEdit } from '@/lib/permissions';
  */
 export function useCurrentUser() {
   const { user, userId, orgId, loading: authLoading } = useAuth();
-  const [userData, setUserData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
-    // If auth is still loading or no userId, don't fetch user data yet
+    // If auth is still loading or no userId, don't set loading to false yet
     if (authLoading || !userId) {
       return;
     }
-
-    // We'll use the user data from the auth context instead of making a separate API call
-    // This aligns with the architecture where context hydration is done by the backend
-    const getUserDataFromAuth = async () => {
-      try {
-        // Just use the user data directly from the auth context
-        setUserData(user || null);
-      } catch (error) {
-        console.error('Error with user data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    getUserDataFromAuth();
+    
+    // Once auth is loaded and we have the user data, update loading state
+    setLoading(false);
   }, [userId, authLoading, user]);
 
-  // Combined user data from auth
-  const currentUser = userData ? { ...user, ...userData } : user;
-  const isAuthenticated = !!currentUser && !authLoading && !loading;
+  // Use the user data directly from auth context
+  const isAuthenticated = !!user && !authLoading && !loading;
   
   return {
-    user: currentUser,
+    user,
     orgId,
     loading: authLoading || loading,
     isAuthenticated,
     
     // Permission helpers
-    hasRole: (role: string) => hasRole(currentUser, role),
-    isOrgAdmin: () => isOrgAdmin(currentUser),
-    isSuperAdmin: () => isSuperAdmin(currentUser),
-    canEdit: () => canEdit(currentUser),
+    hasRole: (role: string) => hasRole(user, role),
+    isOrgAdmin: () => isOrgAdmin(user),
+    isSuperAdmin: () => isSuperAdmin(user),
+    canEdit: () => canEdit(user),
   };
 }
 

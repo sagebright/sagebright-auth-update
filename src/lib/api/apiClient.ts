@@ -1,4 +1,3 @@
-
 /**
  * Base API client for making requests to the backend
  */
@@ -202,5 +201,42 @@ export async function apiRequest(
       error: error instanceof Error ? error.message : 'Unknown error',
       errorDetails: error
     };
+  }
+}
+
+/**
+ * Enhanced API client for handling context-specific requests
+ * with better error handling and HTML response detection
+ */
+export async function fetchContextData(userId: string, orgId: string, orgSlug: string | null = null, options = {}) {
+  try {
+    console.log(`🔄 Fetching context data for userId:${userId}, orgId:${orgId}`);
+    
+    const response = await fetch(`/api/context?userId=${userId}&orgId=${orgId}${orgSlug ? `&orgSlug=${orgSlug}` : ''}`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      ...options
+    });
+    
+    // Check if response is JSON
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      console.error('❌ Non-JSON response received from context API:', contentType);
+      throw new Error(`Expected JSON response, got ${contentType}`);
+    }
+    
+    if (!response.ok) {
+      console.error(`❌ Error fetching context: ${response.status} ${response.statusText}`);
+      return { ok: false, data: null, error: `HTTP error ${response.status}` };
+    }
+    
+    const data = await response.json();
+    return { ok: true, data, error: null };
+  } catch (error) {
+    console.error('❌ Exception in fetchContextData:', error);
+    return { ok: false, data: null, error: error instanceof Error ? error.message : 'Unknown error' };
   }
 }

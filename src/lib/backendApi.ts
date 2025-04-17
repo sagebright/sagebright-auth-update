@@ -11,11 +11,11 @@ import { fetchUserContext } from './fetchUserContext';
 import { fetchOrgContext } from './fetchOrgContext';
 
 /**
- * Get user context from the API
  * @deprecated Do not use this function directly. Context should be hydrated through buildSageContext.
+ * This function is kept only for backward compatibility.
  */
 export async function getUserContext(userId: string) {
-  console.log('⚠️ Legacy getUserContext called directly. This function is deprecated.');
+  console.warn('⚠️ Legacy getUserContext called directly. Use buildSageContext instead.');
   
   // Try direct Supabase fetch first - this is more reliable
   try {
@@ -59,11 +59,11 @@ export async function getUserContext(userId: string) {
 }
 
 /**
- * Get organization context from the API
  * @deprecated Do not use this function directly. Context should be hydrated through buildSageContext.
+ * This function is kept only for backward compatibility.
  */
 export async function getOrgContext(orgId: string) {
-  console.log('⚠️ Legacy getOrgContext called directly. This function is deprecated.');
+  console.warn('⚠️ Legacy getOrgContext called directly. Use buildSageContext instead.');
   
   // Try direct Supabase fetch first - this is more reliable
   try {

@@ -6,7 +6,7 @@ import { apiRequest } from './apiClient';
  * @deprecated This direct API call should not be used for Sage context. Use buildSageContext instead.
  */
 export async function getUsers() {
-  console.log('⚠️ Legacy direct getUsers API call triggered. Consider refactoring to use buildSageContext instead');
+  console.warn('⚠️ Legacy direct getUsers API call triggered. Consider refactoring to use buildSageContext instead');
   const res = await apiRequest('/users', {}, {
     context: 'fetching users',
     fallbackMessage: 'Unable to load users. Please try again.',
@@ -21,7 +21,7 @@ export async function getUsers() {
  * @deprecated Direct context fetching should be handled by buildSageContext
  */
 export async function getUserContextById(userId: string) {
-  console.log('⚠️ Legacy direct getUserContextById API call triggered. Use buildSageContext instead');
+  console.warn('⚠️ Legacy direct getUserContextById API call triggered. Use buildSageContext instead');
   // This endpoint will be called from the frontend but shouldn't exist
   // In development, we'll mock a response, in production we'll warn
   const res = await apiRequest(`/user/context?userId=${userId}`, {}, {
@@ -39,7 +39,7 @@ export async function getUserContextById(userId: string) {
  * @deprecated Direct context fetching should be handled by buildSageContext
  */
 export async function getOrgContextById(orgId: string) {
-  console.log('⚠️ Legacy direct getOrgContextById API call triggered. Use buildSageContext instead');
+  console.warn('⚠️ Legacy direct getOrgContextById API call triggered. Use buildSageContext instead');
   // This endpoint will be called from the frontend but shouldn't exist
   // In development, we'll mock a response, in production we'll warn
   const res = await apiRequest(`/org/context?orgId=${orgId}`, {}, {
