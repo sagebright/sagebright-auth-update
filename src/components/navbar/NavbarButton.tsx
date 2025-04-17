@@ -3,7 +3,11 @@ import React, { memo } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/hooks/useTranslation';
-import { NavbarButtonProps } from '@/types'; 
+
+// Define NavbarButtonProps interface here since it's missing from @/types
+export interface NavbarButtonProps {
+  user?: any;
+}
 
 /**
  * NavbarButton - Navigation button that adapts based on authentication status
@@ -17,7 +21,7 @@ import { NavbarButtonProps } from '@/types';
  * <NavbarButton user={user} />
  * ```
  */
-const NavbarButton: React.FC<NavbarButtonProps> = memo(({ user }) => {
+export const NavbarButton: React.FC<NavbarButtonProps> = memo(({ user }) => {
   const { t } = useTranslation();
   
   return (

@@ -33,3 +33,17 @@ export interface Organization {
   name: string;
   slug: string;
 }
+
+// Adding ButtonProps for button component
+export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
+  size?: 'default' | 'sm' | 'lg' | 'icon';
+  loading?: boolean;
+  loadingText?: string;
+  asChild?: boolean;
+}
+
+// Add NavbarButtonProps here too for consistency
+export interface NavbarButtonProps {
+  user?: any;
+}

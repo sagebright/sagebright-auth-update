@@ -19,3 +19,16 @@ export interface AuthContextType {
   isRecoveringOrgContext?: boolean;
   sessionUserReady: boolean;
 }
+
+// Add ButtonProps interface used by button component
+export interface ButtonProps {
+  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
+  size?: 'default' | 'sm' | 'lg';
+  children: React.ReactNode;
+  className?: string;
+  disabled?: boolean;
+  loading?: boolean;
+  loadingText?: string;
+  onClick?: () => void;
+  type?: 'button' | 'submit' | 'reset';
+}

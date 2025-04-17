@@ -19,3 +19,21 @@ export function checkPermission(userRole: string, requiredPermission: Permission
 
   return userPermissionLevel >= requiredPermissionLevel;
 }
+
+// Add missing functions referenced in other files
+export function hasRole(user: any, role: string): boolean {
+  return user?.role === role;
+}
+
+export function isOrgAdmin(user: any): boolean {
+  return user?.role === 'admin';
+}
+
+export function isSuperAdmin(user: any): boolean {
+  return user?.role === 'super_admin';
+}
+
+export function canEdit(user: any, resource: any): boolean {
+  if (isSuperAdmin(user) || isOrgAdmin(user)) return true;
+  return user?.id === resource?.creator_id;
+}

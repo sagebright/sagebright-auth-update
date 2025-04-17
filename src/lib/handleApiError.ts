@@ -26,3 +26,14 @@ export function handleApiError(error: unknown): ApiError {
     code: 'UNKNOWN_ERROR'
   };
 }
+
+// Add missing functions referenced elsewhere
+export function showSuccess(message: string) {
+  console.log('Success:', message);
+  // In a real implementation, this would display a toast or notification
+}
+
+export function showInfo(message: string) {
+  console.log('Info:', message);
+  // In a real implementation, this would display a toast or notification
+}

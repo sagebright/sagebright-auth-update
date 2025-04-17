@@ -35,14 +35,19 @@ export function MessageList({
         // Handle both the Message type and the ChatBubbleProps type
         const isMessage = 'id' in message;
         
+        // Determine sender from role or existing sender property
+        const sender = isMessage ? 
+          message.role === 'user' ? 'user' : (message.role === 'assistant' ? 'sage' : message.sender || 'system') :
+          message.sender;
+        
         return (
           <ChatBubble
             key={isMessage ? message.id : index}
             content={message.content}
-            sender={message.sender}
-            timestamp={isMessage ? message.timestamp : undefined}
-            avatarUrl={message.sender === "sage" ? sageAvatarUrl : (isMessage ? message.avatar_url : userAvatarUrl)}
-            avatarFallback={message.sender === "sage" ? "SB" : "U"}
+            sender={sender}
+            timestamp={isMessage ? new Date(message.timestamp) : undefined}
+            avatarUrl={sender === "sage" ? sageAvatarUrl : (isMessage && 'avatar_url' in message ? message.avatar_url : userAvatarUrl)}
+            avatarFallback={sender === "sage" ? "SB" : "U"}
             isTyping={isMessage && message.isLoading}
           />
         );

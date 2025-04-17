@@ -8,8 +8,9 @@ export function createUserMessage(content: string, avatarUrl?: string): Message 
   return {
     id: Date.now().toString(),
     content,
-    sender: 'user',
-    timestamp: new Date(),
+    role: 'user',
+    sender: 'user', // For backward compatibility
+    timestamp: Date.now(),
     avatar_url: avatarUrl,
   };
 }
@@ -21,8 +22,9 @@ export function createSageMessage(content: string, options?: { isLoading?: boole
   return {
     id: (Date.now() + 1).toString(),
     content,
-    sender: 'sage',
-    timestamp: new Date(),
+    role: 'assistant',
+    sender: 'sage', // For backward compatibility
+    timestamp: Date.now(),
     avatar_url: "/lovable-uploads/sage_avatar.png",
     ...(options && { ...options })
   };

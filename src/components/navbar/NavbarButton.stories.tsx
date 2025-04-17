@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { NavbarButton } from './NavbarButton';
+import NavbarButton from './NavbarButton';
 
 export default {
   title: 'Components/Navigation/NavbarButton',

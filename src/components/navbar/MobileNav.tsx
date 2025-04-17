@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
@@ -5,7 +6,7 @@ import { Menu } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/auth/AuthContext';
-import { Logo } from '@/components/Logo';
+import Logo from '@/components/Logo';
 
 export function MobileNav() {
   const [open, setOpen] = useState(false);
@@ -133,3 +134,6 @@ export function MobileNav() {
     </Sheet>
   );
 }
+
+// Add default export for backward compatibility
+export default MobileNav;
