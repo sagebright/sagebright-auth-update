@@ -1,11 +1,11 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = 'https://uonxhnmvrtuszgjubvaa.supabase.co';
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVvbnhobm12cnR1c3pnanVidmFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE1NzIzMTIsImV4cCI6MjA1NzE0ODMxMn0.yIJAmU3OLGXsZ5ar5L7kMo-CHL21FJWSnItbs7mOswo';
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error("❌ Missing Supabase environment variables. Check VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env.");
+  throw new Error("❌ Missing Supabase configuration. Check project configuration.");
 }
 
 // Use a global singleton pattern (especially important in dev with HMR)
