@@ -1,4 +1,3 @@
-
 import { useCallback, useRef } from 'react';
 import { fetchAuth } from '@/lib/backendAuth';
 import { syncUserRole } from '@/lib/syncUserRole';
@@ -10,34 +9,28 @@ export function useSessionRefresh() {
   const sessionLastRefreshedRef = useRef<number>(Date.now());
   const sessionRefreshPromiseRef = useRef<Promise<void> | null>(null);
 
-  // Enhanced function to refresh the session with better debounce, error handling, and promise management
   const refreshSession = useCallback(async (reason: string): Promise<void> => {
-    // If there's already a refresh in progress, return that promise instead of starting a new one
     if (isRefreshingRef.current && sessionRefreshPromiseRef.current) {
       console.log(`🔄 Session refresh already in progress (joining - reason: ${reason})`);
       return sessionRefreshPromiseRef.current;
     }
     
-    // Start a new refresh
     isRefreshingRef.current = true;
     const refreshCount = ++refreshCountRef.current;
     const currentTime = Date.now();
     const timeSinceLastRefresh = currentTime - sessionLastRefreshedRef.current;
     
-    // Create a new promise for this refresh operation
     sessionRefreshPromiseRef.current = new Promise<void>(async (resolve, reject) => {
       try {
         console.log(`🔄 Refreshing session #${refreshCount} (reason: ${reason}, time since last: ${timeSinceLastRefresh}ms) at ${new Date().toISOString()}`);
         const authData = await fetchAuth();
         
-        // Update the last refreshed timestamp
         sessionLastRefreshedRef.current = Date.now();
         
-        // Check if this refresh is still relevant (not superseded by a newer one)
         if (refreshCount < refreshCountRef.current) {
           console.log(`🔄 Refresh #${refreshCount} superseded by newer refresh, discarding result`);
           isRefreshingRef.current = false;
-          resolve(); // Still resolve the promise
+          resolve();
           return;
         }
         
@@ -56,7 +49,6 @@ export function useSessionRefresh() {
       } catch (error) {
         console.error(`❌ Error refreshing session #${refreshCount}:`, error);
         
-        // If this is a critical operation, show a toast
         if (reason.includes('critical')) {
           toast({
             title: "Authentication error",
@@ -75,17 +67,14 @@ export function useSessionRefresh() {
     return sessionRefreshPromiseRef.current;
   }, []);
 
-  // Function to handle session metadata recovery
   const repairSessionMetadata = useCallback(async (userId: string): Promise<boolean> => {
     console.warn('⚠️ User metadata missing role, attempting to repair');
     try {
       await syncUserRole(userId);
       console.log('✅ Role synchronized on repair');
       
-      // Refresh session to get updated metadata
       const refreshData = await fetchAuth();
       if (refreshData.session) {
-        // Fix: Access user_metadata from the user object, not the session
         console.log('🔄 User metadata after role sync repair:', refreshData.user ? refreshData.user.role : 'No user data');
         return true;
       }

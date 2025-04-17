@@ -1,4 +1,3 @@
-
 /**
  * Utility functions for handling subdomain-based organization routing
  */
