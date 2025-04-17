@@ -1,6 +1,8 @@
+
 /**
  * Utility functions for handling subdomain-based organization routing
  */
+import { fetchAuth } from '@/lib/backendAuth';
 
 // Define valid org slugs (should eventually come from API/database)
 const VALID_ORG_SLUGS = ['lumon', 'demo', 'test'];

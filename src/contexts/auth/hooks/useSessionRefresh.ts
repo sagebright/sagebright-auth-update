@@ -1,3 +1,4 @@
+
 import { useCallback, useRef } from 'react';
 import { fetchAuth } from '@/lib/backendAuth';
 import { syncUserRole } from '@/lib/syncUserRole';
@@ -27,7 +28,7 @@ export function useSessionRefresh() {
     sessionRefreshPromiseRef.current = new Promise<void>(async (resolve, reject) => {
       try {
         console.log(`🔄 Refreshing session #${refreshCount} (reason: ${reason}, time since last: ${timeSinceLastRefresh}ms) at ${new Date().toISOString()}`);
-        const { data, error } = await fetchAuth();
+        const authData = await fetchAuth();
         
         // Update the last refreshed timestamp
         sessionLastRefreshedRef.current = Date.now();
@@ -40,11 +41,7 @@ export function useSessionRefresh() {
           return;
         }
         
-        if (error) {
-          throw error;
-        }
-        
-        if (!data.session && refreshCount === refreshCountRef.current) {
+        if (!authData.session) {
           console.warn('⚠️ Session lost during refresh, user will need to login again');
           
           toast({
@@ -86,9 +83,9 @@ export function useSessionRefresh() {
       console.log('✅ Role synchronized on repair');
       
       // Refresh session to get updated metadata
-      const { data: refreshData } = await fetchAuth();
+      const refreshData = await fetchAuth();
       if (refreshData.session) {
-        console.log('🔄 User metadata after role sync repair:', refreshData.session.user.user_metadata);
+        console.log('🔄 User metadata after role sync repair:', refreshData.session.user_metadata);
         return true;
       }
       return false;

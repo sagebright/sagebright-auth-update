@@ -1,3 +1,4 @@
+
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { Message } from '@/types/chat';
 import { useVoiceParam } from './use-voice-param';
@@ -75,8 +76,8 @@ export const useSendMessage = (
     const startTime = Date.now();
 
     try {
-      const { data: sessionData } = await fetchAuth();
-      const token = sessionData.session?.access_token;
+      const sessionData = await fetchAuth();
+      const token = sessionData.session.id;
 
       if (!token) {
         throw new Error("No access token found. User might not be authenticated.");

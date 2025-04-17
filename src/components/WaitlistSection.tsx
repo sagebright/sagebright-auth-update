@@ -1,9 +1,9 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowRight, Check } from 'lucide-react';
-import { supabase } from '@/lib/supabaseClient';
 
 const WaitlistSection = () => {
   const [email, setEmail] = useState('');
@@ -37,19 +37,22 @@ const WaitlistSection = () => {
     setIsSubmitting(true);
     
     try {
-      const { error } = await supabase
-        .from('Beta Signups')
-        .insert([
-          { 
-            email,
-            first_name: firstName,
-            last_name: lastName,
-            company
-          }
-        ]);
+      // Submit to API instead of direct Supabase access
+      const response = await fetch('/api/waitlist/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          email,
+          first_name: firstName,
+          last_name: lastName,
+          company
+        }),
+      });
       
-      if (error) {
-        throw error;
+      if (!response.ok) {
+        throw new Error('Failed to submit to waitlist');
       }
       
       const emailResponse = await fetch('/api/send-waitlist-confirmation', {
