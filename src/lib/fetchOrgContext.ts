@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabaseClient';
 
 /**
  * Fetches organizational context from the org_context table.
- * Enhanced to handle missing data gracefully.
+ * Enhanced with better error handling and detailed logging.
  *
  * @param orgId - The organization ID tied to the user/session
  * @returns Object containing org-level configuration for Sage, or null if not found
@@ -16,47 +16,51 @@ export async function fetchOrgContext(orgId: string) {
     return null;
   }
 
-  console.log("[fetchOrgContext] Input orgId:", orgId);
+  console.log(`[fetchOrgContext] Attempting to fetch context for orgId: ${orgId}`);
   
   try {
+    // Explicitly query the org_context table with the exact primary key field
     const { data, error } = await supabase
       .from('org_context')
       .select('*')
-      .eq('id', orgId)
-      .maybeSingle();  // Use maybeSingle instead of single to handle no data case
+      .eq('id', orgId)  // Ensure we're using the right field for the lookup
+      .maybeSingle();
 
     if (error) {
-      console.error('❌ Error fetching org_context:', error.message);
+      console.error('❌ Error fetching org_context:', error.message, error.details, error.hint);
       return null;
     }
 
     if (!data) {
-      console.warn(`⚠️ No org_context found for orgId: ${orgId}. This is expected during development.`);
-      return null;
+      // Try alternative lookup by org_id field if id field didn't work
+      console.log(`⚠️ No org_context found with id=${orgId}, trying org_id field instead`);
+      
+      const { data: altData, error: altError } = await supabase
+        .from('org_context')
+        .select('*')
+        .eq('org_id', orgId)
+        .maybeSingle();
+        
+      if (altError) {
+        console.error('❌ Error in alternative org_context lookup:', altError.message);
+        return null;
+      }
+      
+      if (!altData) {
+        console.warn(`⚠️ No org_context found for either id or org_id=${orgId}`);
+        return null;
+      }
+      
+      console.log(`✅ Successfully found org context via org_id field for: ${orgId}`);
+      return altData;
     }
 
-    console.log("[fetchOrgContext] Successfully found org context data:", {
-      orgId: orgId,
+    console.log(`✅ Successfully found org context data for orgId: ${orgId}`, {
       hasName: !!data.name,
       dataKeys: Object.keys(data)
     });
     
-    return {
-      orgId: orgId,
-      name: data.name || "Default Organization",
-      mission: data.mission || "",
-      values: data.values || [],
-      onboarding_processes: data.onboarding_processes || "",
-      tools_and_systems: data.tools_and_systems || "",
-      glossary: data.glossary || {},
-      policies: data.policies || {},
-      known_pain_points: data.known_pain_points || [],
-      learning_culture: data.learning_culture || "",
-      leadership_style: data.leadership_style || "",
-      executives: data.executives || [],
-      history: data.history || "",
-      culture: data.culture || "",
-    };
+    return data;
   } catch (err) {
     console.error('❌ Exception in fetchOrgContext:', err);
     return null;

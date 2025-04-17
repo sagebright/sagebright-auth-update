@@ -53,7 +53,7 @@ export async function apiRequest(
           status: 200,
           data: {
             id: 'mock-user-context-id',
-            user_id: '1',
+            user_id: endpoint.includes('userId=') ? endpoint.split('userId=')[1].split('&')[0] : '1',
             org_id: '1',
             role: 'user',
             department: 'Engineering',
@@ -71,7 +71,7 @@ export async function apiRequest(
           status: 200,
           data: {
             id: 'mock-org-context-id',
-            orgId: '1',
+            orgId: endpoint.includes('orgId=') ? endpoint.split('orgId=')[1].split('&')[0] : '1',
             name: "Development Organization",
             mission: "This is a development environment",
             values: ["Learning", "Testing", "Developing"],
@@ -92,10 +92,14 @@ export async function apiRequest(
       ...options,
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
         ...options.headers,
       },
     });
 
+    // Check content type to handle non-JSON responses
+    const contentType = response.headers.get('content-type');
+    
     // If we got a 404 and mockEvenIn404 is true, we'll mock the response in development
     if (!response.ok && response.status === 404 && process.env.NODE_ENV === 'development' && mockEvenIn404) {
       console.log(`⚠️ 404 for ${endpoint} but mockEvenIn404 is enabled. Returning mock data.`);
@@ -130,9 +134,35 @@ export async function apiRequest(
       }
     }
 
+    // Check if response is OK and handle non-JSON responses
     if (!response.ok) {
       console.error(`❌ API error ${response.status}: ${response.statusText} for ${endpoint}`);
+      
+      // Check if we got HTML instead of JSON (typical for server errors)
+      if (contentType && contentType.includes('text/html')) {
+        console.error('Received HTML error page instead of JSON response');
+        throw new Error(`Server error: ${response.status} ${response.statusText}`);
+      }
+      
       throw new Error(`${response.status}: ${response.statusText}`);
+    }
+
+    // Handle non-JSON responses gracefully
+    if (contentType && !contentType.includes('application/json')) {
+      console.warn(`⚠️ Non-JSON response received: ${contentType}`);
+      
+      const textResponse = await response.text();
+      console.log('Text response preview:', textResponse.substring(0, 100));
+      
+      return { 
+        ok: true, 
+        status: response.status, 
+        data: { 
+          message: 'Non-JSON response',
+          contentType,
+          textPreview: textResponse.substring(0, 100)
+        }
+      };
     }
 
     const data = await response.json();
@@ -152,7 +182,8 @@ export async function apiRequest(
           data: { 
             id: 'fallback-id',
             name: 'Fallback Data',
-            message: 'This is fallback data after an API error'
+            message: 'This is fallback data after an API error',
+            error: error instanceof Error ? error.message : 'Unknown error'
           } 
         };
       }
@@ -166,6 +197,10 @@ export async function apiRequest(
       });
     }
     
-    return { ok: false, error };
+    return { 
+      ok: false, 
+      error: error instanceof Error ? error.message : 'Unknown error',
+      errorDetails: error
+    };
   }
 }
