@@ -6,28 +6,48 @@ export interface ApiError {
   details?: any;
 }
 
-export function handleApiError(error: unknown): ApiError {
+export interface ApiErrorOptions {
+  context?: string;
+  showToast?: boolean;
+  fallbackMessage?: string;
+}
+
+export function handleApiError(error: unknown, options: ApiErrorOptions = {}): ApiError {
+  const { context = 'general', showToast = false } = options;
+  
+  // Log the error with context
+  console.error(`API Error [${context}]:`, error);
+  
+  // Create a standardized error object
+  let apiError: ApiError;
+  
   if (error instanceof Error) {
-    return {
+    apiError = {
       message: error.message,
+      code: 'UNKNOWN_ERROR'
+    };
+  } else if (typeof error === 'string') {
+    apiError = {
+      message: error,
+      code: 'STRING_ERROR'
+    };
+  } else {
+    apiError = {
+      message: 'An unknown error occurred',
       code: 'UNKNOWN_ERROR'
     };
   }
   
-  if (typeof error === 'string') {
-    return {
-      message: error,
-      code: 'STRING_ERROR'
-    };
+  // Show toast if requested
+  if (showToast) {
+    console.log('Would show toast with error:', apiError.message);
+    // In a real implementation, this would display a toast
   }
   
-  return {
-    message: 'An unknown error occurred',
-    code: 'UNKNOWN_ERROR'
-  };
+  return apiError;
 }
 
-// Add missing functions referenced elsewhere
+// Functions for showing notifications
 export function showSuccess(message: string) {
   console.log('Success:', message);
   // In a real implementation, this would display a toast or notification

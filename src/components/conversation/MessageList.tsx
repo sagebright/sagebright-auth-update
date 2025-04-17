@@ -35,10 +35,8 @@ export function MessageList({
         // Handle both the Message type and the ChatBubbleProps type
         const isMessage = 'id' in message;
         
-        // Determine sender from role or existing sender property
-        const sender = isMessage ? 
-          message.role === 'user' ? 'user' : (message.role === 'assistant' ? 'sage' : message.sender || 'system') :
-          message.sender;
+        // Determine sender
+        const sender = isMessage ? message.sender : message.sender;
         
         return (
           <ChatBubble

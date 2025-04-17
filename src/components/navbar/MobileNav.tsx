@@ -6,9 +6,14 @@ import { Menu } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/auth/AuthContext';
-import Logo from '@/components/Logo';
+import Logo from '../Logo';
 
-export function MobileNav() {
+interface MobileNavProps {
+  isContactPage?: boolean;
+  user?: any;
+}
+
+export function MobileNav({ isContactPage, user }: MobileNavProps) {
   const [open, setOpen] = useState(false);
   const { isAuthenticated, signOut } = useAuth();
 

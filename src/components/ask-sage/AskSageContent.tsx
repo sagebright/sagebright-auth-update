@@ -1,7 +1,7 @@
 
 import React, { useRef, useEffect } from 'react';
 import { ChatInputBar } from '@/components/ask-sage/ChatInputBar';
-import { ChatMessage } from '@/components/ask-sage/ChatMessage';
+import { ChatMessage, Message as ChatMessageType } from '@/components/ask-sage/ChatMessage';
 import { SuggestedQuestions } from '@/components/ask-sage/SuggestedQuestions';
 import { WelcomeMessage } from '@/components/ask-sage/WelcomeMessage';
 import { TypingIndicator } from '@/components/ask-sage/TypingIndicator';
@@ -50,6 +50,14 @@ export const AskSageContent: React.FC<AskSageContentProps> = ({
     }
   }, [messages.length]);
   
+  // Convert Message to ChatMessageType
+  const convertMessage = (message: Message): ChatMessageType => {
+    return {
+      ...message,
+      timestamp: new Date(message.timestamp)
+    };
+  };
+  
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-background">
       <div className="flex-1 overflow-y-auto px-3 md:px-6 py-4 space-y-6">
@@ -62,7 +70,7 @@ export const AskSageContent: React.FC<AskSageContentProps> = ({
         {messages.map((message) => (
           <ChatMessage
             key={message.id}
-            message={message}
+            message={convertMessage(message)}
             handleFeedback={handleFeedback}
           />
         ))}

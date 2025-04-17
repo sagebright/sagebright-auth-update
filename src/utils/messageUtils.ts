@@ -9,7 +9,7 @@ export function createUserMessage(content: string, avatarUrl?: string): Message 
     id: Date.now().toString(),
     content,
     role: 'user',
-    sender: 'user', // For backward compatibility
+    sender: 'user',
     timestamp: Date.now(),
     avatar_url: avatarUrl,
   };
@@ -23,7 +23,7 @@ export function createSageMessage(content: string, options?: { isLoading?: boole
     id: (Date.now() + 1).toString(),
     content,
     role: 'assistant',
-    sender: 'sage', // For backward compatibility
+    sender: 'sage',
     timestamp: Date.now(),
     avatar_url: "/lovable-uploads/sage_avatar.png",
     ...(options && { ...options })

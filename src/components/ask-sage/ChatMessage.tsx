@@ -1,17 +1,14 @@
-
 import React from 'react';
 import { ThumbsUp, ThumbsDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Message as BaseMessage } from '@/types/chat';
 
-export interface Message {
-  id: string;
-  content: string;
-  sender: 'user' | 'sage';
+export interface Message extends Omit<BaseMessage, 'sender'> {
+  sender: 'user' | 'sage' | 'system';
   timestamp: Date;
   liked?: boolean;
   disliked?: boolean;
-  avatar_url?: string;
 }
 
 interface ChatMessageProps {
@@ -20,29 +17,24 @@ interface ChatMessageProps {
 }
 
 export const ChatMessage: React.FC<ChatMessageProps> = ({ message, handleFeedback }) => {
-  // Get initials for avatar fallback
   const getInitials = () => {
     return message.sender === 'sage' 
       ? 'S' 
       : 'U'; // Default user initial if no other info available
   };
 
-  // Set avatar URL based on sender
   const avatarUrl = message.sender === 'sage' 
     ? "/lovable-uploads/sage_avatar.png" 
     : message.avatar_url;
     
-  // Safe date formatting with robust error handling
   const formatTimestamp = (timestamp: Date | null | undefined) => {
     try {
       if (!timestamp) {
         return "";
       }
       
-      // For string timestamps, try to convert to Date
       const dateObj = timestamp instanceof Date ? timestamp : new Date(timestamp);
       
-      // Validate that the date is valid
       if (isNaN(dateObj.getTime())) {
         console.warn("🛑 Invalid date passed to formatter:", timestamp);
         return "";
