@@ -82,6 +82,7 @@
 │   │   │   ├── ChatHeader.tsx
 │   │   │   ├── ChatInputBar.tsx
 │   │   │   ├── ChatMessage.tsx
+│   │   │   ├── HydrationUI.tsx
 │   │   │   ├── LoadingSage.tsx
 │   │   │   ├── LoadingUI.tsx
 │   │   │   ├── OrgRecoveryUI.tsx
@@ -263,16 +264,20 @@
 │   ├── hooks
 │   │   ├── ask-sage
 │   │   │   ├── index.ts
+│   │   │   ├── use-ask-sage-guard.ts
 │   │   │   ├── use-context-monitor.ts
 │   │   │   ├── use-question-selection.ts
 │   │   │   ├── use-reflection-handler.ts
+│   │   │   ├── use-route-protection.ts
 │   │   │   ├── use-sage-messenger.ts
-│   │   │   └── use-sage-ui-state.ts
+│   │   │   ├── use-sage-ui-state.ts
+│   │   │   └── use-session-stability.ts
 │   │   ├── sage-context
 │   │   │   ├── index.ts
 │   │   │   ├── readiness-checks.ts
 │   │   │   ├── readiness-logger.ts
 │   │   │   ├── types.ts
+│   │   │   ├── use-context-hydration.ts
 │   │   │   └── use-sage-context-readiness.ts
 │   │   ├── use-ask-sage-page.tsx
 │   │   ├── use-chat.tsx
@@ -281,6 +286,7 @@
 │   │   ├── use-form-submit.ts
 │   │   ├── use-mobile.tsx
 │   │   ├── use-org-recovery.tsx
+│   │   ├── use-reflection-handler.ts
 │   │   ├── use-reflection.ts
 │   │   ├── use-sage-context-readiness.ts
 │   │   ├── use-sage-context-ready.ts
@@ -295,7 +301,14 @@
 │   │   ├── useRedirectLogic.ts
 │   │   ├── useRequireAuth.ts
 │   │   ├── useRouteProtection.ts
-│   │   └── useTranslation.ts
+│   │   ├── useTranslation.ts
+│   │   └── voice-param
+│   │       ├── constants.ts
+│   │       ├── index.ts
+│   │       ├── source-collectors.ts
+│   │       ├── types.ts
+│   │       ├── use-voice-state-manager.ts
+│   │       └── utils.ts
 │   ├── i18n
 │   │   ├── index.ts
 │   │   ├── locales
@@ -331,9 +344,15 @@
 │   │   ├── permissions.ts
 │   │   ├── promptBuilder.ts
 │   │   ├── redirect-intent
+│   │   │   ├── constants.ts
+│   │   │   ├── hooks
+│   │   │   │   ├── use-redirect-actions.ts
+│   │   │   │   └── use-redirect-intent-manager.ts
 │   │   │   ├── index.ts
 │   │   │   ├── types.ts
-│   │   │   ├── use-redirect-intent-manager.ts
+│   │   │   ├── utils
+│   │   │   │   ├── redirect-loop.ts
+│   │   │   │   └── storage.ts
 │   │   │   └── utils.ts
 │   │   ├── routing
 │   │   │   └── types.ts
@@ -379,7 +398,8 @@
 │   │   └── typography.ts
 │   ├── types
 │   │   ├── chat.ts
-│   │   └── index.ts
+│   │   ├── index.ts
+│   │   └── reflection.ts
 │   ├── utils
 │   │   ├── messageUtils.ts
 │   │   └── sageErrorUtils.ts
@@ -405,4 +425,4 @@
 ├── tsconfig.node.json
 └── vite.config.ts
 
-59 directories, 347 files
+62 directories, 364 files
