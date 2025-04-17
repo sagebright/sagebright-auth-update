@@ -16,7 +16,8 @@ export interface AuthPayload {
  * @throws Error if the authentication request fails
  */
 export async function fetchAuth(): Promise<AuthPayload> {
-  const res = await fetch('/api/auth/session', { 
+  const BASE = import.meta.env.VITE_BACKEND_URL || '';
+  const res = await fetch(`${BASE}/api/auth/session`, {
     credentials: 'include',
     headers: {
       'Accept': 'application/json',
