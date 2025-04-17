@@ -1,38 +1,42 @@
 
-/**
- * Schema validation for Sage context
- */
+import * as z from 'zod';
+import { SageContext } from '@/types/chat';
 
-// Simple validation for now - can be expanded to use Zod later
-export function validateSageContext(context: any) {
-  // In development mode, be permissive
-  if (process.env.NODE_ENV === 'development') {
-    console.log('🧪 Development mode: Skipping strict schema validation');
+/**
+ * Schema validation for OpenAI request context
+ */
+const OpenAIRequestSchema = z.object({
+  question: z.string().min(1, "Question cannot be empty"),
+  context: z.object({
+    userId: z.string(),
+    orgId: z.string(),
+    user: z.object({
+      id: z.string(),
+      name: z.string().optional(),
+    }),
+    org: z.object({
+      id: z.string(),
+      name: z.string().optional(),
+    }),
+    messages: z.array(z.any()).optional().default([])
+  }),
+  voice: z.string().optional().default('default')
+});
+
+/**
+ * Validates the OpenAI request parameters
+ */
+export function validateOpenAIRequest(request: { 
+  question: string, 
+  context: SageContext, 
+  voice?: string 
+}) {
+  try {
+    OpenAIRequestSchema.parse(request);
     return true;
+  } catch (error) {
+    console.error('OpenAI Request Validation Error:', error);
+    throw error;
   }
-  
-  // Basic validation
-  if (!context) {
-    throw new Error('Context is null or undefined');
-  }
-  
-  // Check essential properties
-  if (!context.userId) {
-    throw new Error('Context is missing userId');
-  }
-  
-  if (!context.orgId) {
-    throw new Error('Context is missing orgId');
-  }
-  
-  // Check nested objects
-  if (!context.org) {
-    throw new Error('Context is missing org data');
-  }
-  
-  if (!context.user) {
-    throw new Error('Context is missing user data');
-  }
-  
-  return true;
 }
+
