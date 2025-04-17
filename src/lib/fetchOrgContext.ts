@@ -1,10 +1,9 @@
 
 // src/lib/fetchOrgContext.ts
-
-import { supabase } from '@/lib/supabaseClient';
+import { fetchAuth } from '@/lib/backendAuth';
 
 /**
- * Fetches organizational context from the org_context table.
+ * Fetches organizational context from the backend auth endpoint.
  * Enhanced with better error handling and detailed logging.
  *
  * @param orgId - The organization ID tied to the user/session
@@ -21,51 +20,29 @@ export async function fetchOrgContext(orgId: string) {
   console.log(`[fetchOrgContext] Attempting to fetch context for orgId: ${orgId}`);
   
   try {
-    // Explicitly query the org_context table with the exact primary key field
-    const { data, error } = await supabase
-      .from('org_context')
-      .select('*')
-      .eq('id', orgId)  // Ensure we're using the right field for the lookup
-      .maybeSingle();
-
-    if (error) {
-      console.error('❌ Error fetching org_context:', error.message, error.details, error.hint);
+    const authData = await fetchAuth();
+    
+    if (!authData || !authData.org) {
+      console.warn(`⚠️ No org context found for orgId=${orgId}`);
       return null;
     }
-
-    if (!data) {
-      // Try alternative lookup by org_id field if id field didn't work
-      console.log(`⚠️ No org_context found with id=${orgId}, trying org_id field instead`);
-      
-      const { data: altData, error: altError } = await supabase
-        .from('org_context')
-        .select('*')
-        .eq('org_id', orgId)
-        .maybeSingle();
-        
-      if (altError) {
-        console.error('❌ Error in alternative org_context lookup:', altError.message);
-        return null;
-      }
-      
-      if (!altData) {
-        console.warn(`⚠️ No org_context found for either id or org_id=${orgId}`);
-        return null;
-      }
-      
-      console.log(`✅ Successfully found org context via org_id field for: ${orgId}`);
-      return altData;
-    }
+    
+    // Format the data to match the original schema
+    const orgData = {
+      id: authData.org.id,
+      org_id: authData.org.id, // Keep compatibility with existing code
+      slug: authData.org.slug,
+      // Add additional org context fields as needed
+    };
 
     console.log(`✅ Successfully found org context data for orgId: ${orgId}`, {
-      hasName: !!data.name,
-      dataKeys: Object.keys(data)
+      hasName: !!orgData.slug,
+      dataKeys: Object.keys(orgData)
     });
     
-    return data;
+    return orgData;
   } catch (err) {
     console.error('❌ Exception in fetchOrgContext:', err);
     return null;
   }
 }
-

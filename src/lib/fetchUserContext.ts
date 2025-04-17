@@ -1,13 +1,12 @@
 
 // src/lib/fetchUserContext.ts
-
-import { supabase } from '@/lib/supabaseClient';
+import { fetchAuth } from '@/lib/backendAuth';
 
 /**
  * Fetches user-level context for a given user ID.
  * Enhanced with better error handling and debugging.
  *
- * @param userId - Supabase user ID
+ * @param userId - User ID to fetch context for
  * @returns User context object or null if not found
  */
 export async function fetchUserContext(userId: string) {
@@ -22,32 +21,29 @@ export async function fetchUserContext(userId: string) {
   console.log(`[fetchUserContext] Attempting to fetch context for userId: ${userId}`);
 
   try {
-    // Make sure we're querying the right table with the right field
-    const { data, error } = await supabase
-      .from('user_context')
-      .select('*')
-      .eq('user_id', userId)
-      .maybeSingle();
-
-    if (error) {
-      console.error('❌ Error fetching user_context:', error.message, error.details, error.hint);
+    const authData = await fetchAuth();
+    
+    if (!authData || !authData.user) {
+      console.warn(`⚠️ No user context found for userId: ${userId}`);
       return null;
     }
-
-    if (!data) {
-      console.warn(`⚠️ No user_context found for userId: ${userId}`);
-      return null;
-    }
+    
+    // Format the data to match the original schema
+    const userData = {
+      id: authData.user.id,
+      user_id: authData.user.id, // Keep compatibility with existing code
+      role: authData.user.role,
+      // Add additional user context fields as needed
+    };
 
     console.log(`✅ Successfully retrieved user context for userId: ${userId}`, {
-      hasContextId: !!data.id,
-      dataFieldCount: Object.keys(data).length
+      hasContextId: !!userData.id,
+      dataFieldCount: Object.keys(userData).length
     });
     
-    return data;
+    return userData;
   } catch (err) {
     console.error('❌ Exception in fetchUserContext:', err);
     return null;
   }
 }
-

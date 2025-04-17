@@ -1,10 +1,11 @@
 
 import { contextLogger } from '../contextLogger';
-import { fetchOrgContext } from '../../fetchOrgContext';
 import { createOrgContextFallback } from '../sageContextFallbacks';
+import { fetchAuth } from '@/lib/backendAuth';
 
 /**
- * Fetches organization context data with fallback handling
+ * Fetches organization context data with central auth endpoint
+ * No direct Supabase dependency
  */
 export async function fetchOrgContextData(
   orgId: string
@@ -12,23 +13,29 @@ export async function fetchOrgContextData(
   let orgContext = null;
   let orgContextSource = 'none';
   
-  // Try to get org context
+  // Try to get org context from central auth endpoint
   try {
-    contextLogger.info(`Fetching org context for orgId: ${orgId}`);
-    orgContext = await fetchOrgContext(orgId);
+    contextLogger.info(`Fetching org context from backend for orgId: ${orgId}`);
+    const authData = await fetchAuth();
     
-    if (orgContext) {
-      orgContextSource = 'direct-supabase';
-      contextLogger.success("Org context found from direct Supabase", { 
-        contextId: orgContext.id,
-        name: orgContext.name,
+    if (authData && authData.org) {
+      orgContext = {
+        id: authData.org.id,
+        slug: authData.org.slug,
+        // Add any other fields needed for your context
+      };
+      
+      orgContextSource = 'backend-auth';
+      contextLogger.success("Org context found from backend auth", { 
+        orgId: authData.org.id,
+        slug: authData.org.slug,
         fields: Object.keys(orgContext).length 
       });
     } else {
-      contextLogger.warn("No org context found from direct Supabase");
+      contextLogger.warn("No org context found from backend auth");
     }
   } catch (error) {
-    contextLogger.error("Error in direct Supabase org context fetch:", error);
+    contextLogger.error("Error in backend auth org context fetch:", error);
   }
   
   // Use fallbacks if needed in development

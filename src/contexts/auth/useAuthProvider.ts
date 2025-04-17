@@ -1,104 +1,116 @@
 
 import { useLocation } from 'react-router-dom';
-import { useSessionInit } from './hooks/useSessionInit';
-import { useOrgContext } from './hooks/useOrgContext';
-import { useUserData } from './hooks/useUserData';
-import { useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { fetchAuth } from '@/lib/backendAuth';
 import { useRedirectIntentManager } from '@/lib/redirect-intent';
 
 export function useAuthProvider() {
   const location = useLocation();
-  const { captureIntent, executeRedirect } = useRedirectIntentManager({
+  const { captureIntent } = useRedirectIntentManager({
     enableLogging: true,
     defaultPriority: 1
   });
   
-  // Initialize the session and auth state
-  const {
-    accessToken,
-    session,
-    user,
-    userId,
-    loading,
-    isAuthenticated,
-    setSession,
-    setUser,
-    setLoading,
-    setAccessToken,
-    refreshSession,
-  } = useSessionInit();
-
-  // Initialize organization context
-  const {
-    orgId,
-    orgSlug,
-    setOrgId,
-    setOrgSlug,
-    setCurrentUser: setOrgContextUser,
-    fetchOrgDetails,
-    recoverOrgContext,
-    isRecoveringOrgContext,
-  } = useOrgContext(userId, isAuthenticated);
-
-  // Load and manage user data
-  const {
-    currentUser,
-    setCurrentUser: setUserDataCurrentUser,
-    fetchUserData
-  } = useUserData(
-    userId, 
-    isAuthenticated, 
-    setOrgId, 
-    fetchOrgDetails
-  );
-
-  // Prioritize metadata-based hydration of orgId
-  useEffect(() => {
-    if (isAuthenticated && userId && !orgId) {
-      const metadataOrgId = user?.user_metadata?.org_id;
-      if (metadataOrgId) {
-        console.log("✅ Hydrating orgId from session metadata:", metadataOrgId);
-        setOrgId(metadataOrgId);
-      }
-    }
-  }, [isAuthenticated, userId, orgId, user, setOrgId]);
-
-  // Temporary fallback for missing orgSlug when orgId is present
-  useEffect(() => {
-    if (isAuthenticated && orgId && !orgSlug) {
-      console.warn("⚠️ orgSlug missing, applying fallback");
-      setOrgSlug("lumon"); // TEMP until dynamic slug lookup is implemented
-    }
-  }, [isAuthenticated, orgId, orgSlug, setOrgSlug]);
-
-  // Ensure we attempt to recover org context ONLY if metadata is also missing
-  useEffect(() => {
-    if (
-      isAuthenticated &&
-      userId &&
-      !orgId &&
-      !user?.user_metadata?.org_id &&
-      !isRecoveringOrgContext
-    ) {
-      console.log("🔍 No orgId found anywhere—attempting recovery...");
+  // Auth state
+  const [session, setSession] = useState<any | null>(null);
+  const [user, setUser] = useState<any | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [orgId, setOrgId] = useState<string | null>(null);
+  const [orgSlug, setOrgSlug] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [currentUser, setCurrentUser] = useState<any | null>(null);
+  const [isRecoveringOrgContext, setIsRecoveringOrgContext] = useState(false);
+  const [ready, setReady] = useState(false);
+  
+  // Fetch the authentication state from backend
+  const fetchAuthState = useCallback(async () => {
+    try {
+      console.log("🔄 Fetching auth state from backend...");
+      setLoading(true);
       
-      // Capture this situation as an intent for debugging
-      captureIntent(
-        location.pathname + location.search,
-        'session-restore',
-        {
-          source: 'org_recovery',
-          userId,
-          context: 'missing_org_id',
-          pathname: location.pathname
-        },
-        1
-      );
+      const authData = await fetchAuth();
       
-      recoverOrgContext();
+      // Update session state
+      setSession(authData.session);
+      
+      // Update user state
+      const userData = {
+        id: authData.user.id,
+        role: authData.user.role,
+        // Set up user metadata for compatibility
+        user_metadata: {
+          role: authData.user.role,
+          org_id: authData.org.id,
+          org_slug: authData.org.slug
+        }
+      };
+      
+      setUser(userData);
+      setUserId(authData.user.id);
+      setCurrentUser(userData);
+      
+      // Update org state
+      setOrgId(authData.org.id);
+      setOrgSlug(authData.org.slug);
+      
+      // Update auth state
+      setIsAuthenticated(true);
+      setAccessToken(authData.session.id);
+      setReady(true);
+      
+      console.log("✅ Auth state successfully loaded", {
+        userId: authData.user.id,
+        orgId: authData.org.id,
+        orgSlug: authData.org.slug,
+        role: authData.user.role
+      });
+    } catch (error) {
+      console.error("❌ Error fetching auth state:", error);
+      setIsAuthenticated(false);
+      setUser(null);
+      setSession(null);
+      setUserId(null);
+      setOrgId(null);
+      setOrgSlug(null);
+      setCurrentUser(null);
+      setReady(true);
+    } finally {
+      setLoading(false);
     }
-  }, [isAuthenticated, userId, orgId, isRecoveringOrgContext, user, recoverOrgContext, location, captureIntent]);
-
+  }, []);
+  
+  // Initialize auth state when component mounts
+  useEffect(() => {
+    console.log("🔧 Auth provider initializing");
+    fetchAuthState();
+  }, [fetchAuthState]);
+  
+  // Refresh the session
+  const refreshSession = useCallback(async () => {
+    console.log("🔄 Refreshing auth session");
+    await fetchAuthState();
+  }, [fetchAuthState]);
+  
+  // Recover org context if needed
+  const recoverOrgContext = useCallback(async () => {
+    if (!userId || !isAuthenticated) return false;
+    
+    setIsRecoveringOrgContext(true);
+    try {
+      console.log("🔄 Attempting to recover org context");
+      await fetchAuthState();
+      const success = !!orgId;
+      setIsRecoveringOrgContext(false);
+      return success;
+    } catch (error) {
+      console.error("❌ Error recovering org context:", error);
+      setIsRecoveringOrgContext(false);
+      return false;
+    }
+  }, [userId, isAuthenticated, orgId, fetchAuthState]);
+  
   // Enhanced logging for auth state changes
   useEffect(() => {
     if (isAuthenticated) {
@@ -108,37 +120,20 @@ export function useAuthProvider() {
         orgSlug,
         userMetadata: user?.user_metadata,
         currentUserData: currentUser,
-        sessionReady: !!user,
+        sessionReady: !!session,
         currentUserReady: !!currentUser,
         path: location.pathname
       });
-      
-      // Add additional log to trace final auth context before page rendering
-      console.log("🏷️ Final auth context before rendering:", {
-        userId,
-        orgId,
-        orgSlug,
-        userMetadata: user?.user_metadata,
-        sessionUserReady: !!user,
-        currentUserReady: !!currentUser,
-        hasSessionMetadata: user ? !!user.user_metadata : false,
-        path: location.pathname
-      });
     }
-  }, [isAuthenticated, userId, orgId, orgSlug, user, currentUser, location.pathname]);
-
-  // Combined setter for current user to update both contexts
-  const setCurrentUser = (userData: any | null) => {
-    // Ensure we don't lose user_metadata when updating user data
-    if (userData && user && user.user_metadata) {
-      if (!userData.user_metadata) {
-        userData.user_metadata = user.user_metadata;
-      }
-    }
-    
-    setUserDataCurrentUser(userData);
-    setOrgContextUser(userData);
-  };
+  }, [isAuthenticated, userId, orgId, orgSlug, user, currentUser, session, location.pathname]);
+  
+  // Sync fetch data from user profile if needed
+  const fetchUserData = useCallback(async () => {
+    if (!userId || !isAuthenticated) return null;
+    console.log("🔄 Syncing user data from backend");
+    await fetchAuthState();
+    return currentUser;
+  }, [userId, isAuthenticated, fetchAuthState, currentUser]);
 
   return {
     accessToken,
@@ -159,6 +154,6 @@ export function useAuthProvider() {
     recoverOrgContext,
     fetchUserData,
     refreshSession,
-    sessionUserReady: !!user // Ensure sessionUserReady is returned
+    sessionUserReady: ready
   };
 }

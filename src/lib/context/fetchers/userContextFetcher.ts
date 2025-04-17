@@ -1,10 +1,11 @@
 
 import { contextLogger } from '../contextLogger';
-import { fetchUserContext } from '../../fetchUserContext';
 import { createUserContextFallback } from '../sageContextFallbacks';
+import { fetchAuth } from '@/lib/backendAuth';
 
 /**
- * Fetches user context data with fallback handling
+ * Fetches user context data with central auth endpoint
+ * No direct Supabase dependency
  */
 export async function fetchUserContextData(
   userId: string, 
@@ -13,22 +14,34 @@ export async function fetchUserContextData(
   let userContext = null;
   let userContextSource = 'none';
   
-  // Try to get user context
+  // If we already have user data, use it directly
+  if (currentUserData) {
+    contextLogger.info("Using pre-fetched user data");
+    return { userContext: currentUserData, userContextSource: 'pre-fetched' };
+  }
+  
+  // Try to get user context from central auth endpoint
   try {
-    contextLogger.info(`Fetching user context for userId: ${userId}`);
-    userContext = await fetchUserContext(userId);
+    contextLogger.info(`Fetching user context from backend for userId: ${userId}`);
+    const authData = await fetchAuth();
     
-    if (userContext) {
-      userContextSource = 'direct-supabase';
-      contextLogger.success("User context found from direct Supabase", { 
-        contextId: userContext.id,
+    if (authData && authData.user) {
+      userContext = {
+        id: authData.user.id,
+        role: authData.user.role,
+        // Add any other fields needed for your context
+      };
+      
+      userContextSource = 'backend-auth';
+      contextLogger.success("User context found from backend auth", { 
+        userId: authData.user.id,
         fields: Object.keys(userContext).length 
       });
     } else {
-      contextLogger.warn("No user context found from direct Supabase");
+      contextLogger.warn("No user context found from backend auth");
     }
   } catch (error) {
-    contextLogger.error("Error in direct Supabase user context fetch:", error);
+    contextLogger.error("Error in backend auth user context fetch:", error);
   }
   
   // Use fallbacks if needed in development

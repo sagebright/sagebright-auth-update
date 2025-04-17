@@ -1,9 +1,10 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { getOrgById } from '@/lib/subdomainUtils';
-import { supabase } from '@/lib/supabaseClient';
+import { fetchAuth } from '@/lib/backendAuth';
 
-// A more resilient version of useOrgContext that prioritizes user metadata
+// A more resilient version of useOrgContext that uses the backend auth endpoint
 export function useOrgContext(userId: string | null, isAuthenticated: boolean) {
   const [orgId, setOrgId] = useState<string | null>(null);
   const [orgSlug, setOrgSlug] = useState<string | null>(null);
@@ -12,60 +13,40 @@ export function useOrgContext(userId: string | null, isAuthenticated: boolean) {
   const fetchInProgressRef = useRef(false);
   const { toast } = useToast();
   
-  // First try to get org context from user metadata when userId is available
+  // First try to get org context from auth endpoint when userId is available
   useEffect(() => {
     if (!userId || !isAuthenticated || fetchInProgressRef.current) return;
     
-    const getOrgFromUserMetadata = async () => {
+    const getOrgFromBackend = async () => {
       if (fetchInProgressRef.current) return;
       fetchInProgressRef.current = true;
       
       try {
-        // Get user data from auth
-        const { data, error } = await supabase.auth.getUser();
-        if (error || !data?.user) {
-          console.warn('⚠️ Unable to get user data for org context:', error);
+        // Get user and org data from auth endpoint
+        const authData = await fetchAuth();
+        if (!authData) {
+          console.warn('⚠️ Unable to get auth data for org context');
           fetchInProgressRef.current = false;
           return;
         }
         
-        // Check if user metadata contains org_id
-        const metadata = data.user.user_metadata || {};
-        const orgIdFromMetadata = metadata.org_id;
-        const orgSlugFromMetadata = metadata.org_slug;
-        
-        console.log("🔍 Checking user metadata for org details:", { 
-          orgIdFromMetadata, 
-          orgSlugFromMetadata,
-          fullMetadata: metadata
+        console.log("🔍 Received auth data for org context:", { 
+          orgId: authData.org.id, 
+          orgSlug: authData.org.slug
         });
         
-        if (orgIdFromMetadata) {
-          console.log("🏢 Found org_id in user metadata:", orgIdFromMetadata);
-          setOrgId(orgIdFromMetadata);
-          
-          // If metadata also has org_slug, use it directly
-          if (orgSlugFromMetadata) {
-            console.log("🏢 Found org_slug in user metadata:", orgSlugFromMetadata);
-            setOrgSlug(orgSlugFromMetadata);
-          } else {
-            // Otherwise fetch org details to get slug
-            await fetchOrgDetails(orgIdFromMetadata);
-          }
-        } else {
-          console.log("⚠️ No org_id found in user metadata, will try database");
-          // If not in metadata, try to get from database
-          await fetchOrgFromDatabase(userId);
-        }
+        // Update org context
+        setOrgId(authData.org.id);
+        setOrgSlug(authData.org.slug);
         
         fetchInProgressRef.current = false;
       } catch (err) {
-        console.error("❌ Error getting org context from metadata:", err);
+        console.error("❌ Error getting org context from backend:", err);
         fetchInProgressRef.current = false;
       }
     };
     
-    getOrgFromUserMetadata();
+    getOrgFromBackend();
   }, [userId, isAuthenticated]);
   
   // Function to fetch org details when org ID is available
@@ -78,31 +59,9 @@ export function useOrgContext(userId: string | null, isAuthenticated: boolean) {
       } else {
         console.warn("⚠️ No slug found for org ID:", orgId);
         
-        // Try to find the slug using a direct query as backup
-        const { data: orgData, error } = await supabase
-          .from('orgs')
-          .select('slug')
-          .eq('id', orgId)
-          .single();
-          
-        if (!error && orgData && orgData.slug) {
-          setOrgSlug(orgData.slug);
-          console.log("🏢 Set orgSlug via direct query:", orgData.slug);
-        } else {
-          // Last resort: Set a fallback slug to prevent blocking
-          console.log("⚠️ Using fallback slug for development context");
-          setOrgSlug("default-org");
-          
-          // Update user metadata with the fallback slug for faster access next time
-          try {
-            await supabase.auth.updateUser({
-              data: { org_slug: "default-org" }
-            });
-            console.log("✅ Updated user metadata with fallback org_slug");
-          } catch (updateError) {
-            console.warn("⚠️ Could not update user metadata with fallback slug:", updateError);
-          }
-        }
+        // If no slug was found, set a fallback
+        console.log("⚠️ Using fallback slug for development context");
+        setOrgSlug("default-org");
       }
       
       console.log("[useOrgContext] Final orgSlug:", orgSlug);
@@ -114,64 +73,7 @@ export function useOrgContext(userId: string | null, isAuthenticated: boolean) {
     }
   };
   
-  // Function to fetch org ID from database if not in metadata
-  const fetchOrgFromDatabase = async (userId: string) => {
-    try {
-      console.log("🔍 Trying to fetch org context from users table for:", userId);
-      
-      const { data, error } = await supabase
-        .from('users')
-        .select('org_id')
-        .eq('id', userId)
-        .single();
-      
-      if (error) {
-        console.warn("⚠️ Error fetching user org data:", error);
-        // Set development fallback values
-        setOrgId("default-org-id");
-        setOrgSlug("default-org");
-        return;
-      }
-      
-      if (data && data.org_id) {
-        console.log("✅ Found org_id in database:", data.org_id);
-        setOrgId(data.org_id);
-        await fetchOrgDetails(data.org_id);
-        
-        // Update user metadata with org_id for faster access next time
-        updateUserMetadataWithOrgId(data.org_id);
-      } else {
-        console.warn("⚠️ User not associated with an organization, using fallback");
-        // Set development fallback values
-        setOrgId("default-org-id");
-        setOrgSlug("default-org");
-      }
-    } catch (error) {
-      console.error("❌ Error fetching org from database:", error);
-      // Set fallback values on error
-      setOrgId("default-org-id");
-      setOrgSlug("default-org");
-    }
-  };
-  
-  // Update user metadata with org_id for faster access in future
-  const updateUserMetadataWithOrgId = async (orgId: string) => {
-    try {
-      const { data, error } = await supabase.auth.updateUser({
-        data: { org_id: orgId }
-      });
-      
-      if (error) {
-        console.warn("⚠️ Could not update user metadata with org_id:", error);
-      } else {
-        console.log("✅ Updated user metadata with org_id");
-      }
-    } catch (error) {
-      console.error("❌ Error updating user metadata:", error);
-    }
-  };
-
-  // Function to recover org context from user metadata or database
+  // Function to recover org context from backend
   const recoverOrgContext = async () => {
     if (!userId || !isAuthenticated) return false;
     
@@ -180,21 +82,26 @@ export function useOrgContext(userId: string | null, isAuthenticated: boolean) {
     try {
       console.log("🔄 Attempting to recover org context for user:", userId);
       
-      // First try direct database query
-      await fetchOrgFromDatabase(userId);
+      // Try to get auth data
+      const authData = await fetchAuth();
       
-      // Check if recovery was successful
-      const wasSuccessful = !!orgId;
-      
-      if (wasSuccessful) {
+      if (authData && authData.org) {
+        console.log("✅ Found org context in auth data:", authData.org);
+        setOrgId(authData.org.id);
+        setOrgSlug(authData.org.slug);
+        
         toast({
           title: "Organization Recovered",
           description: "Your organization context has been restored.",
         });
+        
+        setIsRecoveringOrgContext(false);
+        return true;
       }
       
+      console.log("⚠️ No org context found in auth data");
       setIsRecoveringOrgContext(false);
-      return wasSuccessful;
+      return false;
     } catch (error) {
       console.error("❌ Error recovering org context:", error);
       setIsRecoveringOrgContext(false);

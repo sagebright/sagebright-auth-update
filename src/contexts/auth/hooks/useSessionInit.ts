@@ -1,33 +1,81 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { useInitialSession } from './useInitialSession';
 import { useSessionRefresh } from './useSessionRefresh';
 import { useVisibilityChange } from './useVisibilityChange';
-import { supabase } from '@/lib/supabaseClient';
+import { fetchAuth } from '@/lib/backendAuth';
 
 export function useSessionInit() {
-  const {
-    session,
-    user,
-    userId,
-    accessToken,
-    loading,
-    isAuthenticated,
-    setSession,
-    setUser,
-    setAccessToken,
-    setLoading,
-    setIsAuthenticated,
-    initialAuthComplete
-  } = useInitialSession();
+  // Auth state
+  const [session, setSession] = useState<any | null>(null);
+  const [user, setUser] = useState<any | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [initialAuthComplete, setInitialAuthComplete] = useState(false);
 
+  const sessionLastCheckedRef = useState<number>(Date.now())[0];
+
+  // Get session refresh functionality
   const {
     refreshSession,
-    repairSessionMetadata,
     isRefreshing
   } = useSessionRefresh();
 
-  const sessionLastCheckedRef = useState<number>(Date.now())[0];
+  // Initialize auth state
+  const initializeAuth = useCallback(async () => {
+    try {
+      console.log('🔄 Initializing auth session');
+      setLoading(true);
+      
+      const authData = await fetchAuth();
+      
+      // Update session state
+      const sessionObj = {
+        id: authData.session.id,
+        expiresAt: authData.session.expiresAt,
+        access_token: authData.session.id
+      };
+      setSession(sessionObj);
+      
+      // Update user state
+      const userData = {
+        id: authData.user.id,
+        role: authData.user.role,
+        // Set up user metadata for compatibility
+        user_metadata: {
+          role: authData.user.role,
+          org_id: authData.org.id,
+          org_slug: authData.org.slug
+        }
+      };
+      
+      setUser(userData);
+      setUserId(authData.user.id);
+      setAccessToken(authData.session.id);
+      setIsAuthenticated(true);
+      
+      console.log('✅ Auth session initialized:', {
+        userId: authData.user.id,
+        orgId: authData.org.id
+      });
+    } catch (error) {
+      console.error('❌ Error fetching auth session:', error);
+      setSession(null);
+      setUser(null);
+      setUserId(null);
+      setAccessToken(null);
+      setIsAuthenticated(false);
+    } finally {
+      setLoading(false);
+      setInitialAuthComplete(true);
+    }
+  }, []);
+
+  // Initialize on component mount
+  useEffect(() => {
+    initializeAuth();
+  }, [initializeAuth]);
 
   // Setup visibility change handlers
   useVisibilityChange({
@@ -36,28 +84,6 @@ export function useSessionInit() {
       refreshSession('tab visibility change');
     }
   });
-
-  // Check for and repair missing metadata if needed
-  useEffect(() => {
-    if (isAuthenticated && user && userId && initialAuthComplete()) {
-      // Verify user has required metadata
-      if (!user.user_metadata?.role) {
-        repairSessionMetadata(userId)
-          .then(success => {
-            if (success) {
-              // Re-fetch the session to update our state
-              supabase.auth.getSession().then(({ data }) => {
-                if (data.session) {
-                  setSession(data.session);
-                  setUser(data.session.user);
-                  console.log('✅ Session updated after metadata repair');
-                }
-              });
-            }
-          });
-      }
-    }
-  }, [isAuthenticated, user, userId, initialAuthComplete, repairSessionMetadata, setSession, setUser]);
 
   return {
     accessToken,
@@ -71,5 +97,6 @@ export function useSessionInit() {
     setLoading,
     setAccessToken,
     refreshSession,
+    initialAuthComplete: () => initialAuthComplete
   };
 }

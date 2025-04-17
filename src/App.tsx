@@ -9,7 +9,7 @@ import { AuthProvider } from "./contexts/auth/AuthContext";
 import { LanguageProvider } from "./contexts/language/LanguageContext";
 import { getOrgFromUrl } from "./lib/subdomainUtils";
 import "@/i18n"; // Import i18n configuration
-import { checkAuth, supabase } from "./lib/supabaseClient";
+import { checkAuth } from "./lib/backendAuth";
 
 // Eagerly loaded components
 import PageErrorBoundary from "./components/PageErrorBoundary";

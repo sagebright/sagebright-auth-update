@@ -1,10 +1,10 @@
-import { supabase } from '@/lib/supabaseClient';
 import { getOrgFromUrl, redirectToOrgUrl, getOrgById } from '@/lib/subdomainUtils';
-import { syncUserRole } from '@/lib/syncUserRole';
-import { syncExistingUsers } from '@/lib/syncExistingUsers';
-import { toast } from '@/hooks/use-toast';
 import { handleApiError } from '@/lib/handleApiError';
+import { toast } from '@/hooks/use-toast';
 
+/**
+ * Signs up a new user
+ */
 export async function signUp(
   email: string, 
   password: string, 
@@ -13,18 +13,23 @@ export async function signUp(
   onError: (error: any) => void
 ) {
   try {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: fullName,
-        },
+    const response = await fetch('/api/auth/signup', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
       },
+      body: JSON.stringify({
+        email,
+        password,
+        fullName,
+      }),
     });
 
-    if (error) throw error;
-    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Error signing up');
+    }
+
     toast({
       title: "Account created successfully",
       description: "Please check your email for verification instructions.",
@@ -39,53 +44,51 @@ export async function signUp(
   }
 }
 
+/**
+ * Signs in an existing user
+ */
 export async function signIn(
   email: string, 
   password: string,
   onError: (error: any) => void
 ) {
   try {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
+    const response = await fetch('/api/auth/signin', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email,
+        password,
+      }),
+      credentials: 'include',
     });
 
-    if (error) throw error;
-    
-    // Sync user role after successful login with explicit logging
-    if (data?.user?.id) {
-      console.log('🔑 Login successful, syncing user role for ID:', data.user.id);
-      try {
-        await syncUserRole(data.user.id);
-        console.log('✅ User role synchronized after login');
-        
-        // Force refresh the session to get updated metadata
-        try {
-          await supabase.auth.refreshSession();
-          console.log('✅ Session refreshed after role sync');
-        } catch (refreshError) {
-          console.error('⚠️ Session refresh failed:', refreshError);
-        }
-      } catch (syncError) {
-        console.error('⚠️ Role sync failed but login succeeded:', syncError);
-        // Continue with login flow even if role sync fails
-      }
-      
-      // Also try to sync the user to the users table but don't let it block the flow
-      try {
-        await syncExistingUsers();
-        console.log('✅ User synchronized to users table after login');
-      } catch (userSyncError) {
-        console.error('⚠️ User sync failed but login succeeded:', userSyncError);
-        // Continue with login flow even if user sync fails
-      }
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Error signing in');
     }
+
+    const data = await response.json();
+    
+    // Explicit logging for successful login
+    console.log('🔑 Login successful, session established');
     
     toast({
       title: "Login successful",
       description: "Welcome back!",
       variant: "default",
     });
+    
+    // Check if redirection to organization is needed
+    const currentOrgSlug = getOrgFromUrl();
+    const userOrgSlug = data?.user?.user_metadata?.org_slug;
+    
+    if (userOrgSlug && currentOrgSlug !== userOrgSlug) {
+      console.log('🔄 Redirecting to correct organization:', userOrgSlug);
+      redirectToOrgUrl(userOrgSlug);
+    }
     
     return data;
   } catch (error: any) {
@@ -95,16 +98,13 @@ export async function signIn(
   }
 }
 
+/**
+ * Signs in with Google
+ */
 export async function signInWithGoogle(onError: (error: any) => void) {
   try {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      }
-    });
-
-    if (error) throw error;
+    // Redirect to Google OAuth flow
+    window.location.href = '/api/auth/google';
   } catch (error: any) {
     handleApiError(error, { context: 'google-login' });
     onError(error);
@@ -112,13 +112,23 @@ export async function signInWithGoogle(onError: (error: any) => void) {
   }
 }
 
+/**
+ * Signs out the current user
+ */
 export async function signOut(onError: (error: any) => void) {
   try {
     // Store the current org slug before signing out
     const currentOrgSlug = getOrgFromUrl();
     
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+    const response = await fetch('/api/auth/signout', {
+      method: 'POST',
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Error signing out');
+    }
     
     toast({
       title: "Logged out successfully",
@@ -126,11 +136,14 @@ export async function signOut(onError: (error: any) => void) {
       variant: "default",
     });
     
+    // Clear any client-side storage
+    localStorage.removeItem('sagebright_session');
+    
     // Redirect to org-specific login page if on a subdomain
     if (currentOrgSlug) {
       window.location.href = window.location.protocol + '//' + 
         window.location.hostname + '/auth/login';
-      return;
+      return true;
     }
     
     // Otherwise redirect to main login page
@@ -143,13 +156,23 @@ export async function signOut(onError: (error: any) => void) {
   }
 }
 
+/**
+ * Sends a password reset link
+ */
 export async function resetPassword(email: string, onError: (error: any) => void) {
   try {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/update-password`,
+    const response = await fetch('/api/auth/reset-password', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email }),
     });
 
-    if (error) throw error;
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Error resetting password');
+    }
     
     toast({
       title: "Password reset email sent",
@@ -165,7 +188,28 @@ export async function resetPassword(email: string, onError: (error: any) => void
   }
 }
 
+/**
+ * Updates the user profile
+ */
 export async function updateProfile(data: any) {
-  console.warn("🔧 TODO: Replace with PATCH /api/users/:id");
-  // Will replace Supabase update with backend route later
+  try {
+    const response = await fetch('/api/users/profile', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Error updating profile');
+    }
+
+    return response.json();
+  } catch (error) {
+    handleApiError(error, { context: 'profile-update' });
+    throw error;
+  }
 }

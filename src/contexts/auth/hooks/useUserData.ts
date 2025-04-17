@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useRef } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { fetchAuth } from '@/lib/backendAuth';
 
 export function useUserData(
   userId: string | null, 
@@ -23,39 +23,38 @@ export function useUserData(
     hasAttemptedFetchRef.current = true;
     
     try {
-      console.log("🔍 Fetching user data from auth for ID:", userId);
+      console.log("🔍 Fetching user data from backend auth for ID:", userId);
       
-      // Get user metadata directly from Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.getUser();
+      // Get user data from the backend auth endpoint
+      const authData = await fetchAuth();
       
-      if (authError || !authData?.user) {
-        console.error('❌ Error fetching auth user:', authError);
+      if (!authData || !authData.user) {
+        console.error('❌ Error fetching auth user data');
         fetchInProgressRef.current = false;
         return null;
       }
       
-      // Extract essential user data from auth metadata
-      const userRole = authData.user.user_metadata?.role || 'user';
-      const orgIdFromMetadata = authData.user.user_metadata?.org_id;
-      
+      // Extract essential user data
       const userData = {
         id: authData.user.id,
-        email: authData.user.email,
-        role: userRole,
-        full_name: authData.user.user_metadata?.full_name || authData.user.email?.split('@')[0] || 'User',
-        org_id: orgIdFromMetadata || null
+        role: authData.user.role,
+        org_id: authData.org.id,
+        // Add additional user fields as needed
       };
+      
+      console.log("✅ Received user data from backend auth:", {
+        id: userData.id,
+        role: userData.role,
+        orgId: userData.org_id
+      });
       
       setCurrentUser(userData);
       
-      // If org_id is present in user metadata, use it to set org context
-      if (orgIdFromMetadata) {
-        console.log("✅ Found org_id in user metadata:", orgIdFromMetadata);
-        setOrgId(orgIdFromMetadata);
-        await fetchOrgDetails(orgIdFromMetadata);
-      } else {
-        // If not in metadata, try database only if we haven't found it yet
-        await fetchUserFromDatabase(userId);
+      // Set org context from the auth data
+      if (authData.org.id) {
+        console.log("✅ Setting org ID from auth data:", authData.org.id);
+        setOrgId(authData.org.id);
+        await fetchOrgDetails(authData.org.id);
       }
       
       fetchInProgressRef.current = false;
@@ -63,45 +62,6 @@ export function useUserData(
     } catch (err) {
       console.error('Error loading user data:', err);
       fetchInProgressRef.current = false;
-      return null;
-    }
-  };
-  
-  // Try to fetch user data from database if not in metadata
-  const fetchUserFromDatabase = async (userId: string) => {
-    try {
-      console.log('🔍 Fetching user data from database for ID:', userId);
-      
-      const { data, error } = await supabase
-        .from('users')
-        .select('id, email, full_name, role, org_id')
-        .eq('id', userId)
-        .single();
-      
-      if (error) {
-        console.warn('⚠️ User not found in database:', userId);
-        return null;
-      }
-      
-      if (data && data.org_id) {
-        console.log('✅ Found user with org_id in database:', data.org_id);
-        setOrgId(data.org_id);
-        await fetchOrgDetails(data.org_id);
-        
-        // Update user metadata with org_id for faster access next time
-        try {
-          await supabase.auth.updateUser({
-            data: { org_id: data.org_id }
-          });
-          console.log('✅ Updated user metadata with org_id from database');
-        } catch (updateError) {
-          console.warn('⚠️ Could not update user metadata:', updateError);
-        }
-      }
-      
-      return data;
-    } catch (err) {
-      console.error('Error fetching user from database:', err);
       return null;
     }
   };
