@@ -158,6 +158,7 @@ export function useAuthProvider() {
     isRecoveringOrgContext,
     recoverOrgContext,
     fetchUserData,
-    refreshSession, // Expose refreshSession
+    refreshSession,
+    sessionUserReady: !!user // Ensure sessionUserReady is returned
   };
 }

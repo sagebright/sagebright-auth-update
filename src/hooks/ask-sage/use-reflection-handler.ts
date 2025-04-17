@@ -1,6 +1,6 @@
 
 import { useState, useCallback } from 'react';
-import { ReflectionData } from '@/components/ask-sage/ReflectionForm';
+import { ReflectionData } from '@/types/reflection';
 import { toast } from '@/components/ui/use-toast';
 
 export const useReflectionHandler = () => {

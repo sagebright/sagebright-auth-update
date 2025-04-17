@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -12,6 +13,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { toast } = useToast();
   const authState = useAuthProvider();
   
+  // Destructure all properties including sessionUserReady
   const {
     accessToken,
     session,

@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect } from 'react';
 import { ChatInputBar } from '@/components/ask-sage/ChatInputBar';
 import { ChatMessage } from '@/components/ask-sage/ChatMessage';
@@ -6,7 +5,7 @@ import { SuggestedQuestions } from '@/components/ask-sage/SuggestedQuestions';
 import { WelcomeMessage } from '@/components/ask-sage/WelcomeMessage';
 import { TypingIndicator } from '@/components/ask-sage/TypingIndicator';
 import { Message } from '@/types/chat';
-import { ReflectionData } from '@/components/ask-sage/ReflectionForm';
+import { ReflectionData } from '@/types/reflection';
 
 interface AskSageContentProps {
   messages: Message[];
