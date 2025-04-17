@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useSageContextReadiness } from '../use-sage-context-readiness';
 import { useAuth } from '@/contexts/auth/AuthContext';
 import { HydrationState } from './types';
+import { useHydrationTracking } from './use-hydration-tracking';
 
 /**
  * Hook to track and ensure complete context hydration

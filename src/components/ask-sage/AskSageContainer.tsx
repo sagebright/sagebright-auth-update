@@ -26,7 +26,7 @@ export const AskSageContainer: React.FC = () => {
   const location = useLocation();
   const voiceParamState = useVoiceParamState();
   const { captureIntent } = useRedirectIntentManager();
-  const { context, userContext, orgContext, loading: contextLoading } = useSageContext();
+  const sageContext = useSageContext();
   
   // Use the unified Ask Sage Guard for route, session and context protection
   const { 
@@ -41,8 +41,8 @@ export const AskSageContainer: React.FC = () => {
   // Use the enhanced context hydration system with our new context
   const contextHydration = useContextHydration(
     voiceParamState.currentVoice,
-    userContext,
-    orgContext
+    sageContext.userContext,
+    sageContext.orgContext
   );
   
   const {

@@ -1,10 +1,11 @@
 
 import React, { useState, useEffect } from "react";
 import UserMenu from "./UserMenu";
-import useSageContext from "@/hooks/useSageContext";
+import { useSageContext } from "@/hooks/sage-context";
 
 export default function DashboardHeader() {
-  const { userContext, loading } = useSageContext();
+  const sageContext = useSageContext();
+  const { userContext, loading } = sageContext;
   const [fullName, setFullName] = useState<string | null>(null);
 
   useEffect(() => {

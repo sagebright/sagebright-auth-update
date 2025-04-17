@@ -10,7 +10,7 @@ export function useHydrationTracking(
   userId: string | null,
   contextReadiness: SageContextReadiness,
   hydrationProgress: HydrationState,
-  setHydrationProgress: (state: HydrationState) => void
+  setHydrationProgress: React.Dispatch<React.SetStateAction<HydrationState>>
 ) {
   // Start tracking hydration when user signs in
   useEffect(() => {

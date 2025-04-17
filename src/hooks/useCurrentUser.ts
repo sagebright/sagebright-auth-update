@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/auth/AuthContext';
 import { hasRole, isOrgAdmin, isSuperAdmin, canEdit } from '@/lib/permissions';
-import useSageContext from '@/hooks/useSageContext';
+import { useSageContext } from '@/hooks/sage-context';
 
 /**
  * Hook to access current user data with role and permission helpers
@@ -10,7 +10,8 @@ import useSageContext from '@/hooks/useSageContext';
  */
 export function useCurrentUser() {
   const { userId, loading: authLoading } = useAuth();
-  const { userContext, orgContext, loading: contextLoading } = useSageContext();
+  const sageContext = useSageContext();
+  const { userContext, orgContext, loading: contextLoading } = sageContext;
   
   // Combined loading state from both auth and context
   const loading = authLoading || contextLoading;
