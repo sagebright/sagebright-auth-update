@@ -4,10 +4,12 @@ export * from './api/apiClient';
 export * from './api/usersApi';
 export * from './api/departmentsApi';
 export * from './api/roadmapsApi';
+export * from './api/sageContextApi';
 
 import { apiRequest } from './api/apiClient';
 import { fetchUserContext } from './fetchUserContext';
 import { fetchOrgContext } from './fetchOrgContext';
+import { buildSageContext } from './context/buildSageContext';
 
 /**
  * @deprecated Do not use this function directly. Context should be hydrated through buildSageContext.

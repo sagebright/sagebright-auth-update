@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/auth/AuthContext';
-import { buildSageContext } from '@/lib/buildSageContext';
+import { buildSageContext } from '@/lib/context/buildSageContext';
 
 /**
  * Hook to access the unified Sage context (user + org) for the application

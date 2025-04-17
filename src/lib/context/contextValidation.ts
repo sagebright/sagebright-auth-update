@@ -2,8 +2,11 @@
 /**
  * Validation utilities for context data
  */
-import { validateContextIdentifiers } from './validation/contextSchema';
+import { validateContextIdentifiers } from '../validation/contextSchema';
 
+/**
+ * Validates the context identifiers
+ */
 export function validateContextIds(userId: string, orgId: string) {
   try {
     return validateContextIdentifiers(userId, orgId);
@@ -16,6 +19,9 @@ export function validateContextIds(userId: string, orgId: string) {
   }
 }
 
+/**
+ * Validates that an organization context has the minimum required fields
+ */
 export function validateOrgContext(orgContext: any) {
   if (!orgContext) {
     return false;
@@ -34,6 +40,9 @@ export function validateOrgContext(orgContext: any) {
   return true;
 }
 
+/**
+ * Validates that a user context has the minimum required fields
+ */
 export function validateUserContext(userContext: any) {
   if (!userContext) {
     return false;
