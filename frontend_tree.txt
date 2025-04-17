@@ -1,6 +1,12 @@
 .
 ├── CONTRIBUTING.md
+├── DECOUPLING-SUMMARY.md
 ├── README.md
+├── TEST-PLAN.md
+├── backend
+│   └── routes
+│       └── api
+│           └── auth.js
 ├── bun.lockb
 ├── components.json
 ├── docs
@@ -82,15 +88,19 @@
 │   │   │   ├── ChatHeader.tsx
 │   │   │   ├── ChatInputBar.tsx
 │   │   │   ├── ChatMessage.tsx
+│   │   │   ├── DebugHeader.tsx
 │   │   │   ├── HydrationUI.tsx
 │   │   │   ├── LoadingSage.tsx
 │   │   │   ├── LoadingUI.tsx
 │   │   │   ├── OrgRecoveryUI.tsx
 │   │   │   ├── ReflectionForm.tsx
 │   │   │   ├── ResourcesSidebar.tsx
+│   │   │   ├── SageContentLayout.tsx
 │   │   │   ├── SuggestedQuestions.tsx
 │   │   │   ├── TypingIndicator.tsx
-│   │   │   └── WelcomeMessage.tsx
+│   │   │   ├── WelcomeMessage.tsx
+│   │   │   └── loading
+│   │   │       └── SageLoadingStates.tsx
 │   │   ├── auth
 │   │   │   ├── AuthDivider.tsx
 │   │   │   ├── AuthLayout.tsx
@@ -127,6 +137,7 @@
 │   │   │   ├── WelcomeCard.tsx
 │   │   │   └── YourProgressSection.tsx
 │   │   ├── debug
+│   │   │   ├── AuthDebug.tsx
 │   │   │   └── DebugPanel.tsx
 │   │   ├── design-system
 │   │   │   ├── AccessibilityGuidelines.tsx
@@ -249,7 +260,6 @@
 │   │   │   ├── AuthContext.tsx
 │   │   │   ├── authActions.ts
 │   │   │   ├── hooks
-│   │   │   │   ├── useInitialSession.ts
 │   │   │   │   ├── useOrgContext.ts
 │   │   │   │   ├── useSessionInit.ts
 │   │   │   │   ├── useSessionRefresh.ts
@@ -269,21 +279,44 @@
 │   │   │   ├── use-question-selection.ts
 │   │   │   ├── use-reflection-handler.ts
 │   │   │   ├── use-route-protection.ts
+│   │   │   ├── use-sage-container-state.ts
 │   │   │   ├── use-sage-messenger.ts
 │   │   │   ├── use-sage-ui-state.ts
 │   │   │   └── use-session-stability.ts
 │   │   ├── sage-context
+│   │   │   ├── hydration
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── types.ts
+│   │   │   │   ├── use-context-hydration.ts
+│   │   │   │   └── use-hydration-tracking.ts
 │   │   │   ├── index.ts
-│   │   │   ├── readiness-checks.ts
+│   │   │   ├── readiness-checks
+│   │   │   │   ├── auth-checks.ts
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── org-checks.ts
+│   │   │   │   ├── readiness-utils.ts
+│   │   │   │   ├── user-checks.ts
+│   │   │   │   └── voice-checks.ts
+│   │   │   ├── readiness-evaluators
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── readiness-calculator.ts
+│   │   │   │   ├── types.ts
+│   │   │   │   ├── use-readiness-checks.ts
+│   │   │   │   └── use-readiness-evaluator.ts
 │   │   │   ├── readiness-logger.ts
 │   │   │   ├── types.ts
 │   │   │   ├── use-context-hydration.ts
-│   │   │   └── use-sage-context-readiness.ts
+│   │   │   ├── use-readiness-evaluator.ts
+│   │   │   ├── use-readiness-state.ts
+│   │   │   ├── use-sage-context-readiness.ts
+│   │   │   └── use-sage-context.ts
+│   │   ├── sage-context.ts
 │   │   ├── use-ask-sage-page.tsx
 │   │   ├── use-chat.tsx
 │   │   ├── use-debug-panel.ts
 │   │   ├── use-feedback.ts
 │   │   ├── use-form-submit.ts
+│   │   ├── use-legacy-context.ts
 │   │   ├── use-mobile.tsx
 │   │   ├── use-org-recovery.tsx
 │   │   ├── use-reflection-handler.ts
@@ -301,6 +334,7 @@
 │   │   ├── useRedirectLogic.ts
 │   │   ├── useRequireAuth.ts
 │   │   ├── useRouteProtection.ts
+│   │   ├── useSageContext.ts
 │   │   ├── useTranslation.ts
 │   │   └── voice-param
 │   │       ├── constants.ts
@@ -318,20 +352,37 @@
 │   ├── index.css
 │   ├── integrations
 │   │   └── supabase
-│   │       ├── client.ts.bak
 │   │       └── types.ts
 │   ├── lib
 │   │   ├── README.md
 │   │   ├── api
 │   │   │   ├── apiClient.ts
+│   │   │   ├── authApi.ts
+│   │   │   ├── coreApiClient.ts
 │   │   │   ├── departmentsApi.ts
+│   │   │   ├── deprecatedApis.ts
+│   │   │   ├── mockDataProvider.ts
 │   │   │   ├── roadmapsApi.ts
+│   │   │   ├── routeValidation.ts
+│   │   │   ├── sageContextApi.ts
+│   │   │   ├── types.ts
 │   │   │   └── usersApi.ts
 │   │   ├── api.ts
 │   │   ├── backendApi.ts
-│   │   ├── buildSageContext.ts
-│   │   ├── contextErrorHandling.ts
-│   │   ├── contextValidation.ts
+│   │   ├── backendAuth.ts
+│   │   ├── context
+│   │   │   ├── buildSageContext.ts
+│   │   │   ├── builders
+│   │   │   │   └── contextBuilder.ts
+│   │   │   ├── contextLogger.ts
+│   │   │   ├── contextValidation.ts
+│   │   │   ├── fetchers
+│   │   │   │   ├── apiFetcher.ts
+│   │   │   │   ├── orgContext.ts
+│   │   │   │   ├── orgContextFetcher.ts
+│   │   │   │   └── userContextFetcher.ts
+│   │   │   ├── index.ts
+│   │   │   └── sageContextFallbacks.ts
 │   │   ├── fetchOrgContext.ts
 │   │   ├── fetchUserContext.ts
 │   │   ├── handleApiError.ts
@@ -404,7 +455,6 @@
 │   │   ├── messageUtils.ts
 │   │   └── sageErrorUtils.ts
 │   └── vite-env.d.ts
-├── structure.txt
 ├── supabase
 │   ├── config.toml
 │   ├── functions
@@ -418,11 +468,10 @@
 │   │       └── index.ts
 │   └── migrations
 │       └── 20250409_fix_user_triggers.sql
-├── supabase-readme
 ├── tailwind.config.ts
 ├── tsconfig.app.json
 ├── tsconfig.json
 ├── tsconfig.node.json
 └── vite.config.ts
 
-62 directories, 364 files
+72 directories, 403 files
