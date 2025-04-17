@@ -1,4 +1,3 @@
-
 // src/pages/dev-debug.tsx
 
 import React, { useEffect, useState } from 'react';
@@ -6,7 +5,7 @@ import { apiRequest } from '@/lib/api/apiClient';
 import { useAuth } from '@/contexts/auth/AuthContext';
 import { fetchUserContext } from '@/lib/fetchUserContext';
 import { fetchOrgContext } from '@/lib/fetchOrgContext';
-import { buildSageContext } from '@/lib/buildSageContext';
+import { buildSageContext } from '@/lib/context/buildSageContext';
 
 export default function DevDebugPage() {
   const { userId, currentUser, orgId } = useAuth();
