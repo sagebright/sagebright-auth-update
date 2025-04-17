@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/auth/AuthContext';
 import { hydrateSageContext } from '@/lib/api/sageContextApi';
+import { SageContext } from '@/types/chat';
 
 /**
  * Hook to access the unified Sage context (user + org) for the application
@@ -9,14 +10,15 @@ import { hydrateSageContext } from '@/lib/api/sageContextApi';
  */
 export function useSageContext() {
   const { userId, orgId, orgSlug, user: currentUserData, loading: authLoading } = useAuth();
-  const [context, setContext] = useState<any>(null);
+  const [context, setContext] = useState<SageContext | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [hydrationAttempts, setHydrationAttempts] = useState(0);
   const [lastHydrationTime, setLastHydrationTime] = useState<number | null>(null);
-
-  // Add timeout handling
   const [timedOut, setTimedOut] = useState(false);
+  
+  // Timeout for context hydration (5 seconds)
+  const HYDRATION_TIMEOUT = 5000;
   
   useEffect(() => {
     // If auth is still loading or no userId or orgId, don't fetch context yet
@@ -25,43 +27,34 @@ export function useSageContext() {
     }
 
     let isMounted = true;
-    let timeoutId: number | null = null;
     
     const fetchContext = async () => {
       try {
         setLoading(true);
         setHydrationAttempts(prev => prev + 1);
         
-        // Set a timeout for context fetching (5 seconds)
-        timeoutId = window.setTimeout(() => {
-          if (isMounted) {
-            console.warn('⚠️ Context hydration timed out after 5 seconds');
-            setTimedOut(true);
-            setLoading(false);
-          }
-        }, 5000);
-        
         console.log('🌟 Fetching unified context via hydrateSageContext');
         
         const contextData = await hydrateSageContext(
           userId,
           orgId,
-          orgSlug
+          orgSlug,
+          HYDRATION_TIMEOUT
         );
-        
-        // Clear the timeout since we got a response
-        if (timeoutId !== null) {
-          window.clearTimeout(timeoutId);
-          timeoutId = null;
-        }
         
         if (isMounted) {
           if (contextData) {
-            console.log('✅ Context successfully fetched', {
-              hasUser: !!contextData.user,
-              hasOrg: !!contextData.org,
-              timestamp: new Date().toISOString()
-            });
+            // Check if this was a timeout fallback
+            if (contextData._meta?.timeout) {
+              setTimedOut(true);
+              console.warn('⚠️ Context hydration timed out, using fallback data');
+            } else {
+              console.log('✅ Context successfully fetched', {
+                hasUser: !!contextData.user,
+                hasOrg: !!contextData.org,
+                timestamp: new Date().toISOString()
+              });
+            }
             
             setContext(contextData);
             setError(null);
@@ -76,12 +69,6 @@ export function useSageContext() {
       } catch (err) {
         console.error('❌ Error fetching context:', err);
         
-        // Clear the timeout if there's an error
-        if (timeoutId !== null) {
-          window.clearTimeout(timeoutId);
-          timeoutId = null;
-        }
-        
         if (isMounted) {
           setError(err instanceof Error ? err : new Error('Unknown error fetching context'));
           setLoading(false);
@@ -93,11 +80,8 @@ export function useSageContext() {
 
     return () => {
       isMounted = false;
-      if (timeoutId !== null) {
-        window.clearTimeout(timeoutId);
-      }
     };
-  }, [userId, orgId, orgSlug, authLoading]);
+  }, [userId, orgId, orgSlug, authLoading, HYDRATION_TIMEOUT]);
 
   return {
     context,
@@ -106,7 +90,7 @@ export function useSageContext() {
     timedOut,
     userContext: context?.user || null,
     orgContext: context?.org || null,
-    voiceConfig: context?.voiceConfig || null,
+    voiceConfig: context?._meta?.voiceConfig || null,
     isReady: !loading && !error && !!context,
     hydrationAttempts,
     lastHydrationTime,

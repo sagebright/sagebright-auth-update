@@ -1,6 +1,7 @@
 
 import { apiRequest } from './coreApiClient';
 import { validateSageContext } from '../validation/contextSchema';
+import { SageContext } from '@/types/chat';
 
 /**
  * Standardized endpoint for fetching the complete Sage context
@@ -61,8 +62,13 @@ export async function fetchSageOrgContext(orgId: string, options = {}) {
  * Function to hydrate all context data in a single request
  * This should be the primary way to get context going forward
  */
-export async function hydrateSageContext(userId: string, orgId: string, orgSlug: string | null = null) {
+export async function hydrateSageContext(userId: string, orgId: string, orgSlug: string | null = null, timeout: number = 5000): Promise<SageContext | null> {
   console.log('🔄 Hydrating Sage context with unified endpoint');
+  
+  // Create a promise that rejects after the timeout
+  const timeoutPromise = new Promise<null>((_, reject) => {
+    setTimeout(() => reject(new Error(`Context hydration timed out after ${timeout}ms`)), timeout);
+  });
   
   try {
     if (!userId || !orgId) {
@@ -70,7 +76,11 @@ export async function hydrateSageContext(userId: string, orgId: string, orgSlug:
       return null;
     }
     
-    const context = await fetchSageContext(userId, orgId, orgSlug);
+    // Race between the actual fetch and the timeout
+    const context = await Promise.race([
+      fetchSageContext(userId, orgId, orgSlug),
+      timeoutPromise
+    ]);
     
     if (!context) {
       console.error('❌ Failed to hydrate Sage context');
@@ -81,10 +91,36 @@ export async function hydrateSageContext(userId: string, orgId: string, orgSlug:
     return {
       user: context.user,
       org: context.org,
-      meta: context.meta || { source: 'api', timestamp: new Date().toISOString() }
-    };
+      userId,
+      orgId,
+      messages: [],
+      _meta: context._meta || { 
+        source: 'api', 
+        hydratedAt: new Date().toISOString(),
+        timeout: false
+      }
+    } as SageContext;
   } catch (error) {
     console.error('❌ Error hydrating Sage context:', error);
+    
+    // If it was a timeout error, return a minimal context with a timeout flag
+    if (error instanceof Error && error.message.includes('timed out')) {
+      console.warn('⏱️ Context hydration timed out, using fallback');
+      return {
+        user: null,
+        org: null,
+        userId,
+        orgId,
+        messages: [],
+        _meta: {
+          source: 'timeout-fallback',
+          hydratedAt: new Date().toISOString(),
+          timeout: true,
+          error: 'Hydration timed out'
+        }
+      } as SageContext;
+    }
+    
     return null;
   }
 }
