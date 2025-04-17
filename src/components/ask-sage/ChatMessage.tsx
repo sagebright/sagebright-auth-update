@@ -1,10 +1,11 @@
+
 import React from 'react';
 import { ThumbsUp, ThumbsDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Message as BaseMessage } from '@/types/chat';
 
-export interface Message extends Omit<BaseMessage, 'sender'> {
+export interface Message extends Omit<BaseMessage, 'sender' | 'timestamp'> {
   sender: 'user' | 'sage' | 'system';
   timestamp: Date;
   liked?: boolean;

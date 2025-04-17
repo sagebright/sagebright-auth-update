@@ -10,13 +10,16 @@ export interface ApiErrorOptions {
   context?: string;
   showToast?: boolean;
   fallbackMessage?: string;
+  silent?: boolean; // Add the silent property
 }
 
 export function handleApiError(error: unknown, options: ApiErrorOptions = {}): ApiError {
-  const { context = 'general', showToast = false } = options;
+  const { context = 'general', showToast = false, silent = false } = options;
   
-  // Log the error with context
-  console.error(`API Error [${context}]:`, error);
+  // Log the error with context, unless silent is true
+  if (!silent) {
+    console.error(`API Error [${context}]:`, error);
+  }
   
   // Create a standardized error object
   let apiError: ApiError;
@@ -38,8 +41,8 @@ export function handleApiError(error: unknown, options: ApiErrorOptions = {}): A
     };
   }
   
-  // Show toast if requested
-  if (showToast) {
+  // Show toast if requested and not silent
+  if (showToast && !silent) {
     console.log('Would show toast with error:', apiError.message);
     // In a real implementation, this would display a toast
   }

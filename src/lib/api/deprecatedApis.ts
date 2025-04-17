@@ -18,3 +18,8 @@ export const deprecatedFunction = (name: string) => {
 export const fetchSupabaseUser = deprecatedFunction('fetchSupabaseUser');
 export const getSupabaseUserProfile = deprecatedFunction('getSupabaseUserProfile');
 export const getSupabaseClient = deprecatedFunction('getSupabaseClient');
+
+// Add the missing exports from apiClient.ts
+export const fetchContextData = deprecatedFunction('fetchContextData');
+export const getUserContext = deprecatedFunction('getUserContext');
+export const getOrgContext = deprecatedFunction('getOrgContext');
