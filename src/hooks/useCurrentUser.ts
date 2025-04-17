@@ -1,7 +1,6 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/auth/AuthContext';
-import { getUsers } from '@/lib/backendApi';
 import { hasRole, isOrgAdmin, isSuperAdmin, canEdit } from '@/lib/permissions';
 
 /**
@@ -19,26 +18,23 @@ export function useCurrentUser() {
       return;
     }
 
-    // Fetch extended user data from backend
-    const fetchUserData = async () => {
+    // We'll use the user data from the auth context instead of making a separate API call
+    // This aligns with the architecture where context hydration is done by the backend
+    const getUserDataFromAuth = async () => {
       try {
-        const users = await getUsers();
-        const currentUser = users?.find(u => u.id === userId) || null;
-        setUserData(currentUser);
+        // Just use the user data directly from the auth context
+        setUserData(user || null);
       } catch (error) {
-        console.error('Error fetching current user data:', error);
-        // Fall back to basic user data from auth context
-        // Don't show an error to the user - we'll just use the basic auth data
+        console.error('Error with user data:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchUserData();
-  }, [userId, authLoading]);
+    getUserDataFromAuth();
+  }, [userId, authLoading, user]);
 
-  // Combined user data from auth and backend
-  // Even if userData fetch fails, we still have the basic user info from auth
+  // Combined user data from auth
   const currentUser = userData ? { ...user, ...userData } : user;
   const isAuthenticated = !!currentUser && !authLoading && !loading;
   

@@ -1,8 +1,8 @@
+
 // src/pages/dev-debug.tsx
 
 import React, { useEffect, useState } from 'react';
-import { getUsers } from '@/lib/backendApi';
-import { getDepartments } from '@/lib/backendApi';
+import { apiRequest } from '@/lib/api/apiClient';
 import { useAuth } from '@/contexts/auth/AuthContext';
 
 export default function DevDebugPage() {
@@ -24,30 +24,31 @@ export default function DevDebugPage() {
   
     const fetchEverything = async () => {
       try {
-        const usersData = await getUsers();
-        setUsers(usersData);
-  
-        const orgRes = await fetch('http://localhost:5050/api/orgs', {
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json',
-          }
+        // Use API request with mocks for development
+        const usersResponse = await apiRequest('/users', {}, {
+          context: 'dev debug users',
+          useMockInDev: true
         });
-        const orgJson = await orgRes.json();
-        setOrgs(orgJson.data || []);
+        setUsers(usersResponse.data || []);
   
-        const departmentsData = await getDepartments();
-        setDepartments(departmentsData);
+        // Local API calls with mock data in development
+        const orgResponse = await apiRequest('/orgs', {}, {
+          context: 'dev debug orgs',
+          useMockInDev: true
+        });
+        setOrgs(orgResponse.data || []);
+  
+        const departmentsResponse = await apiRequest('/departments', {}, {
+          context: 'dev debug departments',
+          useMockInDev: true
+        });
+        setDepartments(departmentsResponse.data || []);
 
-        const roadmapRes = await fetch('http://localhost:5050/api/roadmaps', {
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json',
-          }
+        const roadmapsResponse = await apiRequest('/roadmaps', {}, {
+          context: 'dev debug roadmaps',
+          useMockInDev: true
         });
-        const roadmapJson = await roadmapRes.json();
-        setRoadmaps(roadmapJson.data || []);
-        
+        setRoadmaps(roadmapsResponse.data || []);
         
       } catch (err) {
         console.error('Failed to load debug data', err);
@@ -57,11 +58,8 @@ export default function DevDebugPage() {
     };
   
     fetchEverything();
-  }, [accessToken]); // ✅ This makes it re-run when the token is set
+  }, [accessToken]); 
   
-  
-  
-
   return (
     <div className="p-8 bg-gray-50 min-h-screen space-y-8">
       <h1 className="text-3xl font-bold text-charcoal">🔍 Dev Debug</h1>

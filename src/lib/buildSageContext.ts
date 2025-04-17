@@ -8,6 +8,7 @@ import { fetchOrgContext } from '@/lib/fetchOrgContext';
 
 /**
  * Constructs the full context for Sage based on the user and org.
+ * This is the central function responsible for context hydration.
  *
  * @param userId - ID of the current user
  * @param orgId - ID of the user's organization 
@@ -30,170 +31,177 @@ export async function buildSageContext(
     timestamp: new Date().toISOString()
   });
 
-  // Development mode fallback - create minimally viable context
-  if (process.env.NODE_ENV === 'development') {
-    console.log("[Sage Init] 🧪 Using development approach for context");
+  try {
+    // Use a consistent approach for all environments for more predictable behavior
+    console.log("[Sage Init] Starting context hydration process");
     
-    // If any critical values are missing, use fallbacks for development
-    const safeUserId = userId || 'dev-user-id';
-    const safeOrgId = orgId || 'dev-org-id';
-    const safeOrgSlug = orgSlug || 'default-org';
+    // Use these variables to track where the context came from for debugging
+    let userContextSource = 'none';
+    let orgContextSource = 'none';
     
+    // Ensure we have the basic requirements
+    if (!userId || !orgId) {
+      throw new Error("Missing essential IDs for context building");
+    }
+    
+    validateContextIds(userId, orgId);
+    
+    // Initialize context containers
+    let orgContext = null;
+    let userContext = null;
+    
+    // Multi-layered approach: try all available methods to get context data
+    // First, try to get user context
     try {
-      // Try to fetch real context data with multiple strategies
-      let orgContext = null;
-      let userContext = null;
-      
-      try {
-        console.log("[Sage Init] 🔄 Attempting API-based context fetch");
-        
-        // First try our enhanced backend API
-        if (safeUserId) {
-          userContext = await getUserContext(safeUserId);
-          console.log("[Sage Init] 📊 User context fetch result:", { 
-            success: !!userContext, 
-            source: 'backendApi'
-          });
-        }
-        
-        if (safeOrgId) {
-          orgContext = await getOrgContext(safeOrgId);
-          console.log("[Sage Init] 📊 Org context fetch result:", { 
-            success: !!orgContext, 
-            source: 'backendApi'
-          });
-        }
-        
-        // If backend API fails, fall back to direct Supabase queries
-        if (!userContext && safeUserId) {
-          console.log("[Sage Init] 🔄 Falling back to direct Supabase for user context");
-          userContext = await fetchUserContext(safeUserId);
-        }
-        
-        if (!orgContext && safeOrgId) {
-          console.log("[Sage Init] 🔄 Falling back to direct Supabase for org context");
-          orgContext = await fetchOrgContext(safeOrgId);
-        }
-      } catch (fetchError) {
-        console.warn("[Sage Init] ⚠️ Error fetching context data:", fetchError);
-        // Continue with fallbacks
+      userContext = await fetchUserContext(userId);
+      if (userContext) {
+        userContextSource = 'direct-supabase';
+        console.log("[Sage Init] ✅ User context found from direct Supabase");
+      }
+    } catch (error) {
+      console.log("[Sage Init] ⚠️ Error in direct Supabase user context fetch:", error);
+    }
+    
+    // Next, try to get org context
+    try {
+      orgContext = await fetchOrgContext(orgId);
+      if (orgContext) {
+        orgContextSource = 'direct-supabase';
+        console.log("[Sage Init] ✅ Org context found from direct Supabase");
+      }
+    } catch (error) {
+      console.log("[Sage Init] ⚠️ Error in direct Supabase org context fetch:", error);
+    }
+    
+    // If still missing contexts, create fallbacks in development
+    if (process.env.NODE_ENV === 'development') {
+      // User context fallback for development
+      if (!userContext) {
+        console.log("[Sage Init] 🏗️ Using fallback user context for development");
+        userContext = {
+          id: userId,
+          user_id: userId,
+          name: currentUserData?.full_name || "Development User",
+          email: currentUserData?.email || "dev@example.com",
+          role: currentUserData?.role || "user",
+          source: 'dev-fallback'
+        };
+        userContextSource = 'fallback';
       }
       
-      // Use fallbacks if fetch failed
+      // Org context fallback for development
       if (!orgContext) {
-        console.log("[Sage Init] 🏗️ Using fallback org context");
+        console.log("[Sage Init] 🏗️ Using fallback org context for development");
         orgContext = {
-          id: safeOrgId,
-          orgId: safeOrgId,
+          id: orgId,
+          orgId: orgId,
           name: "Development Organization",
           mission: "This is a development environment",
           values: ["Learning", "Testing", "Developing"],
           tools_and_systems: "Development toolkit",
-          executives: [{ name: "Dev Lead", role: "CTO" }]
+          executives: [{ name: "Dev Lead", role: "CTO" }],
+          source: 'dev-fallback'
         };
+        orgContextSource = 'fallback';
       }
-      
-      if (!userContext) {
-        console.log("[Sage Init] 🏗️ Using fallback user context");
-        userContext = {
-          id: safeUserId,
-          user_id: safeUserId,
-          name: currentUserData?.full_name || "Development User",
-          email: currentUserData?.email || "dev@example.com",
-          role: currentUserData?.role || "user"
-        };
+    }
+    
+    // Final validation check
+    if (!orgContext || !userContext) {
+      if (process.env.NODE_ENV === 'production') {
+        // In production, we need real context data
+        console.error("[Sage Init] ❌ Could not retrieve required context data.");
+        throw new Error("Required context data is missing");
+      } else {
+        console.warn("[Sage Init] ⚠️ Using minimal fallbacks for missing context data");
+        // Final fallbacks if somehow everything failed in development
+        if (!userContext) {
+          userContext = { 
+            id: userId, 
+            user_id: userId, 
+            name: "Emergency Fallback User" 
+          };
+          userContextSource = 'emergency-fallback';
+        }
+        if (!orgContext) {
+          orgContext = { 
+            id: orgId, 
+            orgId: orgId, 
+            name: "Emergency Fallback Organization" 
+          };
+          orgContextSource = 'emergency-fallback';
+        }
       }
-      
-      console.log("[Sage Init] ✅ Created context successfully");
-      
-      return {
-        messages: [],
-        org: orgContext,
-        user: userContext,
-        userId: safeUserId,
-        orgId: safeOrgId,
-      };
-    } catch (error) {
-      console.error("[Sage Init] ❌ Error creating development context:", error);
-      
-      // Return minimal fallback context to prevent crashes
-      return {
-        messages: ["Development context"],
-        org: { name: "Development Organization", id: safeOrgId, orgId: safeOrgId },
-        user: { name: "Development User", id: safeUserId, user_id: safeUserId },
-        userId: safeUserId,
-        orgId: safeOrgId,
-      };
-    }
-  }
-  
-  // Production path - require valid context
-  try {
-    // Validate input parameters
-    if (!orgSlug || !currentUserData) {
-      console.warn("[Sage Init] ⚠️ Missing required context:", {
-        hasOrgSlug: !!orgSlug,
-        hasCurrentUserData: !!currentUserData
-      });
-      return null;
     }
     
-    validateContextIds(userId, orgId);
-
-    // Try enhanced context fetching first (API-based)
-    console.log("[Sage Init] Attempting API-based context fetch for production");
-    
-    let orgContext = await getOrgContext(orgId);
-    let userContext = await getUserContext(userId);
-    
-    // Fall back to direct Supabase if needed
-    if (!orgContext) {
-      console.log("[Sage Init] Falling back to direct Supabase for org context");
-      orgContext = await fetchOrgContext(orgId);
-    }
-    
-    if (!userContext) {
-      console.log("[Sage Init] Falling back to direct Supabase for user context");
-      userContext = await fetchUserContext(userId);
-    }
-
-    console.log("[Sage Init] Context fetch completed:", { 
-      hasOrgContext: !!orgContext, 
-      hasUserContext: !!userContext,
-      orgId,
-      userId
-    });
-
-    // Construct the context object with the fetched data
+    // Construct the context object with the collected data
     const context = {
       messages: [],
       org: orgContext,
       user: userContext,
       userId,
       orgId,
+      _meta: {
+        userContextSource,
+        orgContextSource,
+        hydratedAt: new Date().toISOString()
+      }
     };
 
-    // Validate the constructed context with Zod but don't break execution
+    console.log("[Sage Init] ✅ Context successfully built from sources:", {
+      userContextSource,
+      orgContextSource
+    });
+
+    // Validate the constructed context but don't break execution
     try {
       validateSageContext(context);
       console.log("✅ Context validated successfully");
     } catch (validationError) {
-      console.warn("⚠️ Built context failed Zod validation", validationError);
-      // We'll continue execution despite validation failure to maintain functionality
-      // This helps with debugging without breaking existing flows
+      console.warn("⚠️ Built context failed validation", validationError);
     }
 
     return context;
   } catch (error) {
     logContextBuildingError(error, userId, orgId);
     
-    // Return a consistent structure even in error cases
+    // In development, provide a fallback context to prevent crashes
+    if (process.env.NODE_ENV === 'development') {
+      return {
+        messages: ["Error building context - development fallback activated"],
+        org: {
+          id: orgId || 'dev-fallback-id', 
+          orgId: orgId || 'dev-fallback-id',
+          name: "Error Recovery Organization",
+          source: 'error-fallback'
+        },
+        user: {
+          id: userId || 'dev-fallback-id',
+          user_id: userId || 'dev-fallback-id',
+          name: "Error Recovery User",
+          source: 'error-fallback'
+        },
+        userId: userId || 'dev-fallback-id',
+        orgId: orgId || 'dev-fallback-id',
+        _meta: {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          errorTimestamp: new Date().toISOString(),
+          recoveryType: 'dev-mode-fallback'
+        }
+      };
+    }
+    
+    // In production, return a minimal error structure
     return {
       messages: ["Error building context"],
       org: null,
       user: null,
-      userId,
-      orgId,
+      userId: userId || '',
+      orgId: orgId || '',
+      _meta: {
+        error: 'Context build failure',
+        timestamp: new Date().toISOString()
+      }
     };
   }
 }

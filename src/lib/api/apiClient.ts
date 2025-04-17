@@ -10,6 +10,7 @@ interface ApiRequestOptions {
   fallbackMessage?: string;
   silent?: boolean;
   useMockInDev?: boolean;
+  mockEvenIn404?: boolean; // New option to mock responses even for 404s
 }
 
 /**
@@ -24,7 +25,8 @@ export async function apiRequest(
     context = 'API request', 
     fallbackMessage = 'An error occurred', 
     silent = false,
-    useMockInDev = true
+    useMockInDev = true,
+    mockEvenIn404 = false
   } = config;
   
   try {
@@ -45,7 +47,7 @@ export async function apiRequest(
         };
       }
       
-      if (endpoint === '/user/context') {
+      if (endpoint.includes('/user/context')) {
         return {
           ok: true,
           status: 200,
@@ -63,7 +65,7 @@ export async function apiRequest(
         };
       }
       
-      if (endpoint === '/org/context') {
+      if (endpoint.includes('/org/context')) {
         return {
           ok: true,
           status: 200,
@@ -93,6 +95,40 @@ export async function apiRequest(
         ...options.headers,
       },
     });
+
+    // If we got a 404 and mockEvenIn404 is true, we'll mock the response in development
+    if (!response.ok && response.status === 404 && process.env.NODE_ENV === 'development' && mockEvenIn404) {
+      console.log(`⚠️ 404 for ${endpoint} but mockEvenIn404 is enabled. Returning mock data.`);
+      
+      if (endpoint.includes('/user/context')) {
+        return {
+          ok: true,
+          status: 200,
+          data: {
+            id: 'mock-user-context-404-fallback',
+            user_id: endpoint.includes('userId=') ? endpoint.split('userId=')[1].split('&')[0] : '1',
+            role: 'user',
+            department: 'Engineering (Mock 404)',
+            learning_style: 'Visual',
+            timezone: 'UTC-8',
+          }
+        };
+      }
+      
+      if (endpoint.includes('/org/context')) {
+        return {
+          ok: true,
+          status: 200,
+          data: {
+            id: 'mock-org-context-404-fallback',
+            orgId: endpoint.includes('orgId=') ? endpoint.split('orgId=')[1].split('&')[0] : '1',
+            name: "Development Organization (Mock 404)",
+            mission: "This is a development environment",
+            values: ["Learning", "Testing"]
+          }
+        };
+      }
+    }
 
     if (!response.ok) {
       console.error(`❌ API error ${response.status}: ${response.statusText} for ${endpoint}`);
