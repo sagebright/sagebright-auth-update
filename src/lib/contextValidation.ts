@@ -2,26 +2,18 @@
 /**
  * Validation utilities for context data
  */
+import { validateContextIdentifiers } from './validation/contextSchema';
 
 export function validateContextIds(userId: string, orgId: string) {
-  if (!userId) {
-    throw new Error('Missing required userId for context building');
+  try {
+    return validateContextIdentifiers(userId, orgId);
+  } catch (error) {
+    // Re-throw with more specific error message for the application context
+    if (error instanceof Error) {
+      throw new Error(`Invalid context identifiers: ${error.message}`);
+    }
+    throw error;
   }
-  
-  if (!orgId) {
-    throw new Error('Missing required orgId for context building');
-  }
-  
-  // Basic format validation if needed
-  if (typeof userId !== 'string' || userId.length < 5) {
-    throw new Error('Invalid userId format');
-  }
-  
-  if (typeof orgId !== 'string' || orgId.length < 5) {
-    throw new Error('Invalid orgId format');
-  }
-  
-  return true;
 }
 
 export function validateOrgContext(orgContext: any) {
