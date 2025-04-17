@@ -11,3 +11,11 @@ export * from './use-readiness-state';
 export * from './use-readiness-evaluator';
 export * from './hydration';
 export * from './use-sage-context';
+
+// Export the new sageContextApi as part of the public API
+export { 
+  fetchSageContext, 
+  fetchSageUserContext, 
+  fetchSageOrgContext,
+  hydrateSageContext
+} from '../../lib/api/sageContextApi';

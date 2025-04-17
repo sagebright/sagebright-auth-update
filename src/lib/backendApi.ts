@@ -6,7 +6,6 @@ export * from './api/departmentsApi';
 export * from './api/roadmapsApi';
 
 import { apiRequest } from './api/apiClient';
-import { supabase } from './supabaseClient';
 import { fetchUserContext } from './fetchUserContext';
 import { fetchOrgContext } from './fetchOrgContext';
 
@@ -30,30 +29,14 @@ export async function getUserContext(userId: string) {
     console.error('❌ Direct user context fetch error:', error);
   }
   
-  // Try API as fallback
+  // Try API as fallback - explicitly mark as a potentially invalid route
   const apiResult = await apiRequest(`/user/context?userId=${userId}`, {}, {
     context: 'fetching user context',
     fallbackMessage: 'Unable to load user context. Using local data if available.',
     silent: true,
-    mockEvenIn404: true
+    mockEvenIn404: true,
+    validateRoute: false // Skip route validation as we know this is deprecated
   });
-  
-  // If API fails, use a fallback for development
-  if ((!apiResult.ok || !apiResult.data) && process.env.NODE_ENV === 'development') {
-    console.log('⚠️ API fetch failed for user context, providing development fallback');
-    
-    return {
-      id: 'dev-fallback-user-context',
-      user_id: userId,
-      name: "Development User",
-      role: "user",
-      department: "Development",
-      manager_name: "Dev Manager",
-      learning_style: "Visual",
-      timezone: "UTC-8",
-      source: 'api-fallback'
-    };
-  }
   
   return apiResult?.data || null;
 }
@@ -78,31 +61,29 @@ export async function getOrgContext(orgId: string) {
     console.error('❌ Direct org context fetch error:', error);
   }
   
-  // Try API as fallback
+  // Try API as fallback - explicitly mark as a potentially invalid route
   const apiResult = await apiRequest(`/org/context?orgId=${orgId}`, {}, {
     context: 'fetching org context',
     fallbackMessage: 'Unable to load organization context. Using local data if available.',
     silent: true,
-    mockEvenIn404: true
+    mockEvenIn404: true,
+    validateRoute: false // Skip route validation as we know this is deprecated
   });
   
-  // If API fails, use a fallback for development
-  if ((!apiResult.ok || !apiResult.data) && process.env.NODE_ENV === 'development') {
-    console.log('⚠️ API fetch failed for org context, providing development fallback');
-    
-    return {
-      id: orgId,
-      orgId: orgId,
-      name: "Development Organization",
-      mission: "This is a development environment",
-      values: ["Resilience", "Testing", "Development"],
-      tools_and_systems: "Development toolkit",
-      executives: [{ name: "Dev Lead", role: "CTO" }],
-      source: 'api-fallback'
-    };
-  }
-  
   return apiResult?.data || null;
+}
+
+/**
+ * Creates a new API endpoint to fetch the unified Sage context
+ * This is the preferred method for getting context in one request
+ */
+export async function fetchSageContext(userId: string, orgId: string, orgSlug: string | null = null) {
+  return await apiRequest(`/api/context/sage?userId=${userId}&orgId=${orgId}${orgSlug ? `&orgSlug=${orgSlug}` : ''}`, {}, {
+    context: 'fetching sage context',
+    fallbackMessage: 'Unable to load context for Sage. Using local data if available.',
+    silent: true,
+    useMockInDev: true
+  });
 }
 
 // Export generic data mutation creator
