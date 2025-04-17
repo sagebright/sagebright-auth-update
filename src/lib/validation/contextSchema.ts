@@ -8,6 +8,9 @@ import { SageContext } from '@/types/chat';
 const UserSchema = z.object({
   id: z.string(),
   name: z.string().optional(),
+  email: z.string().email().optional(),
+  role: z.string().optional(),
+  // Additional fields can be added here
 }).nullable();
 
 /**
@@ -16,6 +19,8 @@ const UserSchema = z.object({
 const OrgSchema = z.object({
   id: z.string(),
   name: z.string().optional(),
+  slug: z.string().optional(),
+  // Additional fields can be added here
 }).nullable();
 
 /**
@@ -26,7 +31,14 @@ const SageContextSchema = z.object({
   orgId: z.string(),
   user: UserSchema,
   org: OrgSchema,
-  messages: z.array(z.any()).optional().default([])
+  messages: z.array(z.any()).optional().default([]),
+  _meta: z.object({
+    hydratedAt: z.string().optional(),
+    source: z.string().optional(),
+    userContextSource: z.string().optional(),
+    orgContextSource: z.string().optional(),
+    error: z.string().optional()
+  }).optional()
 });
 
 /**

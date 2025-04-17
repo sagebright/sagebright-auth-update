@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/auth/AuthContext';
-import { buildSageContext } from '@/lib/context/buildSageContext';
+import { hydrateSageContext } from '@/lib/api/sageContextApi';
 
 /**
  * Hook to access the unified Sage context (user + org) for the application
@@ -12,7 +12,12 @@ export function useSageContext() {
   const [context, setContext] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [hydrationAttempts, setHydrationAttempts] = useState(0);
+  const [lastHydrationTime, setLastHydrationTime] = useState<number | null>(null);
 
+  // Add timeout handling
+  const [timedOut, setTimedOut] = useState(false);
+  
   useEffect(() => {
     // If auth is still loading or no userId or orgId, don't fetch context yet
     if (authLoading || !userId || !orgId) {
@@ -20,36 +25,65 @@ export function useSageContext() {
     }
 
     let isMounted = true;
+    let timeoutId: number | null = null;
     
     const fetchContext = async () => {
       try {
         setLoading(true);
-        console.log('🌟 Fetching unified context via buildSageContext');
+        setHydrationAttempts(prev => prev + 1);
         
-        const contextData = await buildSageContext(
+        // Set a timeout for context fetching (5 seconds)
+        timeoutId = window.setTimeout(() => {
+          if (isMounted) {
+            console.warn('⚠️ Context hydration timed out after 5 seconds');
+            setTimedOut(true);
+            setLoading(false);
+          }
+        }, 5000);
+        
+        console.log('🌟 Fetching unified context via hydrateSageContext');
+        
+        const contextData = await hydrateSageContext(
           userId,
           orgId,
-          orgSlug,
-          currentUserData
+          orgSlug
         );
         
+        // Clear the timeout since we got a response
+        if (timeoutId !== null) {
+          window.clearTimeout(timeoutId);
+          timeoutId = null;
+        }
+        
         if (isMounted) {
-          console.log('✅ Context successfully fetched', {
-            hasUser: !!contextData?.user,
-            hasOrg: !!contextData?.org,
-            timestamp: new Date().toISOString()
-          });
+          if (contextData) {
+            console.log('✅ Context successfully fetched', {
+              hasUser: !!contextData.user,
+              hasOrg: !!contextData.org,
+              timestamp: new Date().toISOString()
+            });
+            
+            setContext(contextData);
+            setError(null);
+            setLastHydrationTime(Date.now());
+          } else {
+            console.error('❌ Context hydration returned null');
+            setError(new Error('Context hydration failed'));
+          }
           
-          setContext(contextData);
-          setError(null);
+          setLoading(false);
         }
       } catch (err) {
         console.error('❌ Error fetching context:', err);
+        
+        // Clear the timeout if there's an error
+        if (timeoutId !== null) {
+          window.clearTimeout(timeoutId);
+          timeoutId = null;
+        }
+        
         if (isMounted) {
           setError(err instanceof Error ? err : new Error('Unknown error fetching context'));
-        }
-      } finally {
-        if (isMounted) {
           setLoading(false);
         }
       }
@@ -59,17 +93,27 @@ export function useSageContext() {
 
     return () => {
       isMounted = false;
+      if (timeoutId !== null) {
+        window.clearTimeout(timeoutId);
+      }
     };
-  }, [userId, orgId, orgSlug, currentUserData, authLoading]);
+  }, [userId, orgId, orgSlug, authLoading]);
 
   return {
     context,
     loading,
     error,
+    timedOut,
     userContext: context?.user || null,
     orgContext: context?.org || null,
     voiceConfig: context?.voiceConfig || null,
-    isReady: !loading && !error && !!context
+    isReady: !loading && !error && !!context,
+    hydrationAttempts,
+    lastHydrationTime,
+    // Provide a fallback message when timed out
+    fallbackMessage: timedOut ? 
+      "I'm sorry, but we're having trouble loading your information. You can continue, but some personalized features might be limited." : 
+      null
   };
 }
 

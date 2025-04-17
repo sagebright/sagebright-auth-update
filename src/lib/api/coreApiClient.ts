@@ -1,131 +1,106 @@
 
 /**
- * Core API client functionality
+ * Core API client for making requests with improved validation and error handling
  */
-import { toast } from '@/components/ui/use-toast';
 import { ApiRequestOptions, ApiResponse } from './types';
 import { isValidApiRoute } from './routeValidation';
-import { getMockResponseForEndpoint } from './mockDataProvider';
 
 /**
- * Makes an API request with error handling, route validation and toast notifications
+ * Makes a request to the API with enhanced error handling and validation
  */
 export async function apiRequest<T = any>(
   endpoint: string, 
   options: RequestInit = {}, 
-  config: ApiRequestOptions = {}
+  requestOptions: ApiRequestOptions = {}
 ): Promise<ApiResponse<T>> {
-  const { 
-    context = 'API request', 
-    fallbackMessage = 'An error occurred', 
+  const {
+    context = 'API request',
+    fallbackMessage = 'An error occurred. Please try again.',
     silent = false,
-    useMockInDev = true,
+    useMockInDev = false,
     mockEvenIn404 = false,
     validateRoute = true
-  } = config;
-  
+  } = requestOptions;
+
   try {
-    console.log(`🔄 Making API request to ${endpoint}`);
-    
-    // Route validation to prevent calls to non-existent endpoints
-    if (validateRoute && process.env.NODE_ENV !== 'test') {
-      if (!isValidApiRoute(endpoint)) {
-        console.warn(`⚠️ WARNING: Request to potentially invalid API route: ${endpoint}`);
-        
-        // In development, proceed with mocking instead of failing
-        if (process.env.NODE_ENV === 'development') {
-          console.log(`🧪 Using mock data for potentially invalid route: ${endpoint}`);
-          return getMockResponseForEndpoint(endpoint);
-        }
+    // Optional route validation to catch invalid API paths early
+    if (validateRoute && !isValidApiRoute(endpoint)) {
+      console.warn(`⚠️ Potentially invalid API route: ${endpoint}`);
+      
+      // In production, this should be a hard error unless explicitly bypassed
+      if (process.env.NODE_ENV === 'production' && !requestOptions.validateRoute === false) {
+        throw new Error(`Invalid API route: ${endpoint}`);
       }
     }
-    
-    // Check if we're in development mode and need to use mock data
+
+    // Use mock data in development if configured
     if (process.env.NODE_ENV === 'development' && useMockInDev) {
-      return getMockResponseForEndpoint(endpoint);
+      console.log(`🧪 Using mock data for endpoint: ${endpoint}`);
+      
+      const { getMockResponseForEndpoint } = await import('./mockDataProvider');
+      const mockResponse = getMockResponseForEndpoint(endpoint);
+      
+      return mockResponse as ApiResponse<T>;
     }
-    
-    // Make the actual API request for non-mocked endpoints
-    const baseUrl = import.meta.env.VITE_API_URL || '';
-    const url = `${baseUrl}${endpoint}`;
-    
-    console.log(`📤 Sending request to: ${url}`);
-    
-    const response = await fetch(url, {
-      ...options,
+
+    // Make the actual API request
+    console.log(`🔄 API request: ${endpoint}`);
+    const response = await fetch(endpoint, {
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-        ...options.headers,
+        ...options.headers
       },
+      ...options
     });
 
-    // Check content type to handle non-JSON responses
-    const contentType = response.headers.get('content-type');
-    
-    // If we got a 404 and mockEvenIn404 is true, we'll mock the response in development
+    // Handle 404s with mock data if configured
     if (!response.ok && response.status === 404 && process.env.NODE_ENV === 'development' && mockEvenIn404) {
-      console.log(`⚠️ 404 for ${endpoint} but mockEvenIn404 is enabled. Returning mock data.`);
-      return getMockResponseForEndpoint(endpoint);
+      console.warn(`⚠️ 404 for ${endpoint}, using mock data`);
+      const { getMockResponseForEndpoint } = await import('./mockDataProvider');
+      const mockResponse = getMockResponseForEndpoint(endpoint);
+      return mockResponse as ApiResponse<T>;
     }
 
-    // Check if response is OK and handle non-JSON responses
+    // Process the response
     if (!response.ok) {
-      console.error(`❌ API error ${response.status}: ${response.statusText} for ${endpoint}`);
+      console.error(`❌ API error (${context}): ${response.status} ${response.statusText}`);
       
-      // Check if we got HTML instead of JSON (typical for server errors)
-      if (contentType && contentType.includes('text/html')) {
-        console.error('Received HTML error page instead of JSON response');
-        throw new Error(`Server error: ${response.status} ${response.statusText}`);
+      let errorMessage = fallbackMessage;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.message || errorData.error || fallbackMessage;
+      } catch (e) {
+        // If we can't parse JSON, just use the fallback message
       }
-      
-      throw new Error(`${response.status}: ${response.statusText}`);
-    }
 
-    // Handle non-JSON responses gracefully
-    if (contentType && !contentType.includes('application/json')) {
-      console.warn(`⚠️ Non-JSON response received: ${contentType}`);
-      
-      const textResponse = await response.text();
-      console.log('Text response preview:', textResponse.substring(0, 100));
-      
-      return { 
-        ok: true, 
-        status: response.status, 
-        data: { 
-          message: 'Non-JSON response',
-          contentType,
-          textPreview: textResponse.substring(0, 100)
-        } as unknown as T
+      return {
+        ok: false,
+        status: response.status,
+        error: errorMessage,
+        errorDetails: { status: response.status, statusText: response.statusText }
       };
     }
 
+    // Parse the successful response
     const data = await response.json();
-    console.log(`✅ API request to ${endpoint} successful:`, { status: response.status });
-    return { ok: true, status: response.status, data };
-    
+    return { 
+      ok: true, 
+      status: response.status,
+      data 
+    };
   } catch (error) {
-    console.error(`❌ Error in ${context}:`, error);
-    
-    // In development, provide more detailed fallback for context-related endpoints
-    if (process.env.NODE_ENV === 'development' && useMockInDev) {
-      if (endpoint.includes('/context')) {
-        console.log('🧪 Using fallback mock data after API error');
-        return getMockResponseForEndpoint(endpoint);
-      }
-    }
+    // Handle unexpected errors
+    console.error(`❌ Exception in ${context}:`, error);
     
     if (!silent) {
-      toast({
-        variant: 'destructive',
-        title: 'API Error',
-        description: fallbackMessage,
-      });
+      // Here we would typically show a toast notification
+      // but we'll leave that to the caller
     }
-    
+
     return { 
       ok: false, 
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: error instanceof Error ? error.message : fallbackMessage,
       errorDetails: error
     };
   }

@@ -42,6 +42,25 @@ export function handleMissingUserContext(setMessages: React.Dispatch<React.SetSt
 }
 
 /**
+ * Handles context timeout scenario
+ */
+export function handleContextTimeout(setMessages: React.Dispatch<React.SetStateAction<Message[]>>, setIsLoading: (isLoading: boolean) => void) {
+  setIsLoading(false);
+  
+  toast({
+    variant: "warning",
+    title: "Limited Personalization",
+    description: "Some personalized features may be unavailable. You can continue with basic functionality."
+  });
+  
+  const timeoutMessage = createSageErrorMessage(
+    "I'm ready to help, though I may have limited information about your specific context right now. Feel free to ask questions, and I'll do my best to assist with what I know."
+  );
+  
+  setMessages(prev => [...prev, timeoutMessage]);
+}
+
+/**
  * Handles general chat errors
  */
 export function handleChatError(error: unknown, setMessages: React.Dispatch<React.SetStateAction<Message[]>>, setIsLoading: (isLoading: boolean) => void) {
@@ -59,4 +78,3 @@ export function handleChatError(error: unknown, setMessages: React.Dispatch<Reac
     description: "Failed to get a response. Please try again."
   });
 }
-

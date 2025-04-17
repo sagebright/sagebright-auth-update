@@ -5,6 +5,7 @@ import { createOrgContextFallback, createUserContextFallback, createErrorFallbac
 import { fetchUserContext } from '../fetchUserContext';
 import { fetchOrgContext } from '../fetchOrgContext';
 import { validateSageContext } from '../validation/contextSchema';
+import { hydrateSageContext as apiHydrateSageContext } from '../api/sageContextApi';
 
 /**
  * Constructs the full context for Sage based on the user and org.
@@ -27,6 +28,37 @@ export async function buildSageContext(
   });
 
   try {
+    // First try using the standardized API endpoint
+    try {
+      contextLogger.info("Attempting to fetch context via unified API endpoint");
+      const apiContext = await apiHydrateSageContext(userId, orgId, orgSlug);
+      
+      if (apiContext) {
+        contextLogger.success("Successfully fetched context from API", {
+          source: 'api',
+          hasUser: !!apiContext.user,
+          hasOrg: !!apiContext.org
+        });
+        
+        return {
+          messages: [],
+          org: apiContext.org,
+          user: apiContext.user,
+          userId,
+          orgId,
+          _meta: {
+            source: 'api',
+            hydratedAt: new Date().toISOString()
+          }
+        };
+      } else {
+        contextLogger.warn("API context fetch returned null, falling back to direct methods");
+      }
+    } catch (apiError) {
+      contextLogger.error("Error fetching context from API, falling back to direct methods", apiError);
+    }
+
+    // Fallback to the legacy direct fetch approach
     // Ensure we have the basic requirements
     if (!userId || !orgId) {
       throw new Error("Missing essential IDs for context building");
