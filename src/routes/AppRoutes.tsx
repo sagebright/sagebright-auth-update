@@ -1,5 +1,5 @@
 
-import { Suspense } from "react";
+import React, { Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 
 import PageErrorBoundary from "@/components/PageErrorBoundary";
@@ -105,3 +105,4 @@ const AppRoutes = ({ RootRedirectComponent }: { RootRedirectComponent: React.FC 
 );
 
 export default AppRoutes;
+
