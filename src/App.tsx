@@ -11,6 +11,7 @@ import { getOrgFromUrl } from "./lib/subdomainUtils";
 import "@/i18n"; // Import i18n configuration
 import { checkAuth } from "./lib/backendAuth";
 import SessionTimeoutDetector from "@/components/auth/SessionTimeoutDetector";
+import AppRoutes from "@/routes/AppRoutes";
 
 // Eagerly loaded components
 import PageErrorBoundary from "./components/PageErrorBoundary";
@@ -115,79 +116,7 @@ const App = () => {
             <SessionTimeoutDetector />
             <LanguageProvider>
               <PageErrorBoundary>
-                <Suspense fallback={<PageLoadingFallback />}>
-                  <Routes>
-                    {/* Root path now uses the RootRedirect component */}
-                    <Route path="/" element={<RootRedirect />} />
-                    
-                    <Route path="/contact-us" element={<ContactUs />} />
-                    
-                    {/* Auth routes */}
-                    <Route path="/auth/login" element={<Login />} />
-                    <Route path="/auth/signup" element={<Signup />} />
-                    <Route path="/auth/forgot-password" element={<ForgotPassword />} />
-                    <Route path="/auth/callback" element={<Navigate to="/user-dashboard" replace />} />
-                    <Route path="/auth/recovery" element={<RecoveryPage />} />
-                    
-                    <Route
-                      path="/user-dashboard"
-                      element={
-                        <ProtectedRoute>
-                          <Dashboard />
-                        </ProtectedRoute>
-                      }
-                    />
-                    
-                    <Route
-                      path="/dashboard"
-                      element={
-                        <ProtectedRoute>
-                          <Navigate to="/user-dashboard" replace />
-                        </ProtectedRoute>
-                      }
-                    />
-                    
-                    <Route
-                      path="/hr-dashboard"
-                      element={
-                        <ProtectedRoute requiredRole="admin">
-                          <HRDashboard />
-                        </ProtectedRoute>
-                      }
-                    />
-                    
-                    {/* New Admin Dashboard Route */}
-                    <Route
-                      path="/admin-dashboard"
-                      element={
-                        <ProtectedRoute requiredRole="admin">
-                          <AdminDashboard />
-                        </ProtectedRoute>
-                      }
-                    />
-                    
-                    <Route
-                      path="/ask-sage"
-                      element={
-                        <ProtectedRoute>
-                          <AskSage />
-                        </ProtectedRoute>
-                      }
-                    />
-                    
-                    {/* Development and debugging routes */}
-                    <Route path="/design-system" element={<DesignSystem />} />
-                    <Route path="/dev-debug" element={<DevDebugPage />} />
-                    <Route path="/auth-debug" element={<AuthDebug />} />
-                    <Route path="/api-debug" element={<ApiDebug />} />
-                    <Route path="/form-components-example" element={<FormComponentsExample />} />
-                    <Route path="/error-handling-example" element={<ErrorHandlingExample />} />
-                    <Route path="/skeleton-preview" element={<SkeletonPreview />} />
-                    <Route path="/image-preview" element={<ImageComponentPreview />} />
-                    
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </Suspense>
+                <AppRoutes RootRedirectComponent={RootRedirect} />
               </PageErrorBoundary>
             </LanguageProvider>
           </AuthProvider>
