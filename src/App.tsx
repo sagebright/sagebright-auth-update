@@ -10,6 +10,7 @@ import { LanguageProvider } from "./contexts/language/LanguageContext";
 import { getOrgFromUrl } from "./lib/subdomainUtils";
 import "@/i18n"; // Import i18n configuration
 import { checkAuth } from "./lib/backendAuth";
+import SessionTimeoutDetector from "@/components/auth/SessionTimeoutDetector";
 
 // Eagerly loaded components
 import PageErrorBoundary from "./components/PageErrorBoundary";
@@ -111,6 +112,7 @@ const App = () => {
         <Sonner />
         <BrowserRouter>
           <AuthProvider>
+            <SessionTimeoutDetector />
             <LanguageProvider>
               <PageErrorBoundary>
                 <Suspense fallback={<PageLoadingFallback />}>
