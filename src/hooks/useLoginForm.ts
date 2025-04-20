@@ -9,9 +9,14 @@ import { useAuth } from "@/contexts/auth/AuthContext";
 import { useRedirectIntentManager } from "@/lib/redirect-intent";
 import { fetchAuth } from '@/lib/backendAuth';
 
+// Enhance password requirements for clarity (min 6 chars, customizable)
 const loginSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email address" }),
-  password: z.string().min(1, { message: "Password is required" }),
+  email: z
+    .string()
+    .email({ message: "Please enter a valid email address" }),
+  password: z
+    .string()
+    .min(6, { message: "Password must be at least 6 characters" }),
 });
 
 export type LoginValues = z.infer<typeof loginSchema>;
@@ -24,12 +29,16 @@ export const useLoginForm = () => {
 
   const { activeIntent, executeRedirect, clearIntent } = useRedirectIntentManager();
 
+  // Enable validation on change and blur for real-time feedback
   const form = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
+    mode: "onChange",
+    reValidateMode: "onBlur",
     defaultValues: {
       email: "",
       password: "",
     },
+    criteriaMode: "all"
   });
 
   const onSubmit = useCallback(
@@ -38,7 +47,6 @@ export const useLoginForm = () => {
       setAuthError(null);
 
       try {
-        // Step 1: POST /api/auth/login
         const BASE = import.meta.env.VITE_BACKEND_URL || "";
         const loginRes = await fetch(`${BASE}/api/auth/login`, {
           method: 'POST',
@@ -51,7 +59,6 @@ export const useLoginForm = () => {
         });
 
         if (!loginRes.ok) {
-          // Attempt to get error from response, else fallback
           let errorMsg = 'Login failed';
           try {
             const data = await loginRes.json();
@@ -64,7 +71,6 @@ export const useLoginForm = () => {
           return;
         }
 
-        // Step 2: GET /api/auth/session, hydrate context
         try {
           await fetchAuth();
         } catch (sessionErr) {
@@ -72,9 +78,6 @@ export const useLoginForm = () => {
           handleApiError(sessionErr, { context: "session-fetch", showToast: true });
           return;
         }
-
-        // Optionally, you could toast or log success here if you want
-
       } catch (err: any) {
         const apiErr = handleApiError(err, { context: "login", showToast: true });
         setAuthError(apiErr.message || "An unexpected error occurred during login.");
@@ -93,3 +96,4 @@ export const useLoginForm = () => {
     onSubmit,
   };
 };
+
