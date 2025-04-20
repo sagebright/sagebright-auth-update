@@ -22,7 +22,7 @@ const loginSchema = z.object({
 export type LoginValues = z.infer<typeof loginSchema>;
 
 export const useLoginForm = () => {
-  const { userId } = useAuth();
+  const { refreshSession } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [authError, setAuthError] = useState<string | null>(null);
@@ -72,7 +72,13 @@ export const useLoginForm = () => {
         }
 
         try {
-          await fetchAuth();
+          // Force fetch auth to ensure we get the latest session after login
+          await fetchAuth({ forceCheck: true });
+          
+          // Explicitly refresh session to update auth context
+          if (refreshSession) {
+            refreshSession("post-login");
+          }
         } catch (sessionErr) {
           setAuthError("Authenticated, but failed to load session context. Please try reloading.");
           handleApiError(sessionErr, { context: "session-fetch", showToast: true });
@@ -86,7 +92,7 @@ export const useLoginForm = () => {
         setIsLoading(false);
       }
     },
-    []
+    [refreshSession]
   );
 
   return {
@@ -96,4 +102,3 @@ export const useLoginForm = () => {
     onSubmit,
   };
 };
-

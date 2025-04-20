@@ -1,6 +1,6 @@
 
 import { useLocation } from 'react-router-dom';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { fetchAuth } from '@/lib/backendAuth';
 import { useRedirectIntentManager } from '@/lib/redirect-intent';
 
@@ -24,13 +24,42 @@ export function useAuthProvider() {
   const [isRecoveringOrgContext, setIsRecoveringOrgContext] = useState(false);
   const [ready, setReady] = useState(false);
   
+  // Flag to prevent multiple fetch attempts on unauthenticated state
+  const hasTriedFetchingRef = useRef(false);
+  
   // Fetch the authentication state from backend
-  const fetchAuthState = useCallback(async () => {
+  const fetchAuthState = useCallback(async (options: { force?: boolean } = {}) => {
+    const { force = false } = options;
+    
+    // Skip fetch if already tried and not forcing
+    if (hasTriedFetchingRef.current && !force && !isAuthenticated) {
+      console.log("🔄 Skipping auth fetch - already tried without auth");
+      setLoading(false);
+      setReady(true);
+      return;
+    }
+    
     try {
       console.log("🔄 Fetching auth state from backend...");
       setLoading(true);
       
-      const authData = await fetchAuth();
+      const authData = await fetchAuth({ forceCheck: force });
+      hasTriedFetchingRef.current = true;
+      
+      // If no session data, set unauthenticated state
+      if (!authData.session) {
+        console.log("🔒 No session found, setting unauthenticated state");
+        setIsAuthenticated(false);
+        setUser(null);
+        setSession(null);
+        setUserId(null);
+        setOrgId(null);
+        setOrgSlug(null);
+        setCurrentUser(null);
+        setReady(true);
+        setLoading(false);
+        return;
+      }
       
       // Update session state
       setSession(authData.session);
@@ -68,6 +97,7 @@ export function useAuthProvider() {
       });
     } catch (error) {
       console.error("❌ Error fetching auth state:", error);
+      hasTriedFetchingRef.current = true;
       setIsAuthenticated(false);
       setUser(null);
       setSession(null);
@@ -79,7 +109,7 @@ export function useAuthProvider() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isAuthenticated]);
   
   // Initialize auth state when component mounts
   useEffect(() => {
@@ -88,9 +118,9 @@ export function useAuthProvider() {
   }, [fetchAuthState]);
   
   // Refresh the session
-  const refreshSession = useCallback(async () => {
-    console.log("🔄 Refreshing auth session");
-    await fetchAuthState();
+  const refreshSession = useCallback(async (reason = "manual refresh") => {
+    console.log(`🔄 Refreshing auth session (reason: ${reason})`);
+    await fetchAuthState({ force: true });
   }, [fetchAuthState]);
   
   // Recover org context if needed
@@ -100,7 +130,7 @@ export function useAuthProvider() {
     setIsRecoveringOrgContext(true);
     try {
       console.log("🔄 Attempting to recover org context");
-      await fetchAuthState();
+      await fetchAuthState({ force: true });
       const success = !!orgId;
       setIsRecoveringOrgContext(false);
       return success;
@@ -131,7 +161,7 @@ export function useAuthProvider() {
   const fetchUserData = useCallback(async () => {
     if (!userId || !isAuthenticated) return null;
     console.log("🔄 Syncing user data from backend");
-    await fetchAuthState();
+    await fetchAuthState({ force: true });
     return currentUser;
   }, [userId, isAuthenticated, fetchAuthState, currentUser]);
 

@@ -22,6 +22,7 @@ export function useLoginRedirect() {
   const redirectInProgressRef = useRef(false);
   const [loginTimestamp, setLoginTimestamp] = useState<number | null>(null);
   const sessionStableRef = useRef(false);
+  const checkAttemptedRef = useRef(false);
   
   const { 
     activeIntent,
@@ -37,38 +38,46 @@ export function useLoginRedirect() {
   const voiceParam = getVoiceFromUrl(location.search);
   const storedRedirectPath = localStorage.getItem("redirectAfterLogin");
 
-  // Handle legacy redirect path
+  // Handle legacy redirect path once on mount
   useEffect(() => {
     console.log(`🔒 Login page mounted at ${new Date().toISOString()} [auth: ${isAuthenticated}] [intent: ${activeIntent?.destination || 'none'}]`);
-    if (storedRedirectPath && !activeIntent) {
-      console.log("🔄 Migrating legacy redirect path to intent system:", {
-        path: storedRedirectPath,
-        voice: voiceParam
-      });
-      const metadata = {
-        source: 'legacy_storage',
-        context: 'login_migration',
-        timestamp: Date.now(),
-        voiceParam: voiceParam !== 'default' ? voiceParam : undefined
-      };
-      captureIntent(
-        storedRedirectPath,
-        "auth",
-        metadata,
-        2
-      );
-      localStorage.removeItem("redirectAfterLogin");
-    }
-    if (!activeIntent && location.search && location.search.includes('voice=') && voiceParam !== 'default') {
-      console.log(`📝 Detected voice parameter in URL without intent: ${voiceParam}`);
-      localStorage.setItem("voiceParameter", voiceParam);
+    
+    if (!checkAttemptedRef.current) {
+      checkAttemptedRef.current = true;
+      
+      if (storedRedirectPath && !activeIntent) {
+        console.log("🔄 Migrating legacy redirect path to intent system:", {
+          path: storedRedirectPath,
+          voice: voiceParam
+        });
+        const metadata = {
+          source: 'legacy_storage',
+          context: 'login_migration',
+          timestamp: Date.now(),
+          voiceParam: voiceParam !== 'default' ? voiceParam : undefined
+        };
+        captureIntent(
+          storedRedirectPath,
+          "auth",
+          metadata,
+          2
+        );
+        localStorage.removeItem("redirectAfterLogin");
+      }
+      
+      if (!activeIntent && location.search && location.search.includes('voice=') && voiceParam !== 'default') {
+        console.log(`📝 Detected voice parameter in URL without intent: ${voiceParam}`);
+        localStorage.setItem("voiceParameter", voiceParam);
+      }
     }
   }, [storedRedirectPath, activeIntent, captureIntent, location.search, voiceParam, isAuthenticated]);
 
-  // Force session refresh on page load
+  // Force session refresh once on page load
   useEffect(() => {
-    if (refreshSession && !loading) {
-      console.log("🔄 Login page forcing session refresh");
+    const shouldRefresh = refreshSession && !loading && !hasRedirectedRef.current;
+    
+    if (shouldRefresh) {
+      console.log("🔄 Login page forcing one-time session refresh");
       refreshSession("login page load");
     }
   }, [refreshSession, loading]);
@@ -79,6 +88,13 @@ export function useLoginRedirect() {
       console.log("⏳ Auth still loading on login page, waiting...");
       return;
     }
+    
+    // Skip if already redirected or in progress
+    if (hasRedirectedRef.current || redirectInProgressRef.current) {
+      return;
+    }
+    
+    // Check for stable session once
     if (isAuthenticated && user && user.user_metadata && !sessionStableRef.current) {
       console.log("✅ Login page detected stable session with metadata:", {
         role: user.user_metadata?.role || 'unknown',
@@ -88,18 +104,20 @@ export function useLoginRedirect() {
       });
       sessionStableRef.current = true;
     }
-    if (isAuthenticated && user && sessionStableRef.current && 
-        !hasRedirectedRef.current && !redirectInProgressRef.current) {
-      
+    
+    // Only redirect if authenticated with stable session
+    if (isAuthenticated && user && sessionStableRef.current) {
       redirectInProgressRef.current = true;
       hasRedirectedRef.current = true;
       const currentTime = Date.now();
       setLoginTimestamp(currentTime);
       const timestamp = new Date().toISOString();
       console.log(`✅ [${timestamp}] User authenticated on login page, handling redirect with intent status: ${intentStatus}`);
+      
       const role = user.user_metadata?.role || 'default';
       const fallbackPath = ROLE_LANDING_PAGES[role as keyof typeof ROLE_LANDING_PAGES] || ROLE_LANDING_PAGES.default;
       let targetPath: string;
+      
       if (activeIntent) {
         console.log(`🎯 [${timestamp}] Using stored redirect intent:`, {
           destination: activeIntent.destination,
@@ -130,10 +148,12 @@ export function useLoginRedirect() {
           path: fallbackPath
         });
       }
+      
       toast({
         title: "Welcome back!",
         description: "Redirecting you back...",
       });
+      
       setTimeout(() => {
         if (document.location.pathname.startsWith('/auth')) {
           console.log(`🚀 [${new Date().toISOString()}] Executing post-login redirect to: ${targetPath}`);
