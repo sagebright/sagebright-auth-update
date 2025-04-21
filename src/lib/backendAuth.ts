@@ -27,7 +27,8 @@ export function hasAuthCookie(): boolean {
     exists: cookieExists, 
     cookies: document.cookie.length > 100 ? 
       document.cookie.substring(0, 100) + '...' : 
-      document.cookie
+      document.cookie,
+    allCookies: cookies.join(', ')
   });
   
   return cookieExists;
@@ -70,7 +71,8 @@ export async function fetchAuth(options: { forceCheck?: boolean } = {}): Promise
       status: res.status,
       statusText: res.statusText,
       ok: res.ok,
-      contentType: res.headers.get('content-type')
+      contentType: res.headers.get('content-type'),
+      url: res.url
     });
     
     if (!res.ok) {

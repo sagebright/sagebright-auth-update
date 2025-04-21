@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/auth/AuthContext";
 import AuthLayout from "@/components/auth/AuthLayout";
@@ -17,8 +17,19 @@ export default function Login() {
   const { isAuthenticated, user, loading, activeIntent } = useLoginRedirect();
   const location = useLocation();
   
+  useEffect(() => {
+    console.log("📄 Login page mounted", { 
+      isAuthenticated, 
+      hasUser: !!user,
+      loading, 
+      authError, 
+      activeIntent: activeIntent?.destination || 'none' 
+    });
+  }, [isAuthenticated, user, loading, authError, activeIntent]);
+  
   // If authenticated and has user data, show loading/redirect UI
   if (isAuthenticated && user) {
+    console.log("🔐 User already authenticated, preparing redirect");
     return <LoadingRedirect />;
   }
 

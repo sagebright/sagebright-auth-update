@@ -8,6 +8,7 @@ import { handleApiError } from "@/lib/handleApiError";
 import { useAuth } from "@/contexts/auth/AuthContext";
 import { useRedirectIntentManager } from "@/lib/redirect-intent";
 import { fetchAuth } from '@/lib/backendAuth';
+import { toast } from "@/hooks/use-toast";
 
 // Enhance password requirements for clarity (min 6 chars, customizable)
 const loginSchema = z.object({
@@ -83,7 +84,11 @@ export const useLoginForm = () => {
             }
           }
           setAuthError(errorMsg);
-          handleApiError(new Error(errorMsg), { context: "login", showToast: true });
+          toast({
+            variant: "destructive",
+            title: "Login failed",
+            description: errorMsg
+          });
           setIsLoading(false);
           return;
         }
@@ -104,22 +109,39 @@ export const useLoginForm = () => {
         } catch (sessionErr) {
           console.error("❌ Session fetch error:", sessionErr);
           setAuthError("Authenticated, but failed to load session context. Please try reloading.");
-          handleApiError(sessionErr, { context: "session-fetch", showToast: true });
+          toast({
+            variant: "destructive",
+            title: "Session Error",
+            description: "Failed to load session context. Please try reloading."
+          });
           setIsLoading(false);
           return;
         }
         
         console.log("🎉 Login process completed successfully");
+
+        // Check if we need to redirect based on intent
+        if (activeIntent) {
+          console.log("🔀 Executing redirect based on stored intent");
+          executeRedirect();
+        } else {
+          console.log("🏠 Redirecting to dashboard");
+          navigate("/user-dashboard");
+        }
       } catch (err: any) {
         console.error("🔥 Login error caught:", err);
-        const apiErr = handleApiError(err, { context: "login", showToast: true });
-        setAuthError(apiErr.message || "An unexpected error occurred during login.");
+        setAuthError(err.message || "An unexpected error occurred during login.");
+        toast({
+          variant: "destructive",
+          title: "Login Error",
+          description: err.message || "An unexpected error occurred"
+        });
         console.error('Login error details:', err);
       } finally {
         setIsLoading(false);
       }
     },
-    [refreshSession]
+    [refreshSession, activeIntent, executeRedirect, navigate]
   );
 
   return {

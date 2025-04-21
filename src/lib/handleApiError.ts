@@ -1,4 +1,6 @@
 
+import { toast } from "@/hooks/use-toast";
+
 export interface ApiError {
   message: string;
   code?: string;
@@ -10,7 +12,7 @@ export interface ApiErrorOptions {
   context?: string;
   showToast?: boolean;
   fallbackMessage?: string;
-  silent?: boolean; // Add the silent property
+  silent?: boolean;
 }
 
 export function handleApiError(error: unknown, options: ApiErrorOptions = {}): ApiError {
@@ -65,17 +67,12 @@ export function handleApiError(error: unknown, options: ApiErrorOptions = {}): A
   // Show toast if requested and not silent
   if (showToast && !silent) {
     console.log('📣 Showing toast with error:', apiError.message);
-    // In a real implementation, this would display a toast
-    try {
-      const { toast } = require("@/hooks/use-toast");
-      toast({
-        variant: "destructive",
-        title: `Error ${context ? `(${context})` : ''}`,
-        description: apiError.message
-      });
-    } catch (toastError) {
-      console.error('📣 Failed to show toast:', toastError);
-    }
+    
+    toast({
+      variant: "destructive",
+      title: `Error ${context ? `(${context})` : ''}`,
+      description: apiError.message
+    });
   }
   
   return apiError;
@@ -84,26 +81,18 @@ export function handleApiError(error: unknown, options: ApiErrorOptions = {}): A
 // Functions for showing notifications
 export function showSuccess(message: string) {
   console.log('📣 Success:', message);
-  try {
-    const { toast } = require("@/hooks/use-toast");
-    toast({
-      title: "Success",
-      description: message,
-    });
-  } catch (e) {
-    console.error('Failed to show success toast:', e);
-  }
+  
+  toast({
+    title: "Success",
+    description: message,
+  });
 }
 
 export function showInfo(message: string) {
   console.log('📣 Info:', message);
-  try {
-    const { toast } = require("@/hooks/use-toast");
-    toast({
-      title: "Information",
-      description: message,
-    });
-  } catch (e) {
-    console.error('Failed to show info toast:', e);
-  }
+  
+  toast({
+    title: "Information",
+    description: message,
+  });
 }

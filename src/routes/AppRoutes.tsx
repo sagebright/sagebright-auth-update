@@ -105,4 +105,3 @@ const AppRoutes = ({ RootRedirectComponent }: { RootRedirectComponent: React.FC 
 );
 
 export default AppRoutes;
-

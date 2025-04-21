@@ -35,19 +35,10 @@ const LoginForm: React.FC<LoginFormProps> = ({
     return () => console.log("🧩 LoginForm unmounted");
   }, []);
 
-  // Log form submission
-  const handleSubmit = (event: React.FormEvent) => {
-    console.log("📝 Form submission handler invoked");
-    form.handleSubmit((values) => {
-      console.log("📝 Form values validated, calling onSubmit");
-      onSubmit(values);
-    })(event);
-  };
-
   return (
     <Form {...form}>
       <form
-        onSubmit={handleSubmit}
+        onSubmit={form.handleSubmit(onSubmit)}
         className="space-y-4"
         aria-label="Login form"
         noValidate
