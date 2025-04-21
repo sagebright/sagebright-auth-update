@@ -14,7 +14,9 @@ export interface AuthPayload {
 const lastAuthCheckRef = {
   timestamp: 0,
   result: null as AuthPayload | null,
-  pending: false
+  pending: false,
+  consecutiveErrors: 0,
+  lastErrorTime: 0
 };
 
 /**
@@ -56,14 +58,13 @@ export async function fetchAuth(options: { forceCheck?: boolean } = {}): Promise
   
   // Add throttling for repeated calls
   const now = Date.now();
-  const throttleTime = 1000; // 1 second minimum between checks
+  const throttleTime = 2000; // 2 second minimum between checks
   
   // Skip if we already checked recently and not forcing
   if (!forceCheck && 
       lastAuthCheckRef.result && 
       (now - lastAuthCheckRef.timestamp < throttleTime)) {
-    console.log("🔄 Using cached auth check from last", 
-      (now - lastAuthCheckRef.timestamp), "ms");
+    console.log(`🔄 Using cached auth check from last ${now - lastAuthCheckRef.timestamp}ms`);
     return lastAuthCheckRef.result;
   }
   
@@ -71,6 +72,9 @@ export async function fetchAuth(options: { forceCheck?: boolean } = {}): Promise
   if (lastAuthCheckRef.pending && !forceCheck) {
     console.log("🔄 Auth fetch already in progress, skipping duplicate");
     // Return a placeholder while waiting
+    if (lastAuthCheckRef.result) {
+      return lastAuthCheckRef.result;
+    }
     return {
       session: null as any,
       user: null as any,
@@ -94,6 +98,29 @@ export async function fetchAuth(options: { forceCheck?: boolean } = {}): Promise
     return lastAuthCheckRef.result;
   }
   
+  // Implement exponential backoff for consecutive errors
+  if (lastAuthCheckRef.consecutiveErrors > 0 && !forceCheck) {
+    const timeSinceLastError = now - lastAuthCheckRef.lastErrorTime;
+    const backoffTime = Math.min(
+      1000 * Math.pow(2, lastAuthCheckRef.consecutiveErrors - 1), 
+      30000
+    ); // Max 30 second backoff
+    
+    if (timeSinceLastError < backoffTime) {
+      console.log(`🔄 Backing off auth fetch for ${backoffTime - timeSinceLastError}ms due to ${lastAuthCheckRef.consecutiveErrors} consecutive errors`);
+      
+      // Return last known result or empty placeholder
+      if (lastAuthCheckRef.result) {
+        return lastAuthCheckRef.result;
+      }
+      return {
+        session: null as any,
+        user: null as any,
+        org: null as any
+      };
+    }
+  }
+  
   const BASE = import.meta.env.VITE_BACKEND_URL || '';
   const url = `${BASE}/api/auth/session`;
   console.log(`🔍 Fetching auth session from: ${url}`);
@@ -101,85 +128,119 @@ export async function fetchAuth(options: { forceCheck?: boolean } = {}): Promise
   try {
     lastAuthCheckRef.pending = true;
     console.log("🔍 Starting fetch request with credentials included");
-    const res = await fetch(url, {
-      credentials: 'include',
-      headers: {
-        'Accept': 'application/json',
-        'Cache-Control': 'no-cache'
-      }
-    });
     
-    console.log("🔍 Auth session response:", { 
-      status: res.status,
-      statusText: res.statusText,
-      ok: res.ok,
-      contentType: res.headers.get('content-type'),
-      url: res.url
-    });
-    
-    if (!res.ok) {
-      // Attempt to get detailed error information
-      let errorText;
-      try {
-        const contentType = res.headers.get('content-type');
-        if (contentType && contentType.includes('application/json')) {
-          const errorData = await res.json();
-          console.error('Auth fetch error data:', errorData);
-          errorText = JSON.stringify(errorData);
-        } else {
-          errorText = await res.text();
-          console.error('Auth fetch error text:', errorText.substring(0, 200));
-        }
-      } catch (parseErr) {
-        errorText = 'Could not parse error response';
-        console.error('Error parsing auth error response:', parseErr);
-      }
-      
-      // A 401 is expected when not logged in - don't treat as an error
-      if (res.status === 401) {
-        console.log("🔍 Auth session returned 401 - Not authenticated (expected if not logged in)");
-        const result = {
-          session: null as any,
-          user: null as any,
-          org: null as any
-        };
-        lastAuthCheckRef.result = result;
-        lastAuthCheckRef.timestamp = now;
-        lastAuthCheckRef.pending = false;
-        return result;
-      }
-      
-      const error = `Auth fetch failed: ${res.status} ${errorText}`;
-      console.error(error);
-      lastAuthCheckRef.pending = false;
-      throw new Error(error);
-    }
+    // Add timeout to the fetch to prevent hanging requests
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
     
     try {
-      const responseData = await res.json();
-      console.log("✅ Auth session data received:", {
-        hasSession: !!responseData?.session,
-        hasUser: !!responseData?.user,
-        hasOrg: !!responseData?.org
+      const res = await fetch(url, {
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/json',
+          'Cache-Control': 'no-cache'
+        },
+        signal: controller.signal
       });
-      lastAuthCheckRef.result = responseData;
-      lastAuthCheckRef.timestamp = now;
-      lastAuthCheckRef.pending = false;
-      return responseData;
-    } catch (parseError) {
-      console.error("❌ Failed to parse JSON from auth response:", parseError);
-      // Try to get the text response for debugging
-      try {
-        const textResponse = await res.clone().text();
-        console.log("📄 Raw response text:", textResponse.substring(0, 200));
-      } catch (textError) {
-        console.error("❌ Could not get text response either:", textError);
+      
+      clearTimeout(timeoutId);
+      
+      console.log("🔍 Auth session response:", { 
+        status: res.status,
+        statusText: res.statusText,
+        ok: res.ok,
+        contentType: res.headers.get('content-type'),
+        url: res.url
+      });
+      
+      if (!res.ok) {
+        // Attempt to get detailed error information
+        let errorText;
+        try {
+          const contentType = res.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            const errorData = await res.json();
+            console.error('Auth fetch error data:', errorData);
+            errorText = JSON.stringify(errorData);
+          } else {
+            errorText = await res.text();
+            console.error('Auth fetch error text:', errorText.substring(0, 200));
+          }
+        } catch (parseErr) {
+          errorText = 'Could not parse error response';
+          console.error('Error parsing auth error response:', parseErr);
+        }
+        
+        // A 401 is expected when not logged in - don't treat as an error
+        if (res.status === 401) {
+          console.log("🔍 Auth session returned 401 - Not authenticated (expected if not logged in)");
+          lastAuthCheckRef.consecutiveErrors = 0; // Reset error counter for expected response
+          
+          const result = {
+            session: null as any,
+            user: null as any,
+            org: null as any
+          };
+          lastAuthCheckRef.result = result;
+          lastAuthCheckRef.timestamp = now;
+          lastAuthCheckRef.pending = false;
+          return result;
+        }
+        
+        // Track consecutive errors for non-401 responses
+        lastAuthCheckRef.consecutiveErrors++;
+        lastAuthCheckRef.lastErrorTime = now;
+        
+        const error = `Auth fetch failed: ${res.status} ${errorText}`;
+        console.error(error);
+        lastAuthCheckRef.pending = false;
+        throw new Error(error);
       }
-      lastAuthCheckRef.pending = false;
-      throw new Error(`Failed to parse auth response: ${parseError}`);
+      
+      try {
+        const responseData = await res.json();
+        console.log("✅ Auth session data received:", {
+          hasSession: !!responseData?.session,
+          hasUser: !!responseData?.user,
+          hasOrg: !!responseData?.org
+        });
+        
+        // Success - reset error counter
+        lastAuthCheckRef.consecutiveErrors = 0;
+        
+        lastAuthCheckRef.result = responseData;
+        lastAuthCheckRef.timestamp = now;
+        lastAuthCheckRef.pending = false;
+        return responseData;
+      } catch (parseError) {
+        console.error("❌ Failed to parse JSON from auth response:", parseError);
+        
+        // Try to get the text response for debugging
+        try {
+          const textResponse = await res.clone().text();
+          console.log("📄 Raw response text:", textResponse.substring(0, 200));
+        } catch (textError) {
+          console.error("❌ Could not get text response either:", textError);
+        }
+        
+        lastAuthCheckRef.consecutiveErrors++;
+        lastAuthCheckRef.lastErrorTime = now;
+        lastAuthCheckRef.pending = false;
+        throw new Error(`Failed to parse auth response: ${parseError}`);
+      }
+    } catch (abortError) {
+      if (abortError.name === 'AbortError') {
+        console.error("❌ Auth fetch request timed out after 10 seconds");
+        lastAuthCheckRef.consecutiveErrors++;
+        lastAuthCheckRef.lastErrorTime = now;
+        throw new Error("Auth request timed out. Please try again.");
+      }
+      throw abortError;
     }
   } catch (fetchError) {
     console.error("❌ Auth fetch request failed:", fetchError);
+    lastAuthCheckRef.consecutiveErrors++;
+    lastAuthCheckRef.lastErrorTime = now;
     lastAuthCheckRef.pending = false;
     throw fetchError;
   }
@@ -201,4 +262,14 @@ export async function checkAuth(): Promise<boolean> {
     console.error('Auth check failed:', err);
     return false;
   }
+}
+
+// Reset the authentication state cache - useful after logout or on critical errors
+export function resetAuthState() {
+  console.log("🔄 Resetting auth state cache");
+  lastAuthCheckRef.result = null;
+  lastAuthCheckRef.timestamp = 0;
+  lastAuthCheckRef.pending = false;
+  lastAuthCheckRef.consecutiveErrors = 0;
+  lastAuthCheckRef.lastErrorTime = 0;
 }

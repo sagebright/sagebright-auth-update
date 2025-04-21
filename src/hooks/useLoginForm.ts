@@ -1,5 +1,5 @@
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -30,6 +30,7 @@ export const useLoginForm = () => {
   const [authError, setAuthError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
+  const loginAttemptRef = useRef<boolean>(false);
 
   const { activeIntent, executeRedirect, clearIntent } = useRedirectIntentManager();
 
@@ -47,8 +48,10 @@ export const useLoginForm = () => {
 
   // Cleanup function to prevent memory leaks
   useEffect(() => {
+    console.log("📋 LoginForm hook initialized");
     return () => {
       // Reset submission state when component unmounts
+      console.log("📋 LoginForm hook cleanup");
       setIsLoading(false);
       setIsSubmitting(false);
     };
@@ -56,11 +59,12 @@ export const useLoginForm = () => {
 
   const onSubmit = useCallback(
     async (values: LoginValues): Promise<void> => {
-      if (isSubmitting) {
+      if (isSubmitting || loginAttemptRef.current) {
         console.log("🛑 Form submission already in progress, preventing duplicate");
         return;
       }
       
+      loginAttemptRef.current = true;
       setFormSubmitted(true);
       setIsSubmitting(true);
       console.log("🚀 Login attempt started", { email: values.email });
@@ -68,10 +72,10 @@ export const useLoginForm = () => {
       setAuthError(null);
 
       try {
-        console.log(`🔧 Login process starting with email: ${values.email}`);
+        console.log(`🔧 Login process starting with email: ${values.email}, sending to backend API`);
         
         try {
-          // Use our centralized auth API
+          // Use our centralized auth API with a longer timeout
           const loginResult = await signIn(values.email, values.password);
           console.log("✅ Login API call successful with response:", loginResult);
         } catch (fetchError) {
@@ -79,6 +83,7 @@ export const useLoginForm = () => {
           setAuthError(fetchError instanceof Error ? fetchError.message : "Login failed. Please try again.");
           setIsLoading(false);
           setIsSubmitting(false);
+          loginAttemptRef.current = false;
           return;
         }
 
@@ -105,6 +110,7 @@ export const useLoginForm = () => {
           });
           setIsLoading(false);
           setIsSubmitting(false);
+          loginAttemptRef.current = false;
           return;
         }
         
@@ -130,6 +136,7 @@ export const useLoginForm = () => {
       } finally {
         setIsLoading(false);
         setIsSubmitting(false);
+        loginAttemptRef.current = false;
       }
     },
     [refreshSession, activeIntent, executeRedirect, navigate, isSubmitting]

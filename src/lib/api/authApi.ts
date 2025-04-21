@@ -12,6 +12,10 @@ const activeAuthCalls = {
   login: false
 };
 
+// Track the last login attempt timestamp to prevent rapid re-tries
+let lastLoginAttempt = 0;
+const MIN_LOGIN_INTERVAL = 2000; // 2 seconds
+
 /**
  * Fetches the current authentication session from the backend
  * @returns Promise with auth payload
@@ -94,53 +98,84 @@ export async function getAuthSession(): Promise<AuthPayload> {
  * @returns Promise with auth data
  */
 export async function signIn(email: string, password: string): Promise<any> {
+  // Check for throttling based on last attempt
+  const now = Date.now();
+  if (now - lastLoginAttempt < MIN_LOGIN_INTERVAL) {
+    console.log(`📡 Login attempted too soon after previous attempt (${now - lastLoginAttempt}ms), throttling`);
+    await new Promise(resolve => setTimeout(resolve, 500)); // Small delay for UX
+  }
+  
   // Prevent duplicate login attempts
   if (activeAuthCalls.login) {
     console.log("📡 Login already in progress, skipping duplicate");
     throw new Error("A login attempt is already in progress");
   }
   
+  lastLoginAttempt = now;
   console.log("📡 Signing in user:", email);
   activeAuthCalls.login = true;
   
   try {
     const BASE = import.meta.env.VITE_BACKEND_URL || '';
-    console.log(`📡 Preparing sign-in request: ${BASE}/api/auth/login`);
+    const loginEndpoint = `${BASE}/api/auth/signin`;
+    console.log(`📡 Preparing sign-in request to: ${loginEndpoint}`);
     
-    const response = await fetch(`${BASE}/api/auth/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, password }),
-      credentials: 'include',
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+    
+    try {
+      const response = await fetch(loginEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+        credentials: 'include',
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
 
-    console.log("📡 Sign-in response:", { 
-      status: response.status,
-      ok: response.ok,
-      statusText: response.statusText
-    });
+      console.log("📡 Sign-in response:", { 
+        status: response.status,
+        ok: response.ok,
+        statusText: response.statusText
+      });
 
-    if (!response.ok) {
-      let errorMessage = 'Error signing in';
-      try {
-        const errorData = await response.json();
-        console.error("📡 Sign-in error data:", errorData);
-        errorMessage = errorData.message || errorData.error || errorMessage;
-      } catch (e) {
-        console.error("📡 Could not parse error response:", e);
+      if (!response.ok) {
+        let errorMessage = 'Error signing in';
         try {
-          const text = await response.text();
-          console.log("📡 Error response text:", text);
-        } catch (textError) {
-          console.error("📡 Could not get error text either:", textError);
+          const errorData = await response.json();
+          console.error("📡 Sign-in error data:", errorData);
+          errorMessage = errorData.message || errorData.error || errorMessage;
+        } catch (e) {
+          console.error("📡 Could not parse error response:", e);
+          try {
+            const text = await response.text();
+            console.log("📡 Error response text:", text);
+          } catch (textError) {
+            console.error("📡 Could not get error text either:", textError);
+          }
         }
+        throw new Error(errorMessage);
       }
-      throw new Error(errorMessage);
+      
+      // Try to parse the response as JSON
+      try {
+        return await response.json();
+      } catch (jsonError) {
+        console.log("📡 Response is not JSON, might be empty success response");
+        // If we can't parse as JSON but the request was successful, return a simple success object
+        return { success: true };
+      }
+    } catch (fetchError) {
+      if (fetchError.name === 'AbortError') {
+        console.error("📡 Login request timed out after 15 seconds");
+        throw new Error("Login request timed out. Please try again.");
+      }
+      throw fetchError;
     }
-
-    return await response.json();
   } catch (error) {
     handleApiError(error, { context: 'signin', showToast: true });
     throw error;

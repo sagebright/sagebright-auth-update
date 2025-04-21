@@ -1,3 +1,4 @@
+
 import { useCallback, useRef } from 'react';
 import { fetchAuth } from '@/lib/backendAuth';
 import { syncUserRole } from '@/lib/syncUserRole';
@@ -9,6 +10,7 @@ export function useSessionRefresh() {
   const sessionLastRefreshedRef = useRef<number>(Date.now());
   const sessionRefreshPromiseRef = useRef<Promise<void> | null>(null);
   const refreshErrorRef = useRef<Error | null>(null);
+  const throttledAttemptsRef = useRef<number>(0);
 
   const refreshSession = useCallback(async (reason: string): Promise<void> => {
     if (isRefreshingRef.current && sessionRefreshPromiseRef.current) {
@@ -20,9 +22,23 @@ export function useSessionRefresh() {
     const timeSinceLastRefresh = currentTime - sessionLastRefreshedRef.current;
     const minimumRefreshInterval = 2000; // 2 seconds between refreshes
     
-    if (timeSinceLastRefresh < minimumRefreshInterval && !reason.includes('critical') && !reason.includes('post-login')) {
-      console.log(`🔄 Session refreshed too recently (${timeSinceLastRefresh}ms ago), throttling refresh request`);
-      return Promise.resolve();
+    // Enhanced throttling for repeated refresh attempts
+    if (timeSinceLastRefresh < minimumRefreshInterval) {
+      throttledAttemptsRef.current++;
+      
+      // Exponential backoff for repeated attempts
+      const backoffTime = Math.min(
+        minimumRefreshInterval * Math.pow(1.5, throttledAttemptsRef.current),
+        30000 // Max 30 second backoff
+      );
+      
+      if (!reason.includes('critical') && !reason.includes('post-login')) {
+        console.log(`🔄 Session refreshed too recently (${timeSinceLastRefresh}ms ago), throttling for ${backoffTime}ms`);
+        return Promise.resolve();
+      }
+    } else {
+      // Reset throttle counter if enough time has passed
+      throttledAttemptsRef.current = 0;
     }
     
     if (refreshErrorRef.current && !reason.includes('critical') && !reason.includes('post-login')) {
@@ -39,7 +55,10 @@ export function useSessionRefresh() {
     sessionRefreshPromiseRef.current = new Promise<void>(async (resolve, reject) => {
       try {
         console.log(`🔄 Refreshing session #${refreshCount} (reason: ${reason}, time since last: ${timeSinceLastRefresh}ms) at ${new Date().toISOString()}`);
-        const authData = await fetchAuth({ forceCheck: reason.includes('critical') || reason.includes('post-login') });
+        
+        // Only force check for critical reasons or first-time loads
+        const forceCheck = reason.includes('critical') || reason.includes('post-login') || refreshCount === 1;
+        const authData = await fetchAuth({ forceCheck });
         
         sessionLastRefreshedRef.current = Date.now();
         refreshErrorRef.current = null;
@@ -111,6 +130,10 @@ export function useSessionRefresh() {
     refreshSession,
     repairSessionMetadata,
     isRefreshing: () => isRefreshingRef.current,
-    getLastRefreshTime: () => sessionLastRefreshedRef.current
+    getLastRefreshTime: () => sessionLastRefreshedRef.current,
+    resetThrottling: () => {
+      throttledAttemptsRef.current = 0;
+      console.log("🔄 Session refresh throttling reset");
+    }
   };
 }

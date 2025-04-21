@@ -37,24 +37,19 @@ const LoginForm: React.FC<LoginFormProps> = ({
   }, []);
 
   // Create a stable handleFormSubmit function that won't change on each render
-  const handleFormSubmit = useCallback((e: React.FormEvent) => {
-    console.log("📝 Form submit event triggered");
-    e.preventDefault(); // Ensure we prevent default
-    
-    handleSubmit(async (values) => {
-      console.log("📝 Form validation passed, calling onSubmit with:", values);
-      try {
-        await onSubmit(values);
-      } catch (error) {
-        console.error("📝 Form submission error:", error);
-      }
-    })(e);
-  }, [handleSubmit, onSubmit]);
+  const handleFormSubmit = useCallback(async (values: LoginValues) => {
+    console.log("📝 Form validation passed, calling onSubmit with:", values);
+    try {
+      await onSubmit(values);
+    } catch (error) {
+      console.error("📝 Form submission error:", error);
+    }
+  }, [onSubmit]);
 
   return (
     <Form {...form}>
       <form
-        onSubmit={handleFormSubmit}
+        onSubmit={handleSubmit(handleFormSubmit)}
         className="space-y-4"
         aria-label="Login form"
         noValidate
@@ -136,7 +131,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
         <Button
           type="submit"
           className="w-full bg-primary hover:bg-primary/90 font-helvetica"
-          disabled={isLoading || !isValid}
+          disabled={isLoading}
           loading={isLoading}
           loadingText="Signing in..."
           onClick={() => console.log("🖱️ Login button clicked")}

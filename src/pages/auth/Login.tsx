@@ -87,6 +87,11 @@ export default function Login() {
             You'll be redirected to your last location after signing in.
           </div>
         )}
+        {isLoading && (
+          <div className="text-xs text-gray-500 mt-2 italic text-center">
+            Signing in...
+          </div>
+        )}
       </div>
     </AuthLayout>
   );
