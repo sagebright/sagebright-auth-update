@@ -48,7 +48,7 @@
  */
 
 /**
- * POST /api/auth/signin
+ * POST /api/auth/login
  * 
  * Authenticates a user with email/password and returns session.
  * 

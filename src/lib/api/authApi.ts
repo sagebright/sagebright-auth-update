@@ -117,7 +117,7 @@ export async function signIn(email: string, password: string): Promise<any> {
   
   try {
     const BASE = import.meta.env.VITE_BACKEND_URL || '';
-    const loginEndpoint = `${BASE}/api/auth/signin`;
+    const loginEndpoint = `${BASE}/api/auth/login`;
     console.log(`📡 Preparing sign-in request to: ${loginEndpoint}`);
     
     const controller = new AbortController();
