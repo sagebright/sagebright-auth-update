@@ -4,6 +4,11 @@
  * Used by fetchAuth and other auth functions
  */
 
+// Track repeated cookie checks to reduce logging
+let lastCookieCheckTime = 0;
+let lastCookieCheckResult = false;
+const COOKIE_LOG_THROTTLE = 5000; // Only log cookie checks every 5 seconds
+
 export function hasAuthCookie(): boolean {
   // Look for session cookie based on the likely pattern used by the backend
   const cookies = document.cookie.split(';').map(c => c.trim());
@@ -16,21 +21,27 @@ export function hasAuthCookie(): boolean {
     'sb-auth'
   ];
 
-  console.log("🍪 Checking for auth cookies:", {
-    allCookies: cookies,
-    cookieString: document.cookie
-  });
-
+  const now = Date.now();
+  const shouldLog = now - lastCookieCheckTime > COOKIE_LOG_THROTTLE;
+  
   const cookieExists = authCookiePatterns.some(pattern =>
     cookies.some(cookie => cookie.startsWith(`${pattern}=`))
   );
 
-  console.log("🍪 Auth cookie check result:", {
-    exists: cookieExists,
-    cookies: document.cookie.length > 100
-      ? document.cookie.substring(0, 100) + '...'
-      : document.cookie
-  });
+  // Only log if the result has changed or enough time has passed
+  if (shouldLog || cookieExists !== lastCookieCheckResult) {
+    lastCookieCheckTime = now;
+    lastCookieCheckResult = cookieExists;
+    
+    // Only log detailed cookie info if cookies exist or it's a significant change
+    if (cookieExists) {
+      console.log("🍪 Auth cookie found:", {
+        timestamp: new Date().toISOString()
+      });
+    } else if (shouldLog) {
+      console.log("🍪 No auth cookies present");
+    }
+  }
 
   return cookieExists;
 }

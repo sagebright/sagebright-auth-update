@@ -4,6 +4,10 @@ import { fetchAuth } from '@/lib/backendAuth';
 import { syncUserRole } from '@/lib/syncUserRole';
 import { toast } from '@/components/ui/use-toast';
 
+// Throttle logging
+let lastSessionRefreshLog = 0;
+const SESSION_LOG_THROTTLE = 5000; // 5 seconds
+
 export function useSessionRefresh() {
   const isRefreshingRef = useRef<boolean>(false);
   const refreshCountRef = useRef<number>(0);
@@ -12,9 +16,24 @@ export function useSessionRefresh() {
   const refreshErrorRef = useRef<Error | null>(null);
   const throttledAttemptsRef = useRef<number>(0);
 
+  // Conditionally log based on importance and time
+  const logIfNeeded = (message: string, data?: any, force: boolean = false) => {
+    const now = Date.now();
+    if (force || now - lastSessionRefreshLog > SESSION_LOG_THROTTLE) {
+      lastSessionRefreshLog = now;
+      if (data) {
+        console.log(message, data);
+      } else {
+        console.log(message);
+      }
+      return true;
+    }
+    return false;
+  };
+
   const refreshSession = useCallback(async (reason: string): Promise<void> => {
     if (isRefreshingRef.current && sessionRefreshPromiseRef.current) {
-      console.log(`🔄 Session refresh already in progress (joining - reason: ${reason})`);
+      logIfNeeded(`🔄 Session refresh already in progress (joining - reason: ${reason})`, null, false);
       return sessionRefreshPromiseRef.current;
     }
     
@@ -33,7 +52,7 @@ export function useSessionRefresh() {
       );
       
       if (!reason.includes('critical') && !reason.includes('post-login')) {
-        console.log(`🔄 Session refreshed too recently (${timeSinceLastRefresh}ms ago), throttling for ${backoffTime}ms`);
+        logIfNeeded(`🔄 Session refreshed too recently (${timeSinceLastRefresh}ms ago), throttling for ${backoffTime}ms`, null, false);
         return Promise.resolve();
       }
     } else {
@@ -44,7 +63,7 @@ export function useSessionRefresh() {
     if (refreshErrorRef.current && !reason.includes('critical') && !reason.includes('post-login')) {
       const errorAge = currentTime - (refreshErrorRef.current as any).timestamp;
       if (errorAge < 5000) { // 5 second cool-down after errors
-        console.log(`🔄 Session refresh had error ${errorAge}ms ago, cooling down before retry`);
+        logIfNeeded(`🔄 Session refresh had error ${errorAge}ms ago, cooling down before retry`, null, false);
         return Promise.resolve();
       }
     }
@@ -52,9 +71,12 @@ export function useSessionRefresh() {
     isRefreshingRef.current = true;
     const refreshCount = ++refreshCountRef.current;
     
+    // Only log important session refreshes or periodic updates
+    const isCriticalRefresh = reason.includes('critical') || reason.includes('post-login');
+    
     sessionRefreshPromiseRef.current = new Promise<void>(async (resolve, reject) => {
       try {
-        console.log(`🔄 Refreshing session #${refreshCount} (reason: ${reason}, time since last: ${timeSinceLastRefresh}ms) at ${new Date().toISOString()}`);
+        logIfNeeded(`🔄 Refreshing session #${refreshCount} (reason: ${reason}, time since last: ${timeSinceLastRefresh}ms) at ${new Date().toISOString()}`, null, isCriticalRefresh);
         
         // Only force check for critical reasons or first-time loads
         const forceCheck = reason.includes('critical') || reason.includes('post-login') || refreshCount === 1;
@@ -64,27 +86,34 @@ export function useSessionRefresh() {
         refreshErrorRef.current = null;
         
         if (refreshCount < refreshCountRef.current) {
-          console.log(`🔄 Refresh #${refreshCount} superseded by newer refresh, discarding result`);
+          logIfNeeded(`🔄 Refresh #${refreshCount} superseded by newer refresh, discarding result`, null, false);
           isRefreshingRef.current = false;
           resolve();
           return;
         }
         
         if (!authData.session) {
-          console.warn('⚠️ Session lost during refresh, user will need to login again');
-          
-          if (reason.includes('critical')) {
-            toast({
-              title: "Session expired",
-              description: "Please refresh the page or sign in again.",
-              variant: "destructive"
-            });
+          // Only warn about session loss for critical refreshes
+          if (isCriticalRefresh) {
+            console.warn('⚠️ Session lost during refresh, user will need to login again');
+            
+            if (reason.includes('critical')) {
+              toast({
+                title: "Session expired",
+                description: "Please refresh the page or sign in again.",
+                variant: "destructive"
+              });
+            }
           }
         }
         
-        console.log(`✅ Session #${refreshCount} refreshed successfully at ${new Date().toISOString()}`);
+        // Only log successful completion for critical refreshes
+        if (isCriticalRefresh) {
+          logIfNeeded(`✅ Session #${refreshCount} refreshed successfully at ${new Date().toISOString()}`);
+        }
         resolve();
       } catch (error) {
+        // Always log refresh errors
         console.error(`❌ Error refreshing session #${refreshCount}:`, error);
         
         refreshErrorRef.current = error as Error;
@@ -133,7 +162,7 @@ export function useSessionRefresh() {
     getLastRefreshTime: () => sessionLastRefreshedRef.current,
     resetThrottling: () => {
       throttledAttemptsRef.current = 0;
-      console.log("🔄 Session refresh throttling reset");
+      logIfNeeded("🔄 Session refresh throttling reset");
     }
   };
 }

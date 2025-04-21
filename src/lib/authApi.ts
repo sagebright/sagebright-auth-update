@@ -1,10 +1,11 @@
+
 /**
  * Core Auth API Functions: fetchAuth, checkAuth, resetAuthState
  * This file composes cookie, cache, and remote logic
  */
 
 import { hasAuthCookie } from "./authCookies";
-import { lastAuthCheckRef, resetAuthStateCache } from "./authCache";
+import { lastAuthCheckRef, resetAuthStateCache, logIfEnabled } from "./authCache";
 
 export interface AuthPayload {
   session: { id: string; expiresAt: string };
@@ -18,17 +19,18 @@ export async function fetchAuth(options: { forceCheck?: boolean } = {}): Promise
   const now = Date.now();
   const throttleTime = 2000; // 2 seconds
 
+  // Throttle checks and use cache when appropriate
   if (
     !forceCheck &&
     lastAuthCheckRef.result &&
     now - lastAuthCheckRef.timestamp < throttleTime
   ) {
-    console.log(`🔄 Using cached auth check from last ${now - lastAuthCheckRef.timestamp}ms`);
+    logIfEnabled(`🔄 Using cached auth check from last ${now - lastAuthCheckRef.timestamp}ms`, null, false);
     return lastAuthCheckRef.result;
   }
 
   if (lastAuthCheckRef.pending && !forceCheck) {
-    console.log("🔄 Auth fetch already in progress, skipping duplicate");
+    logIfEnabled("🔄 Auth fetch already in progress, skipping duplicate", null, false);
     if (lastAuthCheckRef.result) {
       return lastAuthCheckRef.result;
     }
@@ -39,12 +41,17 @@ export async function fetchAuth(options: { forceCheck?: boolean } = {}): Promise
     };
   }
 
-  console.log("🔄 fetchAuth called with options:", { forceCheck });
+  // Only log fetch calls if forced or infrequent
+  logIfEnabled("🔄 fetchAuth called", { forceCheck }, forceCheck);
 
   const hasCookie = hasAuthCookie();
 
   if (!forceCheck && !hasCookie) {
-    console.warn("🔄 No auth cookie detected, skipping session fetch");
+    // Only warn about missing cookie once or when forced
+    if (forceCheck) {
+      console.warn("🔄 No auth cookie detected, skipping session fetch");
+    }
+    
     lastAuthCheckRef.result = {
       session: null as any,
       user: null as any,
@@ -62,8 +69,10 @@ export async function fetchAuth(options: { forceCheck?: boolean } = {}): Promise
       30000
     );
     if (timeSinceLastError < backoffTime) {
-      console.log(
-        `🔄 Backing off auth fetch for ${backoffTime - timeSinceLastError}ms due to ${lastAuthCheckRef.consecutiveErrors} consecutive errors`
+      logIfEnabled(
+        `🔄 Backing off auth fetch for ${backoffTime - timeSinceLastError}ms due to ${lastAuthCheckRef.consecutiveErrors} consecutive errors`,
+        null,
+        false
       );
       if (lastAuthCheckRef.result) {
         return lastAuthCheckRef.result;
@@ -78,11 +87,11 @@ export async function fetchAuth(options: { forceCheck?: boolean } = {}): Promise
 
   const BASE = import.meta.env.VITE_BACKEND_URL || '';
   const url = `${BASE}/api/auth/session`;
-  console.log(`🔍 Fetching auth session from: ${url}`);
+  logIfEnabled(`🔍 Fetching auth session from: ${url}`, null, forceCheck);
 
   try {
     lastAuthCheckRef.pending = true;
-    console.log("🔍 Starting fetch request with credentials included");
+    logIfEnabled("🔍 Starting fetch request with credentials included", null, false);
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000);
     try {
@@ -97,13 +106,15 @@ export async function fetchAuth(options: { forceCheck?: boolean } = {}): Promise
 
       clearTimeout(timeoutId);
 
-      console.log("🔍 Auth session response:", {
+      // Only log detailed response info if it's successful or a new error
+      const isFirstError = lastAuthCheckRef.consecutiveErrors === 0;
+      logIfEnabled("🔍 Auth session response:", {
         status: res.status,
         statusText: res.statusText,
         ok: res.ok,
         contentType: res.headers.get('content-type'),
         url: res.url
-      });
+      }, res.ok || isFirstError);
 
       if (!res.ok) {
         let errorText;
@@ -111,18 +122,26 @@ export async function fetchAuth(options: { forceCheck?: boolean } = {}): Promise
           const contentType = res.headers.get('content-type');
           if (contentType && contentType.includes('application/json')) {
             const errorData = await res.json();
-            console.error('Auth fetch error data:', errorData);
+            
+            // Only log error data on first failure or forced checks
+            if (isFirstError || forceCheck) {
+              console.error('Auth fetch error data:', errorData);
+            }
+            
             errorText = JSON.stringify(errorData);
           } else {
             errorText = await res.text();
-            console.error('Auth fetch error text:', errorText.substring(0, 200));
+            if (isFirstError || forceCheck) {
+              console.error('Auth fetch error text:', errorText.substring(0, 200));
+            }
           }
         } catch (parseErr) {
           errorText = 'Could not parse error response';
           console.error('Error parsing auth error response:', parseErr);
         }
         if (res.status === 401) {
-          console.log("🔍 Auth session returned 401 - Not authenticated (expected if not logged in)");
+          // Only log expected 401 errors occasionally
+          logIfEnabled("🔍 Auth session returned 401 - Not authenticated (expected if not logged in)", null, isFirstError);
           lastAuthCheckRef.consecutiveErrors = 0;
           const result = {
             session: null as any,
@@ -144,11 +163,12 @@ export async function fetchAuth(options: { forceCheck?: boolean } = {}): Promise
 
       try {
         const responseData = await res.json();
-        console.log("✅ Auth session data received:", {
+        logIfEnabled("✅ Auth session data received:", {
           hasSession: !!responseData?.session,
           hasUser: !!responseData?.user,
           hasOrg: !!responseData?.org
-        });
+        }, forceCheck);
+        
         lastAuthCheckRef.consecutiveErrors = 0;
         lastAuthCheckRef.result = responseData;
         lastAuthCheckRef.timestamp = now;
@@ -190,12 +210,12 @@ export async function fetchAuth(options: { forceCheck?: boolean } = {}): Promise
  * @returns Promise resolving to a boolean indicating if the session is valid
  */
 export async function checkAuth(): Promise<boolean> {
-  console.log("🔍 Starting auth check");
+  logIfEnabled("🔍 Starting auth check", null, false);
   try {
     // Use forceCheck for explicit auth checks
     const authData = await fetchAuth({ forceCheck: true });
     const isValid = !!authData.session?.id;
-    console.log("🔍 Auth check result:", { isValid });
+    logIfEnabled("🔍 Auth check result:", { isValid }, false);
     return isValid;
   } catch (err) {
     console.error('Auth check failed:', err);
