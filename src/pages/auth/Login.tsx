@@ -23,9 +23,24 @@ export default function Login() {
       hasUser: !!user,
       loading, 
       authError, 
-      activeIntent: activeIntent?.destination || 'none' 
+      activeIntent: activeIntent?.destination || 'none',
+      formValues: form.getValues()
     });
-  }, [isAuthenticated, user, loading, authError, activeIntent]);
+    
+    return () => {
+      console.log("📄 Login page unmounted");
+    };
+  }, [isAuthenticated, user, loading, authError, activeIntent, form]);
+  
+  const handleGoogleSignIn = () => {
+    console.log("🔍 Google sign-in button clicked");
+    signInWithGoogle();
+  };
+  
+  const handleLoginSubmit = async (values: any) => {
+    console.log("📝 Login form submitted with values:", values);
+    await onSubmit(values);
+  };
   
   // If authenticated and has user data, show loading/redirect UI
   if (isAuthenticated && user) {
@@ -51,11 +66,11 @@ export default function Login() {
       </>
       
       <div className="space-y-4">
-        <GoogleSignInButton onClick={signInWithGoogle} />
+        <GoogleSignInButton onClick={handleGoogleSignIn} />
         <AuthDivider />
         <LoginForm 
           form={form}
-          onSubmit={onSubmit}
+          onSubmit={handleLoginSubmit}
           isLoading={isLoading}
           authError={authError}
         />

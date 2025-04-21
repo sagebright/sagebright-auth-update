@@ -17,18 +17,22 @@ export interface AuthPayload {
 export function hasAuthCookie(): boolean {
   // Look for session cookie based on the likely pattern used by the backend
   const cookies = document.cookie.split(';').map(c => c.trim());
-  const authCookiePatterns = ['sb-access-token', 'session-token', 'auth-token', 'auth.token'];
+  const authCookiePatterns = ['sb-access-token', 'session-token', 'auth-token', 'auth.token', 'sb-auth-token', 'sb-auth'];
+  
+  console.log("🍪 Checking for auth cookies:", { 
+    allCookies: cookies,
+    cookieString: document.cookie
+  });
   
   const cookieExists = authCookiePatterns.some(pattern => 
     cookies.some(cookie => cookie.startsWith(`${pattern}=`))
   );
   
-  console.log("🍪 Auth cookie check:", { 
+  console.log("🍪 Auth cookie check result:", { 
     exists: cookieExists, 
     cookies: document.cookie.length > 100 ? 
       document.cookie.substring(0, 100) + '...' : 
-      document.cookie,
-    allCookies: cookies.join(', ')
+      document.cookie
   });
   
   return cookieExists;
@@ -44,8 +48,10 @@ export async function fetchAuth(options: { forceCheck?: boolean } = {}): Promise
   const { forceCheck = false } = options;
   console.log("🔄 fetchAuth called with options:", { forceCheck });
   
+  const hasCookie = hasAuthCookie();
+  
   // Skip the fetch if no auth cookie is present and not forcing a check
-  if (!forceCheck && !hasAuthCookie()) {
+  if (!forceCheck && !hasCookie) {
     console.warn("🔄 No auth cookie detected, skipping session fetch");
     return {
       session: null as any,
@@ -59,6 +65,7 @@ export async function fetchAuth(options: { forceCheck?: boolean } = {}): Promise
   console.log(`🔍 Fetching auth session from: ${url}`);
   
   try {
+    console.log("🔍 Starting fetch request with credentials included");
     const res = await fetch(url, {
       credentials: 'include',
       headers: {
@@ -91,6 +98,16 @@ export async function fetchAuth(options: { forceCheck?: boolean } = {}): Promise
       } catch (parseErr) {
         errorText = 'Could not parse error response';
         console.error('Error parsing auth error response:', parseErr);
+      }
+      
+      // A 401 is expected when not logged in - don't treat as an error
+      if (res.status === 401) {
+        console.log("🔍 Auth session returned 401 - Not authenticated (expected if not logged in)");
+        return {
+          session: null as any,
+          user: null as any,
+          org: null as any
+        };
       }
       
       const error = `Auth fetch failed: ${res.status} ${errorText}`;

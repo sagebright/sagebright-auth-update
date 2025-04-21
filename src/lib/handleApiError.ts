@@ -24,7 +24,14 @@ export function handleApiError(error: unknown, options: ApiErrorOptions = {}): A
     console.error(error);
     console.log('Error handling options:', options);
     if (error instanceof Error) {
+      console.log('Error message:', error.message);
       console.log('Stack trace:', error.stack);
+    } else if (typeof error === 'string') {
+      console.log('Error string:', error);
+    } else if (error && typeof error === 'object') {
+      console.log('Error object:', error);
+    } else {
+      console.log('Unknown error type:', typeof error);
     }
     console.groupEnd();
   }

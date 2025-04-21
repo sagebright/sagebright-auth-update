@@ -28,6 +28,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
     formState: { errors, touchedFields, isValid, isSubmitted },
     watch,
     trigger,
+    handleSubmit,
   } = form;
 
   useEffect(() => {
@@ -35,10 +36,22 @@ const LoginForm: React.FC<LoginFormProps> = ({
     return () => console.log("🧩 LoginForm unmounted");
   }, []);
 
+  const handleFormSubmit = (e: React.FormEvent) => {
+    console.log("📝 Form submit event triggered");
+    handleSubmit(async (values) => {
+      console.log("📝 Form validation passed, calling onSubmit with:", values);
+      try {
+        await onSubmit(values);
+      } catch (error) {
+        console.error("📝 Form submission error:", error);
+      }
+    })(e);
+  };
+
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit(onSubmit)}
+        onSubmit={handleFormSubmit}
         className="space-y-4"
         aria-label="Login form"
         noValidate

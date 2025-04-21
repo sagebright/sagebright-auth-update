@@ -15,7 +15,10 @@ export async function getAuthSession(): Promise<AuthPayload> {
   console.log("📡 Getting auth session from API");
   try {
     const BASE = import.meta.env.VITE_BACKEND_URL || '';
-    const response = await fetch(`${BASE}/api/auth/session`, {
+    const url = `${BASE}/api/auth/session`;
+    console.log(`📡 Fetching auth session from: ${url}`);
+    
+    const response = await fetch(url, {
       method: 'GET',
       credentials: 'include',
       headers: {
@@ -31,7 +34,30 @@ export async function getAuthSession(): Promise<AuthPayload> {
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
+      if (response.status === 401) {
+        console.log("📡 Auth session returned 401 - Not authenticated yet");
+        return {
+          session: null as any,
+          user: null as any,
+          org: null as any
+        };
+      }
+
+      let errorText = '';
+      try {
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          const errorData = await response.json();
+          console.error('Auth fetch error data:', errorData);
+          errorText = JSON.stringify(errorData);
+        } else {
+          errorText = await response.text();
+          console.error('Auth fetch error text:', errorText.substring(0, 200));
+        }
+      } catch (parseErr) {
+        errorText = 'Could not parse error response';
+      }
+
       throw new Error(`Auth session fetch failed: ${response.status} ${errorText}`);
     }
 
@@ -52,6 +78,8 @@ export async function signIn(email: string, password: string): Promise<any> {
   console.log("📡 Signing in user:", email);
   try {
     const BASE = import.meta.env.VITE_BACKEND_URL || '';
+    console.log(`📡 Preparing sign-in request: ${BASE}/api/auth/login`);
+    
     const response = await fetch(`${BASE}/api/auth/login`, {
       method: 'POST',
       headers: {
@@ -63,7 +91,8 @@ export async function signIn(email: string, password: string): Promise<any> {
 
     console.log("📡 Sign-in response:", { 
       status: response.status,
-      ok: response.ok
+      ok: response.ok,
+      statusText: response.statusText
     });
 
     if (!response.ok) {
@@ -86,7 +115,7 @@ export async function signIn(email: string, password: string): Promise<any> {
 
     return await response.json();
   } catch (error) {
-    handleApiError(error, { context: 'signin' });
+    handleApiError(error, { context: 'signin', showToast: true });
     throw error;
   }
 }
@@ -109,11 +138,20 @@ export async function signOut(): Promise<void> {
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Error signing out');
+      let errorMessage = 'Error signing out';
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.message || errorData.error || errorMessage;
+      } catch (e) {
+        console.error("Could not parse error response:", e);
+      }
+      throw new Error(errorMessage);
     }
+    
+    // Clear any cookies
+    console.log("📡 Signed out successfully, clearing local state");
   } catch (error) {
-    handleApiError(error, { context: 'signout' });
+    handleApiError(error, { context: 'signout', showToast: true });
     throw error;
   }
 }
@@ -146,11 +184,17 @@ export async function signUp(
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Error signing up');
+      let errorMessage = 'Error signing up';
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.message || errorData.error || errorMessage;
+      } catch (e) {
+        console.error("Could not parse error response:", e);
+      }
+      throw new Error(errorMessage);
     }
   } catch (error) {
-    handleApiError(error, { context: 'signup' });
+    handleApiError(error, { context: 'signup', showToast: true });
     throw error;
   }
 }
@@ -177,11 +221,17 @@ export async function resetPassword(email: string): Promise<void> {
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Error resetting password');
+      let errorMessage = 'Error resetting password';
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.message || errorData.error || errorMessage;
+      } catch (e) {
+        console.error("Could not parse error response:", e);
+      }
+      throw new Error(errorMessage);
     }
   } catch (error) {
-    handleApiError(error, { context: 'password-reset' });
+    handleApiError(error, { context: 'password-reset', showToast: true });
     throw error;
   }
 }

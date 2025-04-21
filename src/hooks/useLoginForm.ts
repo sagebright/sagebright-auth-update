@@ -52,42 +52,58 @@ export const useLoginForm = () => {
         const BASE = import.meta.env.VITE_BACKEND_URL || "";
         console.log(`🔧 Login fetch preparing: ${BASE}/api/auth/login`);
         
-        const loginRes = await fetch(`${BASE}/api/auth/login`, {
-          method: 'POST',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email: values.email,
-            password: values.password,
-          }),
-        });
+        try {
+          const loginRes = await fetch(`${BASE}/api/auth/login`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: values.email,
+              password: values.password,
+            }),
+          });
 
-        console.log(`✅ Login response received`, { 
-          status: loginRes.status, 
-          statusText: loginRes.statusText,
-          ok: loginRes.ok
-        });
+          console.log(`✅ Login response received`, { 
+            status: loginRes.status, 
+            statusText: loginRes.statusText,
+            ok: loginRes.ok
+          });
 
-        if (!loginRes.ok) {
-          let errorMsg = 'Login failed';
-          try {
-            const data = await loginRes.json();
-            console.log("⚠️ Login error response data:", data);
-            errorMsg = data.error || data.message || errorMsg;
-          } catch (parseError) {
-            console.error("⚠️ Could not parse login error response:", parseError);
+          if (!loginRes.ok) {
+            let errorMsg = 'Login failed';
             try {
-              const textResponse = await loginRes.text();
-              console.log("📝 Raw error response:", textResponse.substring(0, 200) + (textResponse.length > 200 ? '...' : ''));
-            } catch (textError) {
-              console.error("⚠️ Could not get text from response:", textError);
+              const data = await loginRes.json();
+              console.log("⚠️ Login error response data:", data);
+              errorMsg = data.error || data.message || errorMsg;
+            } catch (parseError) {
+              console.error("⚠️ Could not parse login error response:", parseError);
+              try {
+                const textResponse = await loginRes.text();
+                console.log("📝 Raw error response:", textResponse.substring(0, 200) + (textResponse.length > 200 ? '...' : ''));
+              } catch (textError) {
+                console.error("⚠️ Could not get text from response:", textError);
+              }
             }
+            setAuthError(errorMsg);
+            toast({
+              variant: "destructive",
+              title: "Login failed",
+              description: errorMsg
+            });
+            setIsLoading(false);
+            return;
           }
-          setAuthError(errorMsg);
+
+          const loginData = await loginRes.json();
+          console.log("✅ Login successful, received data:", loginData);
+
+        } catch (fetchError) {
+          console.error("⚠️ Login fetch error:", fetchError);
+          setAuthError("Network error while attempting to login. Please try again.");
           toast({
             variant: "destructive",
-            title: "Login failed",
-            description: errorMsg
+            title: "Login error",
+            description: "Network error while attempting to login. Please try again."
           });
           setIsLoading(false);
           return;
@@ -101,7 +117,7 @@ export const useLoginForm = () => {
           // Explicitly refresh session to update auth context
           if (refreshSession) {
             console.log("🔄 Refreshing session context");
-            refreshSession("post-login");
+            await refreshSession("post-login");
             console.log("✅ Session refresh completed");
           } else {
             console.warn("⚠️ refreshSession function not available");
