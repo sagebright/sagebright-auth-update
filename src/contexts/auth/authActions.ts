@@ -53,7 +53,7 @@ export async function signIn(
   onError: (error: any) => void
 ) {
   try {
-    const response = await fetch('/api/auth/signin', {
+    const response = await fetch('/api/auth/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
