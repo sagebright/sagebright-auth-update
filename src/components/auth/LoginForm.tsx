@@ -1,5 +1,5 @@
 
-import React, { useEffect } from "react";
+import React, { useEffect, useCallback } from "react";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { LogIn } from "lucide-react";
@@ -36,8 +36,11 @@ const LoginForm: React.FC<LoginFormProps> = ({
     return () => console.log("🧩 LoginForm unmounted");
   }, []);
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  // Create a stable handleFormSubmit function that won't change on each render
+  const handleFormSubmit = useCallback((e: React.FormEvent) => {
     console.log("📝 Form submit event triggered");
+    e.preventDefault(); // Ensure we prevent default
+    
     handleSubmit(async (values) => {
       console.log("📝 Form validation passed, calling onSubmit with:", values);
       try {
@@ -46,7 +49,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
         console.error("📝 Form submission error:", error);
       }
     })(e);
-  };
+  }, [handleSubmit, onSubmit]);
 
   return (
     <Form {...form}>

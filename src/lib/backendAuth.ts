@@ -10,6 +10,13 @@ export interface AuthPayload {
   org: { id: string; slug: string };
 }
 
+// Add throttling mechanism to prevent excessive calls
+const lastAuthCheckRef = {
+  timestamp: 0,
+  result: null as AuthPayload | null,
+  pending: false
+};
+
 /**
  * Basic function to check for the presence of auth cookies
  * @returns Boolean indicating if auth cookie exists
@@ -46,13 +53,24 @@ export function hasAuthCookie(): boolean {
  */
 export async function fetchAuth(options: { forceCheck?: boolean } = {}): Promise<AuthPayload> {
   const { forceCheck = false } = options;
-  console.log("🔄 fetchAuth called with options:", { forceCheck });
   
-  const hasCookie = hasAuthCookie();
+  // Add throttling for repeated calls
+  const now = Date.now();
+  const throttleTime = 1000; // 1 second minimum between checks
   
-  // Skip the fetch if no auth cookie is present and not forcing a check
-  if (!forceCheck && !hasCookie) {
-    console.warn("🔄 No auth cookie detected, skipping session fetch");
+  // Skip if we already checked recently and not forcing
+  if (!forceCheck && 
+      lastAuthCheckRef.result && 
+      (now - lastAuthCheckRef.timestamp < throttleTime)) {
+    console.log("🔄 Using cached auth check from last", 
+      (now - lastAuthCheckRef.timestamp), "ms");
+    return lastAuthCheckRef.result;
+  }
+  
+  // Skip if another fetch is in progress
+  if (lastAuthCheckRef.pending && !forceCheck) {
+    console.log("🔄 Auth fetch already in progress, skipping duplicate");
+    // Return a placeholder while waiting
     return {
       session: null as any,
       user: null as any,
@@ -60,11 +78,28 @@ export async function fetchAuth(options: { forceCheck?: boolean } = {}): Promise
     };
   }
   
+  console.log("🔄 fetchAuth called with options:", { forceCheck });
+  
+  const hasCookie = hasAuthCookie();
+  
+  // Skip the fetch if no auth cookie is present and not forcing a check
+  if (!forceCheck && !hasCookie) {
+    console.warn("🔄 No auth cookie detected, skipping session fetch");
+    lastAuthCheckRef.result = {
+      session: null as any,
+      user: null as any,
+      org: null as any
+    };
+    lastAuthCheckRef.timestamp = now;
+    return lastAuthCheckRef.result;
+  }
+  
   const BASE = import.meta.env.VITE_BACKEND_URL || '';
   const url = `${BASE}/api/auth/session`;
   console.log(`🔍 Fetching auth session from: ${url}`);
   
   try {
+    lastAuthCheckRef.pending = true;
     console.log("🔍 Starting fetch request with credentials included");
     const res = await fetch(url, {
       credentials: 'include',
@@ -103,15 +138,20 @@ export async function fetchAuth(options: { forceCheck?: boolean } = {}): Promise
       // A 401 is expected when not logged in - don't treat as an error
       if (res.status === 401) {
         console.log("🔍 Auth session returned 401 - Not authenticated (expected if not logged in)");
-        return {
+        const result = {
           session: null as any,
           user: null as any,
           org: null as any
         };
+        lastAuthCheckRef.result = result;
+        lastAuthCheckRef.timestamp = now;
+        lastAuthCheckRef.pending = false;
+        return result;
       }
       
       const error = `Auth fetch failed: ${res.status} ${errorText}`;
       console.error(error);
+      lastAuthCheckRef.pending = false;
       throw new Error(error);
     }
     
@@ -122,6 +162,9 @@ export async function fetchAuth(options: { forceCheck?: boolean } = {}): Promise
         hasUser: !!responseData?.user,
         hasOrg: !!responseData?.org
       });
+      lastAuthCheckRef.result = responseData;
+      lastAuthCheckRef.timestamp = now;
+      lastAuthCheckRef.pending = false;
       return responseData;
     } catch (parseError) {
       console.error("❌ Failed to parse JSON from auth response:", parseError);
@@ -132,10 +175,12 @@ export async function fetchAuth(options: { forceCheck?: boolean } = {}): Promise
       } catch (textError) {
         console.error("❌ Could not get text response either:", textError);
       }
+      lastAuthCheckRef.pending = false;
       throw new Error(`Failed to parse auth response: ${parseError}`);
     }
   } catch (fetchError) {
     console.error("❌ Auth fetch request failed:", fetchError);
+    lastAuthCheckRef.pending = false;
     throw fetchError;
   }
 }

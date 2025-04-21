@@ -1,4 +1,3 @@
-
 import { handleApiError } from '../handleApiError';
 import { AuthPayload } from '../backendAuth';
 import { toast } from '@/hooks/use-toast';
@@ -7,12 +6,30 @@ import { toast } from '@/hooks/use-toast';
  * API helpers for authentication endpoints
  */
 
+// Keep track of active API calls to prevent duplicates
+const activeAuthCalls = {
+  session: false,
+  login: false
+};
+
 /**
  * Fetches the current authentication session from the backend
  * @returns Promise with auth payload
  */
 export async function getAuthSession(): Promise<AuthPayload> {
+  // Prevent duplicate calls
+  if (activeAuthCalls.session) {
+    console.log("📡 Auth session fetch already in progress, skipping duplicate");
+    return {
+      session: null as any,
+      user: null as any,
+      org: null as any
+    };
+  }
+  
   console.log("📡 Getting auth session from API");
+  activeAuthCalls.session = true;
+  
   try {
     const BASE = import.meta.env.VITE_BACKEND_URL || '';
     const url = `${BASE}/api/auth/session`;
@@ -65,6 +82,8 @@ export async function getAuthSession(): Promise<AuthPayload> {
   } catch (error) {
     handleApiError(error, { context: 'auth-session' });
     throw error;
+  } finally {
+    activeAuthCalls.session = false;
   }
 }
 
@@ -75,7 +94,15 @@ export async function getAuthSession(): Promise<AuthPayload> {
  * @returns Promise with auth data
  */
 export async function signIn(email: string, password: string): Promise<any> {
+  // Prevent duplicate login attempts
+  if (activeAuthCalls.login) {
+    console.log("📡 Login already in progress, skipping duplicate");
+    throw new Error("A login attempt is already in progress");
+  }
+  
   console.log("📡 Signing in user:", email);
+  activeAuthCalls.login = true;
+  
   try {
     const BASE = import.meta.env.VITE_BACKEND_URL || '';
     console.log(`📡 Preparing sign-in request: ${BASE}/api/auth/login`);
@@ -117,6 +144,8 @@ export async function signIn(email: string, password: string): Promise<any> {
   } catch (error) {
     handleApiError(error, { context: 'signin', showToast: true });
     throw error;
+  } finally {
+    activeAuthCalls.login = false;
   }
 }
 

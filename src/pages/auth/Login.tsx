@@ -13,12 +13,14 @@ import SessionStatusIndicator from "@/components/auth/SessionStatusIndicator";
 
 export default function Login() {
   const { signInWithGoogle } = useAuth();
-  const { form, isLoading, authError, onSubmit } = useLoginForm();
+  const { form, isLoading, authError, onSubmit, formSubmitted } = useLoginForm();
   const { isAuthenticated, user, loading, activeIntent } = useLoginRedirect();
   const location = useLocation();
   
   useEffect(() => {
-    console.log("📄 Login page mounted", { 
+    // Add timestamp to see when login components mount/unmount
+    const timestamp = new Date().toISOString();
+    console.log(`📄 Login page mounted at ${timestamp}`, { 
       isAuthenticated, 
       hasUser: !!user,
       loading, 
@@ -28,7 +30,7 @@ export default function Login() {
     });
     
     return () => {
-      console.log("📄 Login page unmounted");
+      console.log(`📄 Login page unmounted at ${new Date().toISOString()}`);
     };
   }, [isAuthenticated, user, loading, authError, activeIntent, form]);
   
@@ -39,7 +41,11 @@ export default function Login() {
   
   const handleLoginSubmit = async (values: any) => {
     console.log("📝 Login form submitted with values:", values);
-    await onSubmit(values);
+    try {
+      await onSubmit(values);
+    } catch (error) {
+      console.error("❌ Error during login submission:", error);
+    }
   };
   
   // If authenticated and has user data, show loading/redirect UI
@@ -62,7 +68,9 @@ export default function Login() {
     >
       <>
         <SessionStatusIndicator loading={loading} />
-        Enter your credentials to sign in to your account
+        <p className="mb-4 text-gray-600">
+          Enter your credentials to sign in to your account
+        </p>
       </>
       
       <div className="space-y-4">

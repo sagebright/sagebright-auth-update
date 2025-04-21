@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/auth/AuthContext";
 import { useRedirectIntentManager } from "@/lib/redirect-intent";
 import { fetchAuth } from '@/lib/backendAuth';
 import { toast } from "@/hooks/use-toast";
+import { signIn } from "@/lib/api/authApi";
 
 // Enhance password requirements for clarity (min 6 chars, customizable)
 const loginSchema = z.object({
@@ -27,6 +28,8 @@ export const useLoginForm = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formSubmitted, setFormSubmitted] = useState(false);
 
   const { activeIntent, executeRedirect, clearIntent } = useRedirectIntentManager();
 
@@ -42,70 +45,40 @@ export const useLoginForm = () => {
     criteriaMode: "all"
   });
 
+  // Cleanup function to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      // Reset submission state when component unmounts
+      setIsLoading(false);
+      setIsSubmitting(false);
+    };
+  }, []);
+
   const onSubmit = useCallback(
     async (values: LoginValues): Promise<void> => {
+      if (isSubmitting) {
+        console.log("🛑 Form submission already in progress, preventing duplicate");
+        return;
+      }
+      
+      setFormSubmitted(true);
+      setIsSubmitting(true);
       console.log("🚀 Login attempt started", { email: values.email });
       setIsLoading(true);
       setAuthError(null);
 
       try {
-        const BASE = import.meta.env.VITE_BACKEND_URL || "";
-        console.log(`🔧 Login fetch preparing: ${BASE}/api/auth/login`);
+        console.log(`🔧 Login process starting with email: ${values.email}`);
         
         try {
-          const loginRes = await fetch(`${BASE}/api/auth/login`, {
-            method: 'POST',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              email: values.email,
-              password: values.password,
-            }),
-          });
-
-          console.log(`✅ Login response received`, { 
-            status: loginRes.status, 
-            statusText: loginRes.statusText,
-            ok: loginRes.ok
-          });
-
-          if (!loginRes.ok) {
-            let errorMsg = 'Login failed';
-            try {
-              const data = await loginRes.json();
-              console.log("⚠️ Login error response data:", data);
-              errorMsg = data.error || data.message || errorMsg;
-            } catch (parseError) {
-              console.error("⚠️ Could not parse login error response:", parseError);
-              try {
-                const textResponse = await loginRes.text();
-                console.log("📝 Raw error response:", textResponse.substring(0, 200) + (textResponse.length > 200 ? '...' : ''));
-              } catch (textError) {
-                console.error("⚠️ Could not get text from response:", textError);
-              }
-            }
-            setAuthError(errorMsg);
-            toast({
-              variant: "destructive",
-              title: "Login failed",
-              description: errorMsg
-            });
-            setIsLoading(false);
-            return;
-          }
-
-          const loginData = await loginRes.json();
-          console.log("✅ Login successful, received data:", loginData);
-
+          // Use our centralized auth API
+          const loginResult = await signIn(values.email, values.password);
+          console.log("✅ Login API call successful with response:", loginResult);
         } catch (fetchError) {
-          console.error("⚠️ Login fetch error:", fetchError);
-          setAuthError("Network error while attempting to login. Please try again.");
-          toast({
-            variant: "destructive",
-            title: "Login error",
-            description: "Network error while attempting to login. Please try again."
-          });
+          console.error("⚠️ Login API error:", fetchError);
+          setAuthError(fetchError instanceof Error ? fetchError.message : "Login failed. Please try again.");
           setIsLoading(false);
+          setIsSubmitting(false);
           return;
         }
 
@@ -131,6 +104,7 @@ export const useLoginForm = () => {
             description: "Failed to load session context. Please try reloading."
           });
           setIsLoading(false);
+          setIsSubmitting(false);
           return;
         }
         
@@ -155,9 +129,10 @@ export const useLoginForm = () => {
         console.error('Login error details:', err);
       } finally {
         setIsLoading(false);
+        setIsSubmitting(false);
       }
     },
-    [refreshSession, activeIntent, executeRedirect, navigate]
+    [refreshSession, activeIntent, executeRedirect, navigate, isSubmitting]
   );
 
   return {
@@ -165,5 +140,6 @@ export const useLoginForm = () => {
     isLoading,
     authError,
     onSubmit,
+    formSubmitted
   };
 };
