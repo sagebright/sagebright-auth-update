@@ -7,7 +7,8 @@
 // Track repeated cookie checks to reduce logging
 let lastCookieCheckTime = 0;
 let lastCookieCheckResult = false;
-const COOKIE_LOG_THROTTLE = 5000; // Only log cookie checks every 5 seconds
+const COOKIE_LOG_THROTTLE = 30000; // Only log cookie checks every 30 seconds (increased from 5s)
+let loggingEnabled = false; // Disable verbose cookie logging by default
 
 export function hasAuthCookie(): boolean {
   // Look for session cookie based on the likely pattern used by the backend
@@ -22,14 +23,14 @@ export function hasAuthCookie(): boolean {
   ];
 
   const now = Date.now();
-  const shouldLog = now - lastCookieCheckTime > COOKIE_LOG_THROTTLE;
+  const shouldLog = loggingEnabled && now - lastCookieCheckTime > COOKIE_LOG_THROTTLE;
   
   const cookieExists = authCookiePatterns.some(pattern =>
     cookies.some(cookie => cookie.startsWith(`${pattern}=`))
   );
 
-  // Only log if the result has changed or enough time has passed
-  if (shouldLog || cookieExists !== lastCookieCheckResult) {
+  // Only log if the result has changed or enough time has passed AND logging is enabled
+  if (shouldLog || (loggingEnabled && cookieExists !== lastCookieCheckResult)) {
     lastCookieCheckTime = now;
     lastCookieCheckResult = cookieExists;
     
@@ -44,4 +45,10 @@ export function hasAuthCookie(): boolean {
   }
 
   return cookieExists;
+}
+
+// Used by backendAuth.ts to configure logging
+export function setCookieLogging(enabled: boolean) {
+  loggingEnabled = enabled;
+  console.log(`🍪 Cookie logging ${enabled ? 'enabled' : 'disabled'}`);
 }

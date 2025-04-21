@@ -6,7 +6,7 @@ import { toast } from '@/components/ui/use-toast';
 
 // Throttle logging
 let lastSessionRefreshLog = 0;
-const SESSION_LOG_THROTTLE = 5000; // 5 seconds
+const SESSION_LOG_THROTTLE = 10000; // 10 seconds (increased from 5s)
 
 export function useSessionRefresh() {
   const isRefreshingRef = useRef<boolean>(false);
@@ -15,6 +15,7 @@ export function useSessionRefresh() {
   const sessionRefreshPromiseRef = useRef<Promise<void> | null>(null);
   const refreshErrorRef = useRef<Error | null>(null);
   const throttledAttemptsRef = useRef<number>(0);
+  const timeoutIdRef = useRef<number | null>(null);
 
   // Conditionally log based on importance and time
   const logIfNeeded = (message: string, data?: any, force: boolean = false) => {
@@ -39,7 +40,7 @@ export function useSessionRefresh() {
     
     const currentTime = Date.now();
     const timeSinceLastRefresh = currentTime - sessionLastRefreshedRef.current;
-    const minimumRefreshInterval = 2000; // 2 seconds between refreshes
+    const minimumRefreshInterval = 5000; // 5 seconds between refreshes (increased from 2s)
     
     // Enhanced throttling for repeated refresh attempts
     if (timeSinceLastRefresh < minimumRefreshInterval) {
@@ -48,7 +49,7 @@ export function useSessionRefresh() {
       // Exponential backoff for repeated attempts
       const backoffTime = Math.min(
         minimumRefreshInterval * Math.pow(1.5, throttledAttemptsRef.current),
-        30000 // Max 30 second backoff
+        60000 // Max 60 second backoff (increased from 30s)
       );
       
       if (!reason.includes('critical') && !reason.includes('post-login')) {
@@ -62,7 +63,7 @@ export function useSessionRefresh() {
     
     if (refreshErrorRef.current && !reason.includes('critical') && !reason.includes('post-login')) {
       const errorAge = currentTime - (refreshErrorRef.current as any).timestamp;
-      if (errorAge < 5000) { // 5 second cool-down after errors
+      if (errorAge < 10000) { // 10 second cool-down after errors (increased from 5s)
         logIfNeeded(`🔄 Session refresh had error ${errorAge}ms ago, cooling down before retry`, null, false);
         return Promise.resolve();
       }
@@ -75,6 +76,23 @@ export function useSessionRefresh() {
     const isCriticalRefresh = reason.includes('critical') || reason.includes('post-login');
     
     sessionRefreshPromiseRef.current = new Promise<void>(async (resolve, reject) => {
+      // Clear any existing timeout
+      if (timeoutIdRef.current !== null) {
+        window.clearTimeout(timeoutIdRef.current);
+        timeoutIdRef.current = null;
+      }
+      
+      // Set timeout for this operation
+      const timeoutId = window.setTimeout(() => {
+        logIfNeeded(`⚠️ Session refresh ${refreshCount} timed out after 15 seconds`, null, true);
+        isRefreshingRef.current = false;
+        sessionRefreshPromiseRef.current = null;
+        timeoutIdRef.current = null;
+        reject(new Error("Session refresh timed out"));
+      }, 15000);
+      
+      timeoutIdRef.current = timeoutId as unknown as number;
+      
       try {
         logIfNeeded(`🔄 Refreshing session #${refreshCount} (reason: ${reason}, time since last: ${timeSinceLastRefresh}ms) at ${new Date().toISOString()}`, null, isCriticalRefresh);
         
@@ -87,6 +105,8 @@ export function useSessionRefresh() {
         
         if (refreshCount < refreshCountRef.current) {
           logIfNeeded(`🔄 Refresh #${refreshCount} superseded by newer refresh, discarding result`, null, false);
+          window.clearTimeout(timeoutId);
+          timeoutIdRef.current = null;
           isRefreshingRef.current = false;
           resolve();
           return;
@@ -111,6 +131,8 @@ export function useSessionRefresh() {
         if (isCriticalRefresh) {
           logIfNeeded(`✅ Session #${refreshCount} refreshed successfully at ${new Date().toISOString()}`);
         }
+        window.clearTimeout(timeoutId);
+        timeoutIdRef.current = null;
         resolve();
       } catch (error) {
         // Always log refresh errors
@@ -127,8 +149,14 @@ export function useSessionRefresh() {
           });
         }
         
+        window.clearTimeout(timeoutId);
+        timeoutIdRef.current = null;
         reject(error);
       } finally {
+        if (timeoutIdRef.current === timeoutId) {
+          window.clearTimeout(timeoutId);
+          timeoutIdRef.current = null;
+        }
         isRefreshingRef.current = false;
         sessionRefreshPromiseRef.current = null;
       }

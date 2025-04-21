@@ -1,5 +1,5 @@
 
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/auth/AuthContext";
 import AuthLayout from "@/components/auth/AuthLayout";
@@ -17,22 +17,33 @@ export default function Login() {
   const { isAuthenticated, user, loading, activeIntent } = useLoginRedirect();
   const location = useLocation();
   
+  // Add a mount tracker to prevent duplicate initializations
+  const isMountedRef = useRef(false);
+  
   useEffect(() => {
-    // Add timestamp to see when login components mount/unmount
-    const timestamp = new Date().toISOString();
-    console.log(`📄 Login page mounted at ${timestamp}`, { 
-      isAuthenticated, 
-      hasUser: !!user,
-      loading, 
-      authError, 
-      activeIntent: activeIntent?.destination || 'none',
-      formValues: form.getValues()
-    });
+    // Only log mount once per component lifecycle
+    if (!isMountedRef.current) {
+      isMountedRef.current = true;
+      
+      // Add timestamp to see when login components mount/unmount
+      const timestamp = new Date().toISOString();
+      console.log(`📄 Login page mounted at ${timestamp}`, { 
+        isAuthenticated, 
+        hasUser: !!user,
+        loading, 
+        authError,
+        activeIntent: activeIntent?.destination || 'none'
+      });
+    }
     
     return () => {
-      console.log(`📄 Login page unmounted at ${new Date().toISOString()}`);
+      // Only log unmount if we previously logged mount
+      if (isMountedRef.current) {
+        console.log(`📄 Login page unmounted at ${new Date().toISOString()}`);
+        isMountedRef.current = false;
+      }
     };
-  }, [isAuthenticated, user, loading, authError, activeIntent, form]);
+  }, [isAuthenticated, user, loading, authError, activeIntent]);
   
   const handleGoogleSignIn = () => {
     console.log("🔍 Google sign-in button clicked");
@@ -40,7 +51,10 @@ export default function Login() {
   };
   
   const handleLoginSubmit = async (values: any) => {
-    console.log("📝 Login form submitted with values:", values);
+    console.log("📝 Login form submitted with values:", {
+      email: values.email,
+      hasPassword: !!values.password
+    });
     try {
       await onSubmit(values);
     } catch (error) {
@@ -50,7 +64,6 @@ export default function Login() {
   
   // If authenticated and has user data, show loading/redirect UI
   if (isAuthenticated && user) {
-    console.log("🔐 User already authenticated, preparing redirect");
     return <LoadingRedirect />;
   }
 

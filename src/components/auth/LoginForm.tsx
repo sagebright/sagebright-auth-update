@@ -1,5 +1,5 @@
 
-import React, { useEffect, useCallback } from "react";
+import React, { useEffect, useCallback, memo } from "react";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { LogIn } from "lucide-react";
@@ -17,7 +17,8 @@ interface LoginFormProps {
   authError: string | null;
 }
 
-const LoginForm: React.FC<LoginFormProps> = ({
+// Using memo to prevent unnecessary re-renders
+const LoginForm: React.FC<LoginFormProps> = memo(({
   form,
   onSubmit,
   isLoading,
@@ -31,14 +32,25 @@ const LoginForm: React.FC<LoginFormProps> = ({
     handleSubmit,
   } = form;
 
+  // Only log mount/unmount once
+  const didMountRef = React.useRef(false);
+  
   useEffect(() => {
-    console.log("🧩 LoginForm mounted");
-    return () => console.log("🧩 LoginForm unmounted");
+    if (!didMountRef.current) {
+      didMountRef.current = true;
+      console.log("🧩 LoginForm mounted");
+    }
+    return () => {
+      if (didMountRef.current) {
+        console.log("🧩 LoginForm unmounted");
+        didMountRef.current = false;
+      }
+    };
   }, []);
 
   // Create a stable handleFormSubmit function that won't change on each render
   const handleFormSubmit = useCallback(async (values: LoginValues) => {
-    console.log("📝 Form validation passed, calling onSubmit with:", values);
+    console.log("📝 Form validation passed, calling onSubmit");
     try {
       await onSubmit(values);
     } catch (error) {
@@ -134,7 +146,6 @@ const LoginForm: React.FC<LoginFormProps> = ({
           disabled={isLoading}
           loading={isLoading}
           loadingText="Signing in..."
-          onClick={() => console.log("🖱️ Login button clicked")}
         >
           {!isLoading && (
             <>
@@ -146,6 +157,9 @@ const LoginForm: React.FC<LoginFormProps> = ({
       </form>
     </Form>
   );
-};
+});
+
+// Display name for debugging
+LoginForm.displayName = 'LoginForm';
 
 export default LoginForm;

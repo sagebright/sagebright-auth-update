@@ -15,7 +15,7 @@ export const ROLE_LANDING_PAGES = {
 
 // Debounce logging
 let lastLoginRedirectLog = 0;
-const LOGIN_LOG_THROTTLE = 5000; // 5 seconds
+const LOGIN_LOG_THROTTLE = 10000; // 10 seconds to reduce spam
 
 export function useLoginRedirect() {
   const { user, isAuthenticated, loading, orgId, refreshSession } = useAuth();
@@ -27,6 +27,7 @@ export function useLoginRedirect() {
   const [loginTimestamp, setLoginTimestamp] = useState<number | null>(null);
   const sessionStableRef = useRef(false);
   const checkAttemptedRef = useRef(false);
+  const refreshAttemptedRef = useRef(false);
   
   const { 
     activeIntent,
@@ -96,20 +97,22 @@ export function useLoginRedirect() {
     }
   }, [storedRedirectPath, activeIntent, captureIntent, location.search, voiceParam, isAuthenticated]);
 
-  // Force session refresh once on page load
+  // Force session refresh ONLY ONCE on page load
   useEffect(() => {
-    const shouldRefresh = refreshSession && !loading && !hasRedirectedRef.current;
-    
-    if (shouldRefresh) {
+    // Only do this once per component mount
+    if (refreshSession && !refreshAttemptedRef.current && !loading) {
+      refreshAttemptedRef.current = true;
       logIfNeeded("🔄 Login page forcing one-time session refresh");
-      refreshSession("login page load");
+      refreshSession("login page load").catch(err => {
+        console.error("Session refresh error:", err);
+      });
     }
   }, [refreshSession, loading]);
 
   // Handle authenticated state and redirection
   useEffect(() => {
     if (loading) {
-      // Don't log "still loading" messages repeatedly
+      // Only log "still loading" once per threshold period
       if (isAuthenticated === false && logIfNeeded("⏳ Auth still loading on login page, waiting...")) {
         // Only log this message occasionally
       }
@@ -181,17 +184,24 @@ export function useLoginRedirect() {
         description: "Redirecting you back...",
       });
       
-      setTimeout(() => {
+      // Use a normal timeout rather than setTimeout to prevent potential loops
+      const timeoutMs = 100;
+      const redirectTimeout = window.setTimeout(() => {
         if (document.location.pathname.startsWith('/auth')) {
           console.log(`🚀 [${new Date().toISOString()}] Executing post-login redirect to: ${targetPath}`);
           navigate(targetPath, { replace: true });
-          setTimeout(() => {
+          
+          // Allow a cooling period before enabling redirects again
+          const clearRedirectTimeout = window.setTimeout(() => {
             redirectInProgressRef.current = false;
+            window.clearTimeout(clearRedirectTimeout);
           }, 1000);
         } else {
           logIfNeeded(`⚠️ Aborting redirect - already navigated away from /auth`);
+          redirectInProgressRef.current = false;
         }
-      }, 100);
+        window.clearTimeout(redirectTimeout);
+      }, timeoutMs);
     }
   }, [user, isAuthenticated, navigate, toast, loading, activeIntent, clearIntent, intentStatus]);
 
