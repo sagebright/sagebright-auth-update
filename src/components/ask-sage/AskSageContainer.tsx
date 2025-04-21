@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { DashboardContainer } from '@/components/layout/DashboardContainer';
 import { useAskSagePage } from '@/hooks/use-ask-sage-page';
 import { DebugPanel } from '@/components/debug/DebugPanel';
@@ -10,8 +10,23 @@ import { SageContentLayout } from '@/components/ask-sage/SageContentLayout';
 import { useSageContainerState } from '@/hooks/ask-sage/use-sage-container-state';
 
 export const AskSageContainer: React.FC = () => {
+  // Track if the component is truly mounted to prevent post-mount state updates
+  const hasRenderedRef = useRef(false);
+  const [isInitialized, setIsInitialized] = useState(false);
+  
   useEffect(() => {
+    if (hasRenderedRef.current) return;
+    
+    hasRenderedRef.current = true;
     console.log("🏗️ AskSageContainer component mounted");
+    
+    // Only set initialized state once
+    setIsInitialized(true);
+    
+    return () => {
+      console.log("🏗️ AskSageContainer component unmounted");
+      hasRenderedRef.current = false;
+    };
   }, []);
 
   const isMobile = useIsMobile();
@@ -29,65 +44,57 @@ export const AskSageContainer: React.FC = () => {
     canSendMessages
   } = useSageContainerState();
   
-  console.log("🧩 AskSageContainer state:", {
-    hasContext: !!sageContext.context,
-    contextLoading: sageContext.loading,
-    hasError: !!sageContext.error,
+  // Only log state on mount or when renderCount changes
+  useEffect(() => {
+    if (!isInitialized) return;
+    
+    console.log("🧩 AskSageContainer state:", {
+      hasContext: !!sageContext.context,
+      contextLoading: sageContext.loading,
+      hasError: !!sageContext.error,
+      userId,
+      orgId,
+      canInteract,
+      shouldRender,
+      isProtected,
+      canSendMessages
+    });
+  }, [isInitialized, sageContext, userId, orgId, canInteract, shouldRender, isProtected, canSendMessages]);
+  
+  // Use the main page logic hook - wrap in a memoized component to prevent re-renders
+  const askSagePageState = useAskSagePage();
+  
+  // If any dependencies change that require a re-render, compute the loading element
+  const loadingElement = React.useMemo(() => {
+    if (!canInteract || !shouldRender || !isInitialized) {
+      return (
+        <SageLoadingStates 
+          authLoading={askSagePageState.authLoading}
+          userId={userId}
+          orgId={orgId}
+          isProtected={isProtected}
+          canInteract={canInteract}
+          isRecoveringOrg={askSagePageState.isRecoveringOrg}
+          contextHydration={contextHydration}
+          shouldRender={shouldRender}
+        />
+      );
+    }
+    return null;
+  }, [
+    canInteract, 
+    shouldRender, 
+    isInitialized,
+    askSagePageState.authLoading,
     userId,
     orgId,
-    canInteract,
-    shouldRender,
     isProtected,
-    canSendMessages
-  });
-  
-  // Use the main page logic hook
-  const {
-    authLoading,
-    isAuthenticated,
-    isContextReady,
-    sessionUserReady,
-    isSessionStable,
-    
-    sidebarOpen,
-    setSidebarOpen,
-    isRecoveryVisible,
-    
-    messages,
-    isLoading,
-    suggestedQuestions,
-    showReflection,
-    setShowReflection,
-    
-    handleReflectionSubmit,
-    sendMessageToSage,
-    handleSelectQuestion,
-    handleFeedback,
-    
-    isRecoveringOrg,
-    voiceParam,
-    showWelcomeMessage,
-    
-    debugPanel
-  } = useAskSagePage();
-
-  // Render loading states
-  const loadingElement = (
-    <SageLoadingStates 
-      authLoading={authLoading}
-      userId={userId}
-      orgId={orgId}
-      isProtected={isProtected}
-      canInteract={canInteract}
-      isRecoveringOrg={isRecoveringOrg}
-      contextHydration={contextHydration}
-      shouldRender={shouldRender}
-    />
-  );
+    askSagePageState.isRecoveringOrg,
+    contextHydration
+  ]);
   
   // If we should show a loading state, return it
   if (loadingElement) {
-    console.log("🔄 AskSageContainer rendering loading state");
     return loadingElement;
   }
 
@@ -95,30 +102,30 @@ export const AskSageContainer: React.FC = () => {
   return (
     <DashboardContainer showSagePanel={false}>
       <SageContentLayout 
-        sidebarOpen={sidebarOpen}
-        setSidebarOpen={setSidebarOpen}
+        sidebarOpen={askSagePageState.sidebarOpen}
+        setSidebarOpen={askSagePageState.setSidebarOpen}
         isProtected={isProtected}
-        voiceParam={voiceParam}
+        voiceParam={askSagePageState.voiceParam}
         voiceSource={voiceParamState.source}
-        isSessionStable={isSessionStable}
+        isSessionStable={askSagePageState.isSessionStable}
         canSendMessages={canSendMessages}
-        messages={messages}
-        isLoading={isLoading}
-        suggestedQuestions={suggestedQuestions}
-        handleSelectQuestion={handleSelectQuestion}
-        sendMessageToSage={sendMessageToSage}
-        handleReflectionSubmit={handleReflectionSubmit}
-        handleFeedback={handleFeedback}
-        isContextReady={isContextReady}
-        showWelcomeMessage={showWelcomeMessage}
+        messages={askSagePageState.messages}
+        isLoading={askSagePageState.isLoading}
+        suggestedQuestions={askSagePageState.suggestedQuestions}
+        handleSelectQuestion={askSagePageState.handleSelectQuestion}
+        sendMessageToSage={askSagePageState.sendMessageToSage}
+        handleReflectionSubmit={askSagePageState.handleReflectionSubmit}
+        handleFeedback={askSagePageState.handleFeedback}
+        isContextReady={askSagePageState.isContextReady}
+        showWelcomeMessage={askSagePageState.showWelcomeMessage}
         canInteract={canInteract}
         isOrgReady={!!orgId}
       />
 
       <AskSageReflectionDialog 
-        showReflection={showReflection} 
-        setShowReflection={setShowReflection}
-        handleReflectionSubmit={handleReflectionSubmit}
+        showReflection={askSagePageState.showReflection} 
+        setShowReflection={askSagePageState.setShowReflection}
+        handleReflectionSubmit={askSagePageState.handleReflectionSubmit}
         isMobile={isMobile}
       />
       

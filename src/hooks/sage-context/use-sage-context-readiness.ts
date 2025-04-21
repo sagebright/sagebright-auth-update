@@ -1,5 +1,5 @@
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { SageContextReadiness } from './types';
 import { useReadinessState } from './use-readiness-state';
 import { useReadinessEvaluator } from './use-readiness-evaluator';
@@ -21,22 +21,44 @@ export function useSageContextReadiness(
     orgContext?: any | null
   } = {}
 ): SageContextReadiness {
-  console.log("🧪 useSageContextReadiness mounted", { 
-    userId, 
-    orgId, 
-    hasOrgSlug: !!orgSlug,
-    hasUserData: !!currentUserData,
-    authLoading,
-    isSessionUserReady,
-    voiceParam,
-    hasBackendContext: !!(backend.userContext || backend.orgContext)
-  });
+  // Track render counts to prevent excessive logging
+  const renderCountRef = useRef(0);
+  
+  // Only log on first render
+  useEffect(() => {
+    renderCountRef.current += 1;
+    
+    if (renderCountRef.current === 1) {
+      console.log("🧪 useSageContextReadiness mounted", { 
+        userId, 
+        orgId, 
+        hasOrgSlug: !!orgSlug,
+        hasUserData: !!currentUserData,
+        authLoading,
+        isSessionUserReady,
+        voiceParam,
+        hasBackendContext: !!(backend.userContext || backend.orgContext)
+      });
+    }
+  }, [userId, orgId, orgSlug, currentUserData, authLoading, isSessionUserReady, voiceParam, backend]);
 
   // Extract backend context values
   const { userContext = null, orgContext = null } = backend;
   
   // Use our extracted state management hook
   const { readiness, setReadiness } = useReadinessState();
+  
+  // Track evaluation state to prevent multiple evaluations for the same input
+  const hasEvaluatedRef = useRef(false);
+  const previousInputsRef = useRef({
+    userId,
+    orgId,
+    orgSlug,
+    currentUserDataExists: !!currentUserData,
+    authLoading,
+    isSessionUserReady,
+    voiceParam,
+  });
   
   // Use our extracted evaluator hook
   const { evaluateReadiness } = useReadinessEvaluator(
@@ -54,19 +76,46 @@ export function useSageContextReadiness(
   useEffect(() => {
     // Don't evaluate until auth loading is complete
     if (authLoading) {
-      console.log("⏳ Auth still loading, delaying readiness evaluation");
       return;
     }
     
-    console.log("🔍 Evaluating context readiness with params:", {
-      hasUserId: !!userId,
-      hasOrgId: !!orgId,
-      authComplete: !authLoading
-    });
+    // Check if inputs have changed to avoid unnecessary re-evaluations
+    const currentInputs = {
+      userId,
+      orgId,
+      orgSlug,
+      currentUserDataExists: !!currentUserData,
+      authLoading,
+      isSessionUserReady,
+      voiceParam,
+    };
     
-    // Evaluate readiness and update state
-    const newReadiness = evaluateReadiness();
-    setReadiness(newReadiness);
+    const inputsChanged = 
+      previousInputsRef.current.userId !== currentInputs.userId ||
+      previousInputsRef.current.orgId !== currentInputs.orgId ||
+      previousInputsRef.current.orgSlug !== currentInputs.orgSlug ||
+      previousInputsRef.current.currentUserDataExists !== currentInputs.currentUserDataExists ||
+      previousInputsRef.current.authLoading !== currentInputs.authLoading ||
+      previousInputsRef.current.isSessionUserReady !== currentInputs.isSessionUserReady ||
+      previousInputsRef.current.voiceParam !== currentInputs.voiceParam;
+    
+    // Only log and evaluate if this is the first evaluation or inputs have changed
+    if (!hasEvaluatedRef.current || inputsChanged) {
+      console.log("🔍 Evaluating context readiness with params:", {
+        hasUserId: !!userId,
+        hasOrgId: !!orgId,
+        authComplete: !authLoading,
+        inputsChanged
+      });
+      
+      // Evaluate readiness and update state
+      const newReadiness = evaluateReadiness();
+      setReadiness(newReadiness);
+      
+      // Update refs
+      hasEvaluatedRef.current = true;
+      previousInputsRef.current = currentInputs;
+    }
   }, [
     userId, 
     orgId, 
@@ -81,14 +130,50 @@ export function useSageContextReadiness(
     setReadiness
   ]);
   
-  console.log("📊 Context readiness state:", {
+  // Track readiness state changes to log only when they change
+  const prevReadinessStateRef = useRef({
     isReadyToRender: readiness.isReadyToRender,
     isReadyToSend: readiness.isReadyToSend,
     isContextReady: readiness.isContextReady,
     contextCheckComplete: readiness.contextCheckComplete,
-    blockerCount: readiness.blockers.length,
-    blockers: readiness.blockers
+    blockerCount: readiness.blockers.length
   });
+  
+  useEffect(() => {
+    const current = {
+      isReadyToRender: readiness.isReadyToRender,
+      isReadyToSend: readiness.isReadyToSend,
+      isContextReady: readiness.isContextReady,
+      contextCheckComplete: readiness.contextCheckComplete,
+      blockerCount: readiness.blockers.length
+    };
+    
+    const hasChanged = 
+      prevReadinessStateRef.current.isReadyToRender !== current.isReadyToRender ||
+      prevReadinessStateRef.current.isReadyToSend !== current.isReadyToSend ||
+      prevReadinessStateRef.current.isContextReady !== current.isContextReady ||
+      prevReadinessStateRef.current.contextCheckComplete !== current.contextCheckComplete ||
+      prevReadinessStateRef.current.blockerCount !== current.blockerCount;
+    
+    if (hasChanged) {
+      console.log("📊 Context readiness state changed:", {
+        isReadyToRender: readiness.isReadyToRender,
+        isReadyToSend: readiness.isReadyToSend,
+        isContextReady: readiness.isContextReady,
+        contextCheckComplete: readiness.contextCheckComplete,
+        blockerCount: readiness.blockers.length,
+        blockers: readiness.blockers
+      });
+      
+      prevReadinessStateRef.current = current;
+    }
+  }, [
+    readiness.isReadyToRender,
+    readiness.isReadyToSend,
+    readiness.isContextReady,
+    readiness.contextCheckComplete,
+    readiness.blockers
+  ]);
   
   return readiness;
 }

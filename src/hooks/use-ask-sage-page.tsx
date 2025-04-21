@@ -1,12 +1,12 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
 import { useChat } from '@/hooks/use-chat';
 import { useVoiceParam } from '@/hooks/use-voice-param';
 import { useDebugPanel } from '@/hooks/use-debug-panel';
 import { useAuth } from '@/contexts/auth/AuthContext';
-import { useSageContextReadiness } from '@/hooks/use-sage-context-readiness';
+import { useSageContextReadiness } from '@/hooks/sage-context';
 import { useSageUIState } from '@/hooks/ask-sage/use-sage-ui-state';
 import { useReflectionHandler } from '@/hooks/ask-sage/use-reflection-handler';
 import { useQuestionSelection } from '@/hooks/ask-sage/use-question-selection';
@@ -14,7 +14,21 @@ import { useContextMonitor } from '@/hooks/ask-sage/use-context-monitor';
 import { useSageMessenger } from '@/hooks/ask-sage/use-sage-messenger';
 
 export const useAskSagePage = () => {
-  console.group('🌟 Ask Sage Page Initialization');
+  // Use ref to prevent excessive logging
+  const hasLoggedRef = useRef(false);
+  
+  // Only log once on initial load
+  useEffect(() => {
+    if (!hasLoggedRef.current) {
+      console.group('🌟 Ask Sage Page Initialization');
+      hasLoggedRef.current = true;
+    }
+    
+    return () => {
+      console.groupEnd();
+    };
+  }, []);
+  
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   
@@ -36,23 +50,38 @@ export const useAskSagePage = () => {
   
   // Voice parameter context
   const voiceParam = useVoiceParam();
-  console.log('🎤 Voice parameter detected:', voiceParam);
   
-  // UI state management
+  // Use ref for initialization state to reduce render triggers
+  const pageInitializedRef = useRef(false);
   const [pageInitialized, setPageInitialized] = useState(false);
   
-  // Context readiness
+  // Context readiness - use stable references to prevent re-renders
+  const stableUserId = useRef(userId).current;
+  const stableOrgId = useRef(orgId).current;
+  const stableOrgSlug = useRef(orgSlug).current;
+  
+  // Context readiness with memoized parameters
   const contextReadiness = useSageContextReadiness(
-    userId,
-    orgId,
-    orgSlug,
+    stableUserId,
+    stableOrgId,
+    stableOrgSlug,
     currentUserData,
     authLoading,
     sessionUserReady,
     voiceParam
   );
   
-  // Chat functionality
+  // Chat functionality - memoize the isContextReady to prevent re-renders
+  const isContextReadyStable = useRef(contextReadiness.isContextReady);
+  
+  // Only update the stable ref when the value actually changes
+  useEffect(() => {
+    if (isContextReadyStable.current !== contextReadiness.isContextReady) {
+      isContextReadyStable.current = contextReadiness.isContextReady;
+    }
+  }, [contextReadiness.isContextReady]);
+  
+  // Use the stable ref value for the chat hook
   const {
     messages,
     isLoading,
@@ -60,7 +89,7 @@ export const useAskSagePage = () => {
     handleSendMessage,
     handleFeedback,
     isRecoveringOrg
-  } = useChat(debugPanel, contextReadiness.isContextReady);
+  } = useChat(debugPanel, isContextReadyStable.current);
   
   // UI state hooks
   const uiState = useSageUIState(messages);
@@ -68,7 +97,7 @@ export const useAskSagePage = () => {
   // Reflection handler
   const reflectionHandler = useReflectionHandler();
   
-  // Context monitoring
+  // Context monitoring - use stable references
   useContextMonitor(
     contextReadiness,
     isAuthenticated,
@@ -81,28 +110,36 @@ export const useAskSagePage = () => {
     uiState.setIsRecoveryVisible
   );
   
-  // Message sending
-  const { sendMessageToSage } = useSageMessenger(
+  // Message sending - wrap in a stable reference
+  const stableSendMessageArgs = useMemo(() => ({
     userId,
     orgId,
     handleSendMessage,
     user,
     contextReadiness
+  }), [userId, orgId, handleSendMessage, user, contextReadiness.isContextReady, contextReadiness.isSessionStable]);
+  
+  const { sendMessageToSage } = useSageMessenger(
+    stableSendMessageArgs.userId,
+    stableSendMessageArgs.orgId,
+    stableSendMessageArgs.handleSendMessage,
+    stableSendMessageArgs.user,
+    stableSendMessageArgs.contextReadiness
   );
   
-  // Question selection
+  // Question selection - memoize to prevent re-renders
   const { handleSelectQuestion } = useQuestionSelection(sendMessageToSage);
   
-  // Page initialization effect
+  // Page initialization effect - use ref to prevent re-renders
   useEffect(() => {
-    if (!authLoading && isAuthenticated && !pageInitialized) {
+    if (!authLoading && isAuthenticated && !pageInitializedRef.current) {
+      pageInitializedRef.current = true;
       setPageInitialized(true);
     }
-  }, [authLoading, isAuthenticated, pageInitialized]);
-  
-  console.groupEnd();
+  }, [authLoading, isAuthenticated]);
 
-  return {
+  // Memoize the return value to prevent creating new object references on every render
+  return useMemo(() => ({
     // Auth context
     user,
     userId,
@@ -141,5 +178,12 @@ export const useAskSagePage = () => {
     isSessionStable: contextReadiness.isSessionStable,
     blockers: contextReadiness.blockers,
     readySince: contextReadiness.readySince
-  };
+  }), [
+    user, userId, orgId, authLoading, isAuthenticated,
+    uiState,
+    messages, isLoading, suggestedQuestions, reflectionHandler,
+    sendMessageToSage, handleSelectQuestion, handleFeedback,
+    isRecoveringOrg, voiceParam,
+    debugPanel, contextReadiness, sessionUserReady
+  ]);
 };
