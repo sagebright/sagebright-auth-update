@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { LogIn } from "lucide-react";
@@ -30,10 +30,24 @@ const LoginForm: React.FC<LoginFormProps> = ({
     trigger,
   } = form;
 
+  useEffect(() => {
+    console.log("🧩 LoginForm mounted");
+    return () => console.log("🧩 LoginForm unmounted");
+  }, []);
+
+  // Log form submission
+  const handleSubmit = (event: React.FormEvent) => {
+    console.log("📝 Form submission handler invoked");
+    form.handleSubmit((values) => {
+      console.log("📝 Form values validated, calling onSubmit");
+      onSubmit(values);
+    })(event);
+  };
+
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit(onSubmit)}
+        onSubmit={handleSubmit}
         className="space-y-4"
         aria-label="Login form"
         noValidate
@@ -118,6 +132,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
           disabled={isLoading || !isValid}
           loading={isLoading}
           loadingText="Signing in..."
+          onClick={() => console.log("🖱️ Login button clicked")}
         >
           {!isLoading && (
             <>

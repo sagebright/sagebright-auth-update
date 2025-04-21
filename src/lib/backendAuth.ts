@@ -19,10 +19,18 @@ export function hasAuthCookie(): boolean {
   const cookies = document.cookie.split(';').map(c => c.trim());
   const authCookiePatterns = ['sb-access-token', 'session-token', 'auth-token', 'auth.token'];
   
-  // Check if any auth cookie patterns exist
-  return authCookiePatterns.some(pattern => 
+  const cookieExists = authCookiePatterns.some(pattern => 
     cookies.some(cookie => cookie.startsWith(`${pattern}=`))
   );
+  
+  console.log("🍪 Auth cookie check:", { 
+    exists: cookieExists, 
+    cookies: document.cookie.length > 100 ? 
+      document.cookie.substring(0, 100) + '...' : 
+      document.cookie
+  });
+  
+  return cookieExists;
 }
 
 /**
@@ -33,6 +41,7 @@ export function hasAuthCookie(): boolean {
  */
 export async function fetchAuth(options: { forceCheck?: boolean } = {}): Promise<AuthPayload> {
   const { forceCheck = false } = options;
+  console.log("🔄 fetchAuth called with options:", { forceCheck });
   
   // Skip the fetch if no auth cookie is present and not forcing a check
   if (!forceCheck && !hasAuthCookie()) {
@@ -45,21 +54,71 @@ export async function fetchAuth(options: { forceCheck?: boolean } = {}): Promise
   }
   
   const BASE = import.meta.env.VITE_BACKEND_URL || '';
-  const res = await fetch(`${BASE}/api/auth/session`, {
-    credentials: 'include',
-    headers: {
-      'Accept': 'application/json',
-      'Cache-Control': 'no-cache'
+  const url = `${BASE}/api/auth/session`;
+  console.log(`🔍 Fetching auth session from: ${url}`);
+  
+  try {
+    const res = await fetch(url, {
+      credentials: 'include',
+      headers: {
+        'Accept': 'application/json',
+        'Cache-Control': 'no-cache'
+      }
+    });
+    
+    console.log("🔍 Auth session response:", { 
+      status: res.status,
+      statusText: res.statusText,
+      ok: res.ok,
+      contentType: res.headers.get('content-type')
+    });
+    
+    if (!res.ok) {
+      // Attempt to get detailed error information
+      let errorText;
+      try {
+        const contentType = res.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          const errorData = await res.json();
+          console.error('Auth fetch error data:', errorData);
+          errorText = JSON.stringify(errorData);
+        } else {
+          errorText = await res.text();
+          console.error('Auth fetch error text:', errorText.substring(0, 200));
+        }
+      } catch (parseErr) {
+        errorText = 'Could not parse error response';
+        console.error('Error parsing auth error response:', parseErr);
+      }
+      
+      const error = `Auth fetch failed: ${res.status} ${errorText}`;
+      console.error(error);
+      throw new Error(error);
     }
-  });
-  
-  if (!res.ok) {
-    const error = await res.text().catch(() => 'Unknown error');
-    console.error('Auth fetch failed:', error);
-    throw new Error(`Auth fetch failed: ${res.status} ${error}`);
+    
+    try {
+      const responseData = await res.json();
+      console.log("✅ Auth session data received:", {
+        hasSession: !!responseData?.session,
+        hasUser: !!responseData?.user,
+        hasOrg: !!responseData?.org
+      });
+      return responseData;
+    } catch (parseError) {
+      console.error("❌ Failed to parse JSON from auth response:", parseError);
+      // Try to get the text response for debugging
+      try {
+        const textResponse = await res.clone().text();
+        console.log("📄 Raw response text:", textResponse.substring(0, 200));
+      } catch (textError) {
+        console.error("❌ Could not get text response either:", textError);
+      }
+      throw new Error(`Failed to parse auth response: ${parseError}`);
+    }
+  } catch (fetchError) {
+    console.error("❌ Auth fetch request failed:", fetchError);
+    throw fetchError;
   }
-  
-  return res.json();
 }
 
 /**
@@ -67,10 +126,13 @@ export async function fetchAuth(options: { forceCheck?: boolean } = {}): Promise
  * @returns Promise resolving to a boolean indicating if the session is valid
  */
 export async function checkAuth(): Promise<boolean> {
+  console.log("🔍 Starting auth check");
   try {
     // Use forceCheck for explicit auth checks
     const authData = await fetchAuth({ forceCheck: true });
-    return !!authData.session?.id;
+    const isValid = !!authData.session?.id;
+    console.log("🔍 Auth check result:", { isValid });
+    return isValid;
   } catch (err) {
     console.error('Auth check failed:', err);
     return false;
