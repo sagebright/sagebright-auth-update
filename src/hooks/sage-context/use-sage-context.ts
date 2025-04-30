@@ -19,10 +19,10 @@ export function useSageContext() {
     hydration: {
       isComplete,
       progressPercent,
-      hydrationAttempts = 0,
       startTime,
       endTime,
-      duration
+      duration,
+      completedSteps
     },
     isReadyToRender,
     isReadyToSend,
@@ -39,7 +39,6 @@ export function useSageContext() {
     orgId,
     messages: [],
     _meta: {
-      source: 'hydration-hook',
       hydratedAt: endTime ? new Date(endTime).toISOString() : new Date().toISOString(),
       voiceConfig: null,
       timeout: !isComplete && startTime && (Date.now() - startTime) > 5000
@@ -58,7 +57,7 @@ export function useSageContext() {
     orgContext,
     voiceConfig: null, // This can be populated from context._meta if needed
     isReady: isReadyToRender && isBackendContextReady,
-    hydrationAttempts,
+    hydrationAttempts: completedSteps ? completedSteps.length : 0,
     lastHydrationTime: endTime,
     blockers,
     // Provide a fallback message when timed out
@@ -77,7 +76,7 @@ export function useSageContext() {
       loading: result.loading,
       hasError: !!error,
       isReady: result.isReady,
-      hydrationAttempts,
+      hydrationAttempts: result.hydrationAttempts,
       timedOut,
       hasContext: !!context,
       progressPercent
