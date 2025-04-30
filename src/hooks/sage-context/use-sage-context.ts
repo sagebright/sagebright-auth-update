@@ -1,7 +1,6 @@
 
-import { useState, useEffect } from 'react';
+import { useContextHydration } from './hydration';
 import { useAuth } from '@/contexts/auth/AuthContext';
-import { hydrateSageContext } from '@/lib/api/sageContextApi';
 import { SageContext } from '@/types/chat';
 
 /**
@@ -11,127 +10,79 @@ import { SageContext } from '@/types/chat';
 export function useSageContext() {
   console.log("🧠 useSageContext hook initialized");
   
-  const { userId, orgId, orgSlug, user: currentUserData, loading: authLoading } = useAuth();
-  const [context, setContext] = useState<SageContext | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-  const [hydrationAttempts, setHydrationAttempts] = useState(0);
-  const [lastHydrationTime, setLastHydrationTime] = useState<number | null>(null);
-  const [timedOut, setTimedOut] = useState(false);
+  const { userId, orgId, user } = useAuth();
+  const orgSlug = user?.user_metadata?.org_slug ?? null;
   
-  // Timeout for context hydration (5 seconds)
-  const HYDRATION_TIMEOUT = 5000;
+  // Use the canonical hydration hook instead of custom fetch logic
+  const {
+    backendContext: { userContext, orgContext, error },
+    hydration: {
+      isComplete,
+      progressPercent,
+      hydrationAttempts = 0,
+      startTime,
+      endTime,
+      duration
+    },
+    isReadyToRender,
+    isReadyToSend,
+    blockers,
+    isVoiceReady,
+    isBackendContextReady
+  } = useContextHydration();
   
-  useEffect(() => {
-    console.log("🔄 useSageContext effect triggered", {
-      authLoading,
-      userId,
-      orgId,
-      hasOrgSlug: !!orgSlug,
-      hasUserData: !!currentUserData
-    });
-    
-    // If auth is still loading or no userId or orgId, don't fetch context yet
-    if (authLoading || !userId || !orgId) {
-      console.log("⏳ Auth loading or missing IDs, skipping context fetch", {
-        authLoading,
-        hasUserId: !!userId,
-        hasOrgId: !!orgId
-      });
-      return;
+  // Construct the context object that matches the expected format
+  const context: SageContext | null = isBackendContextReady ? {
+    user: userContext,
+    org: orgContext,
+    userId,
+    orgId,
+    messages: [],
+    _meta: {
+      source: 'hydration-hook',
+      hydratedAt: endTime ? new Date(endTime).toISOString() : new Date().toISOString(),
+      voiceConfig: null,
+      timeout: !isComplete && startTime && (Date.now() - startTime) > 5000
     }
-
-    let isMounted = true;
-    
-    const fetchContext = async () => {
-      try {
-        console.log("🚀 Starting context fetch with hydrateSageContext", {
-          userId,
-          orgId,
-          orgSlug,
-          timeout: HYDRATION_TIMEOUT
-        });
-        
-        setLoading(true);
-        setHydrationAttempts(prev => prev + 1);
-        
-        console.log('🌟 Fetching unified context via hydrateSageContext');
-        
-        const contextData = await hydrateSageContext(
-          userId,
-          orgId,
-          orgSlug,
-          HYDRATION_TIMEOUT
-        );
-        
-        if (isMounted) {
-          if (contextData) {
-            // Check if this was a timeout fallback
-            if (contextData._meta?.timeout) {
-              setTimedOut(true);
-              console.warn('⚠️ Context hydration timed out, using fallback data');
-            } else {
-              console.log('✅ Context successfully fetched', {
-                hasUser: !!contextData.user,
-                hasOrg: !!contextData.org,
-                timestamp: new Date().toISOString()
-              });
-            }
-            
-            setContext(contextData);
-            setError(null);
-            setLastHydrationTime(Date.now());
-          } else {
-            console.error('❌ Context hydration returned null');
-            setError(new Error('Context hydration failed'));
-          }
-          
-          setLoading(false);
-        }
-      } catch (err) {
-        console.error('❌ Error fetching context:', err);
-        
-        if (isMounted) {
-          setError(err instanceof Error ? err : new Error('Unknown error fetching context'));
-          setLoading(false);
-        }
-      }
-    };
-
-    console.log("📞 Calling fetchContext from useSageContext");
-    fetchContext();
-
-    return () => {
-      console.log("🧹 Cleaning up useSageContext effect");
-      isMounted = false;
-    };
-  }, [userId, orgId, orgSlug, authLoading, HYDRATION_TIMEOUT]);
-
+  } : null;
+  
+  // Determine if hydration timed out
+  const timedOut = !isComplete && startTime && (Date.now() - startTime) > 5000;
+  
   const result = {
     context,
-    loading,
+    loading: !isComplete && !timedOut,
     error,
     timedOut,
-    userContext: context?.user || null,
-    orgContext: context?.org || null,
-    voiceConfig: context?._meta?.voiceConfig || null,
-    isReady: !loading && !error && !!context,
+    userContext,
+    orgContext,
+    voiceConfig: null, // This can be populated from context._meta if needed
+    isReady: isReadyToRender && isBackendContextReady,
     hydrationAttempts,
-    lastHydrationTime,
+    lastHydrationTime: endTime,
+    blockers,
     // Provide a fallback message when timed out
     fallbackMessage: timedOut ? 
       "I'm sorry, but we're having trouble loading your information. You can continue, but some personalized features might be limited." : 
-      null
+      null,
+    // Additional helpful metrics
+    hydrationProgress: progressPercent,
+    hydrationDuration: duration,
+    canSendMessages: isReadyToSend
   };
 
-  console.log("📤 useSageContext returning", {
-    loading,
-    hasError: !!error,
-    isReady: result.isReady,
-    hydrationAttempts,
-    timedOut,
-    hasContext: !!context
-  });
+  // Log only on significant state changes to avoid console spam
+  if (result.isReady || timedOut || error) {
+    console.log("📤 useSageContext state update", {
+      loading: result.loading,
+      hasError: !!error,
+      isReady: result.isReady,
+      hydrationAttempts,
+      timedOut,
+      hasContext: !!context,
+      progressPercent
+    });
+  }
 
   return result;
 }
