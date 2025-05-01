@@ -1,8 +1,10 @@
 
 import { useLocation } from 'react-router-dom';
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { fetchAuth } from '@/lib/backendAuth';
+import { fetchAuth, resetAuthState } from '@/lib/backendAuth';
 import { useRedirectIntentManager } from '@/lib/redirect-intent';
+import { handleApiError } from '@/lib/handleApiError';
+import { toast } from '@/hooks/use-toast';
 
 export function useAuthProvider() {
   const location = useLocation();
@@ -96,7 +98,12 @@ export function useAuthProvider() {
         role: authData.user.role
       });
     } catch (error) {
-      console.error("❌ Error fetching auth state:", error);
+      handleApiError(error, {
+        context: 'auth-state',
+        showToast: false, // Don't show toast on initial auth check to avoid spamming users
+        silent: !force // Only silent if not a forced refresh
+      });
+      
       hasTriedFetchingRef.current = true;
       setIsAuthenticated(false);
       setUser(null);
@@ -115,13 +122,43 @@ export function useAuthProvider() {
   useEffect(() => {
     console.log("🔧 Auth provider initializing");
     fetchAuthState();
+    
+    return () => {
+      // Clean up any pending operations
+      console.log("🧹 Auth provider cleanup");
+    };
   }, [fetchAuthState]);
   
   // Refresh the session
   const refreshSession = useCallback(async (reason = "manual refresh") => {
     console.log(`🔄 Refreshing auth session (reason: ${reason})`);
-    await fetchAuthState({ force: true });
+    try {
+      await fetchAuthState({ force: true });
+      return true;
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Session refresh failed",
+        description: "Unable to refresh your session. Please try again."
+      });
+      return false;
+    }
   }, [fetchAuthState]);
+  
+  // Reset auth state completely (useful for logout)
+  const resetAuth = useCallback(() => {
+    console.log("🔄 Resetting auth state");
+    resetAuthState();
+    setIsAuthenticated(false);
+    setUser(null);
+    setSession(null);
+    setUserId(null);
+    setOrgId(null);
+    setOrgSlug(null);
+    setCurrentUser(null);
+    hasTriedFetchingRef.current = false;
+    setReady(true);
+  }, []);
   
   // Recover org context if needed
   const recoverOrgContext = useCallback(async () => {
@@ -133,9 +170,22 @@ export function useAuthProvider() {
       await fetchAuthState({ force: true });
       const success = !!orgId;
       setIsRecoveringOrgContext(false);
+      
+      if (success) {
+        toast({
+          title: "Organization context recovered",
+          description: "Your organization context has been restored successfully."
+        });
+      }
+      
       return success;
     } catch (error) {
-      console.error("❌ Error recovering org context:", error);
+      handleApiError(error, {
+        context: 'org-context-recovery',
+        showToast: true,
+        fallbackMessage: 'Unable to recover organization context. Please try signing out and back in.'
+      });
+      
       setIsRecoveringOrgContext(false);
       return false;
     }
@@ -149,20 +199,30 @@ export function useAuthProvider() {
         orgId, 
         orgSlug,
         userMetadata: user?.user_metadata,
-        currentUserData: currentUser,
-        sessionReady: !!session,
         currentUserReady: !!currentUser,
+        sessionReady: !!session,
         path: location.pathname
       });
     }
   }, [isAuthenticated, userId, orgId, orgSlug, user, currentUser, session, location.pathname]);
   
-  // Sync fetch data from user profile if needed
+  // Fetch user data if needed
   const fetchUserData = useCallback(async () => {
     if (!userId || !isAuthenticated) return null;
+    
     console.log("🔄 Syncing user data from backend");
-    await fetchAuthState({ force: true });
-    return currentUser;
+    try {
+      await fetchAuthState({ force: true });
+      return currentUser;
+    } catch (error) {
+      handleApiError(error, {
+        context: 'user-data-sync',
+        showToast: true,
+        fallbackMessage: 'Unable to sync your user data. Please try again.'
+      });
+      
+      return null;
+    }
   }, [userId, isAuthenticated, fetchAuthState, currentUser]);
 
   return {
@@ -184,6 +244,7 @@ export function useAuthProvider() {
     recoverOrgContext,
     fetchUserData,
     refreshSession,
+    resetAuth,
     sessionUserReady: ready
   };
 }

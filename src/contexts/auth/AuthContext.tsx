@@ -25,6 +25,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     loading,
     isAuthenticated,
     refreshSession,
+    resetAuth,
     isRecoveringOrgContext,
     sessionUserReady,
   } = authState;
@@ -110,6 +111,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           });
         }
       );
+      // Use our new resetAuth function to clear state
+      resetAuth();
       navigate('/auth/login');
     } catch (error) {
       // Error already handled in the action
