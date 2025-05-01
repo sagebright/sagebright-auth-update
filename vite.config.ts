@@ -8,7 +8,7 @@ import { componentTagger } from "lovable-tagger";
 export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
-    port: 5050, // 👈 change this from 8080
+    port: 8080, // Use port 8080 as required
     allowedHosts: [
       'lvh.me',
       '.lvh.me',
@@ -17,9 +17,28 @@ export default defineConfig(({ mode }) => ({
     ],
     proxy: {
       "/api": {
-        target: "http://localhost:8080", // 👈 your backend server
+        target: "http://localhost:8080", // API backend also runs on port 8080
         changeOrigin: true,
         secure: false,
+        rewrite: (path) => path, // Maintain original path
+        configure: (proxy, _options) => {
+          proxy.on('proxyReq', (proxyReq, req, res) => {
+            // Log proxy requests during development for debugging
+            if (mode === 'development' && req.url) {
+              console.log(`🔄 Proxying request: ${req.method} ${req.url}`);
+            }
+          });
+          
+          proxy.on('proxyRes', (proxyRes, req, res) => {
+            // Ensure content-type is set correctly for API responses
+            if (req.url && req.url.startsWith('/api/auth')) {
+              proxyRes.headers['content-type'] = 'application/json';
+              if (mode === 'development') {
+                console.log(`✅ Auth response from ${req.url || 'unknown'}: ${proxyRes.statusCode}`);
+              }
+            }
+          });
+        }
       },
     },
   },
