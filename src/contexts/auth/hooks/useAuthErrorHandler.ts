@@ -4,6 +4,7 @@ import { toast } from '@/hooks/use-toast';
 import { handleApiError, ApiErrorOptions } from '@/lib/handleApiError';
 import { useRedirectIntentManager } from '@/lib/redirect-intent';
 import { useNavigate } from 'react-router-dom';
+import { RedirectReason } from '@/lib/redirect-intent/types';
 
 interface AuthErrorHandlerOptions {
   /**
@@ -47,7 +48,7 @@ export function useAuthErrorHandler(options: AuthErrorHandlerOptions = {}) {
       // Capture current path for redirecting back after login
       captureIntent(
         window.location.pathname + window.location.search,
-        'auth-error-redirect',
+        'auth' as RedirectReason, // Use a valid RedirectReason type
         { reason: errorObj.message },
         3 // High priority
       );

@@ -153,6 +153,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       ...(user?.user_metadata || {})
     }
   };
+  
+  // Create a wrapper for refreshSession that returns void instead of boolean
+  const refreshSessionWrapper = async (reason: string): Promise<void> => {
+    await refreshSession(reason);
+    // Void return type, ignoring the boolean result
+  };
 
   const value: AuthContextType = {
     session,
@@ -172,7 +178,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     resetPassword,
     updateProfile,
     accessToken,
-    refreshSession,
+    refreshSession: refreshSessionWrapper,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
