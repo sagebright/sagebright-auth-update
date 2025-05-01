@@ -1,10 +1,29 @@
 
 /**
- * Auth API types
+ * Types for auth API operations
  */
 
-export interface AuthPayload {
-  session: { id: string; expiresAt: string };
-  user: { id: string; role: string };
-  org: { id: string; slug: string };
+// Base request tracking
+export interface AuthApiRequestState {
+  inProgress: boolean;
+  lastAttempt: number;
 }
+
+// Auth response data
+export interface AuthResponse {
+  success: boolean;
+  data?: any;
+  error?: string;
+  status?: number;
+}
+
+// Options for API calls
+export interface AuthApiOptions {
+  context?: string;
+  showToast?: boolean;
+  silentErrors?: boolean;
+  timeout?: number;
+}
+
+// Request tracking
+export const activeAuthRequests: Record<string, AuthApiRequestState> = {};
