@@ -3,13 +3,13 @@
  * Backend authentication client for Sagebright (refactored - delegates to modules)
  */
 
-import { setAuthLogging } from './authCache';
-import { setCookieLogging } from './authCookies';
+import { setAuthLogging } from './auth/logging/authLogger';
+import { setCookieLogging } from './auth/cookies/cookieDetection';
 
 export { fetchAuth, checkAuth, resetAuthState } from './authApi';
-export type { AuthPayload } from './authApi';
+export type { AuthPayload } from './api/auth/types';
 
-export { hasAuthCookie } from './authCookies';
+export { hasAuthCookie } from './auth/cookies/cookieDetection';
 
 // Expose a utility to enable/disable verbose auth logging
 export function configureAuthLogging(enabled: boolean = false) {

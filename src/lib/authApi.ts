@@ -4,14 +4,10 @@
  * Provides authentication functionality with improved error handling and response parsing
  */
 
-import { hasAuthCookie } from "./authCookies";
-import { lastAuthCheckRef, resetAuthStateCache, logIfEnabled } from "./authCache";
-
-export interface AuthPayload {
-  session: { id: string; expiresAt: string };
-  user: { id: string; role: string };
-  org: { id: string; slug: string };
-}
+import { hasAuthCookie } from "./auth/cookies/cookieDetection";
+import { authCacheState, resetAuthStateCache } from "./auth/cache/authStateCache";
+import { logIfEnabled, logAuthReset } from "./auth/logging/authLogger";
+import type { AuthPayload } from "./api/auth/types";
 
 /**
  * Response handler for auth API calls
@@ -109,17 +105,17 @@ export async function fetchAuth(options: { forceCheck?: boolean } = {}): Promise
   // Throttle checks and use cache when appropriate
   if (
     !forceCheck &&
-    lastAuthCheckRef.result &&
-    now - lastAuthCheckRef.timestamp < throttleTime
+    authCacheState.result &&
+    now - authCacheState.timestamp < throttleTime
   ) {
-    logIfEnabled(`🔄 Using cached auth check from last ${now - lastAuthCheckRef.timestamp}ms`, null, false);
-    return lastAuthCheckRef.result;
+    logIfEnabled(`🔄 Using cached auth check from last ${now - authCacheState.timestamp}ms`, null, false);
+    return authCacheState.result;
   }
 
-  if (lastAuthCheckRef.pending && !forceCheck) {
+  if (authCacheState.pending && !forceCheck) {
     logIfEnabled("🔄 Auth fetch already in progress, skipping duplicate", null, false);
-    if (lastAuthCheckRef.result) {
-      return lastAuthCheckRef.result;
+    if (authCacheState.result) {
+      return authCacheState.result;
     }
     return createEmptyAuthPayload();
   }
@@ -135,14 +131,14 @@ export async function fetchAuth(options: { forceCheck?: boolean } = {}): Promise
       console.warn("🔄 No auth cookie detected, skipping session fetch");
     }
     
-    lastAuthCheckRef.result = createEmptyAuthPayload();
-    lastAuthCheckRef.timestamp = now;
-    return lastAuthCheckRef.result;
+    authCacheState.result = createEmptyAuthPayload();
+    authCacheState.timestamp = now;
+    return authCacheState.result;
   }
 
   // Apply backoff strategy for errors
   if (shouldApplyBackoff(now, forceCheck)) {
-    const result = lastAuthCheckRef.result || createEmptyAuthPayload();
+    const result = authCacheState.result || createEmptyAuthPayload();
     return result;
   }
 
@@ -151,7 +147,7 @@ export async function fetchAuth(options: { forceCheck?: boolean } = {}): Promise
   logIfEnabled(`🔍 Fetching auth session from: ${url}`, null, forceCheck);
 
   try {
-    lastAuthCheckRef.pending = true;
+    authCacheState.pending = true;
     logIfEnabled("🔍 Starting fetch request with credentials included", null, false);
     
     const responseData = await makeAuthRequest(url);
@@ -162,16 +158,16 @@ export async function fetchAuth(options: { forceCheck?: boolean } = {}): Promise
       hasOrg: !!responseData?.org
     }, forceCheck);
     
-    lastAuthCheckRef.consecutiveErrors = 0;
-    lastAuthCheckRef.result = responseData;
-    lastAuthCheckRef.timestamp = now;
-    lastAuthCheckRef.pending = false;
+    authCacheState.consecutiveErrors = 0;
+    authCacheState.result = responseData;
+    authCacheState.timestamp = now;
+    authCacheState.pending = false;
     return responseData;
   } catch (error) {
     console.error("❌ Auth fetch request failed:", error);
-    lastAuthCheckRef.consecutiveErrors++;
-    lastAuthCheckRef.lastErrorTime = now;
-    lastAuthCheckRef.pending = false;
+    authCacheState.consecutiveErrors++;
+    authCacheState.lastErrorTime = now;
+    authCacheState.pending = false;
     throw error;
   }
 }
@@ -180,15 +176,15 @@ export async function fetchAuth(options: { forceCheck?: boolean } = {}): Promise
  * Helper function to determine if backoff should be applied
  */
 function shouldApplyBackoff(now: number, forceCheck: boolean): boolean {
-  if (lastAuthCheckRef.consecutiveErrors > 0 && !forceCheck) {
-    const timeSinceLastError = now - lastAuthCheckRef.lastErrorTime;
+  if (authCacheState.consecutiveErrors > 0 && !forceCheck) {
+    const timeSinceLastError = now - authCacheState.lastErrorTime;
     const backoffTime = Math.min(
-      1000 * Math.pow(2, lastAuthCheckRef.consecutiveErrors - 1),
+      1000 * Math.pow(2, authCacheState.consecutiveErrors - 1),
       30000
     );
     if (timeSinceLastError < backoffTime) {
       logIfEnabled(
-        `🔄 Backing off auth fetch for ${backoffTime - timeSinceLastError}ms due to ${lastAuthCheckRef.consecutiveErrors} consecutive errors`,
+        `🔄 Backing off auth fetch for ${backoffTime - timeSinceLastError}ms due to ${authCacheState.consecutiveErrors} consecutive errors`,
         null,
         false
       );
@@ -232,4 +228,5 @@ export async function checkAuth(): Promise<boolean> {
  */
 export function resetAuthState() {
   resetAuthStateCache();
+  logAuthReset();
 }
