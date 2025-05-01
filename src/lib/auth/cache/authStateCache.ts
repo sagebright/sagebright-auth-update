@@ -36,9 +36,9 @@ export function resetAuthStateCache() {
 }
 
 /**
- * Configures auth state logging
+ * Configures auth state logging - this function is now a simple pass-through
+ * to maintain backwards compatibility, while the actual implementation is in authLogger.ts
  */
 export function setAuthLogging(enabled: boolean) {
   authCacheState.loggingEnabled = enabled;
-  console.log(`🔊 Auth logging ${enabled ? 'enabled' : 'disabled'}`);
 }

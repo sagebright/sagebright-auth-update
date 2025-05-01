@@ -39,3 +39,11 @@ export function logAuthReset() {
     lastLogTime = Date.now();
   }
 }
+
+/**
+ * Configures auth logging
+ */
+export function setAuthLogging(enabled: boolean) {
+  authCacheState.loggingEnabled = enabled;
+  console.log(`🔊 Auth logging ${enabled ? 'enabled' : 'disabled'}`);
+}
