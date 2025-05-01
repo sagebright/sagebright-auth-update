@@ -27,17 +27,17 @@ export default defineConfig(({ mode }) => ({
           });
           proxy.on('proxyReq', (proxyReq, req, _res) => {
             // Add proper headers for JSON API communication
-            if (req.url.includes('/api/auth/')) {
+            if (req.url && req.url.includes('/api/auth/')) {
               proxyReq.setHeader('Accept', 'application/json');
               if (req.method === 'POST') {
                 proxyReq.setHeader('Content-Type', 'application/json');
               }
             }
-            console.log('Sending Request to the Target:', req.method, req.url);
+            console.log('Sending Request to the Target:', req.method, req.url || '[no url]');
           });
           proxy.on('proxyRes', (proxyRes, req, _res) => {
             // Log the content type to help with debugging
-            console.log('Received Response from the Target:', proxyRes.statusCode, req.url, 
+            console.log('Received Response from the Target:', proxyRes.statusCode, req.url || '[no url]', 
               'Content-Type:', proxyRes.headers['content-type']);
           });
         },
