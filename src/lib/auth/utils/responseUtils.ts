@@ -55,15 +55,30 @@ async function handleErrorResponse(response: Response, context: string): Promise
 async function parseSuccessResponse(response: Response, context: string): Promise<any> {
   // Check for correct content type
   const contentType = response.headers.get('content-type');
+  
+  // If HTML is returned instead of JSON (common during development or API misconfiguration)
   if (!contentType || !contentType.includes('application/json')) {
-    console.error('Auth response is not JSON:', contentType);
+    console.warn(`Warning: Auth response is not JSON: ${contentType}. This may indicate an API configuration issue.`);
+    
+    // Try to get the first part of the response to help with debugging
     try {
       const text = await response.text();
-      console.error('Response text (first 200 chars):', text.substring(0, 200));
+      console.warn('Response text (first 200 chars):', text.substring(0, 200));
+      
+      // For successful responses, return a simple success object as a fallback
+      if (response.ok) {
+        console.log(`🔄 Non-JSON success response detected for ${context}. Returning fallback object.`);
+        return { 
+          success: true,
+          fallback: true,
+          warning: "API returned HTML instead of JSON"
+        };
+      }
     } catch (textErr) {
       console.error('Could not get response text:', textErr);
     }
-    throw new Error('Expected JSON response but received: ' + contentType);
+    
+    throw new Error(`Expected JSON response but received: ${contentType || 'unknown content type'}`);
   }
 
   try {

@@ -54,11 +54,16 @@ export async function fetchAuth(options: { forceCheck?: boolean } = {}): Promise
     
     const responseData = await makeAuthFetch(url);
     
-    logIfEnabled("✅ Auth session data received:", {
-      hasSession: !!responseData?.session,
-      hasUser: !!responseData?.user,
-      hasOrg: !!responseData?.org
-    }, forceCheck);
+    // Check if we got a fallback response due to HTML content
+    if (responseData?.fallback) {
+      console.warn("⚠️ Received fallback auth payload due to HTML response. API may be misconfigured.");
+    } else {
+      logIfEnabled("✅ Auth session data received:", {
+        hasSession: !!responseData?.session,
+        hasUser: !!responseData?.user,
+        hasOrg: !!responseData?.org
+      }, forceCheck);
+    }
     
     // Update cache state on success
     updateCacheOnSuccess(responseData, now);
@@ -102,6 +107,15 @@ function updateCacheOnSuccess(responseData: AuthPayload, timestamp: number): voi
  */
 function handleFetchError(error: unknown, timestamp: number): void {
   console.error("❌ Auth fetch request failed:", error);
+  
+  // Check if this is a content type error (HTML instead of JSON)
+  const isContentTypeError = error instanceof Error && 
+    error.message.includes('Expected JSON response');
+  
+  if (isContentTypeError) {
+    console.warn("⚠️ API returned HTML instead of JSON. This may indicate a misconfiguration.");
+  }
+  
   authCacheState.consecutiveErrors++;
   authCacheState.lastErrorTime = timestamp;
   authCacheState.pending = false;

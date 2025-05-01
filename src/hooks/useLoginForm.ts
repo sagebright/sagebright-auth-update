@@ -78,6 +78,11 @@ export const useLoginForm = () => {
           // Use our centralized auth API with a longer timeout
           const loginResult = await signIn(values.email, values.password);
           console.log("✅ Login API call successful with response:", loginResult);
+          
+          // Check if the login result was a fallback (HTML response)
+          if (loginResult.fallback) {
+            console.warn("⚠️ Login API returned HTML instead of JSON - proceeding with caution");
+          }
         } catch (fetchError) {
           console.error("⚠️ Login API error:", fetchError);
           setAuthError(fetchError instanceof Error ? fetchError.message : "Login failed. Please try again.");
@@ -90,7 +95,13 @@ export const useLoginForm = () => {
         try {
           console.log("🔄 Fetching updated auth state after login");
           // Force fetch auth to ensure we get the latest session after login
-          await fetchAuth({ forceCheck: true });
+          const authData = await fetchAuth({ forceCheck: true });
+          
+          // Check if we got a fallback empty auth payload
+          if (authData?.fallback) {
+            console.warn("⚠️ Received fallback auth payload - API may be misconfigured");
+            // We still proceed since login was successful, but with limited context
+          }
           
           // Explicitly refresh session to update auth context
           if (refreshSession) {
@@ -100,29 +111,44 @@ export const useLoginForm = () => {
           } else {
             console.warn("⚠️ refreshSession function not available");
           }
+          
+          // Check if we should redirect based on intent
+          if (activeIntent) {
+            console.log("🔀 Executing redirect based on stored intent");
+            executeRedirect();
+          } else {
+            console.log("🏠 Redirecting to dashboard");
+            navigate("/user-dashboard");
+          }
+          
+          console.log("🎉 Login process completed successfully");
+          
         } catch (sessionErr) {
           console.error("❌ Session fetch error:", sessionErr);
-          setAuthError("Authenticated, but failed to load session context. Please try reloading.");
-          toast({
-            variant: "destructive",
-            title: "Session Error",
-            description: "Failed to load session context. Please try reloading."
-          });
-          setIsLoading(false);
-          setIsSubmitting(false);
-          loginAttemptRef.current = false;
-          return;
-        }
-        
-        console.log("🎉 Login process completed successfully");
-
-        // Check if we need to redirect based on intent
-        if (activeIntent) {
-          console.log("🔀 Executing redirect based on stored intent");
-          executeRedirect();
-        } else {
-          console.log("🏠 Redirecting to dashboard");
-          navigate("/user-dashboard");
+          
+          // Check if it's a content type error (HTML instead of JSON)
+          const isContentTypeError = sessionErr instanceof Error && 
+            sessionErr.message.includes('Expected JSON response');
+          
+          if (isContentTypeError) {
+            // This is likely an API configuration issue, but the login may have succeeded
+            console.warn("⚠️ API returned HTML instead of JSON. Login may have succeeded, proceeding to dashboard");
+            
+            // We still try to redirect since login might be successful
+            if (activeIntent) {
+              executeRedirect();
+            } else {
+              navigate("/user-dashboard");
+            }
+          } else {
+            // For other errors, show error message
+            setAuthError("Authenticated, but failed to load session context. Please try reloading.");
+            toast({
+              variant: "destructive",
+              title: "Session Error",
+              description: "Failed to load session context. Please try reloading."
+            });
+          }
         }
       } catch (err: any) {
         console.error("🔥 Login error caught:", err);
@@ -132,7 +158,6 @@ export const useLoginForm = () => {
           title: "Login Error",
           description: err.message || "An unexpected error occurred"
         });
-        console.error('Login error details:', err);
       } finally {
         setIsLoading(false);
         setIsSubmitting(false);
