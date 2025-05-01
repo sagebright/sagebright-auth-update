@@ -1,3 +1,9 @@
+
+/**
+ * Core Auth API Functions: fetchAuth, checkAuth, resetAuthState
+ * This file composes cookie, cache, and remote logic
+ */
+
 import { hasAuthCookie } from "./authCookies";
 import { lastAuthCheckRef, resetAuthStateCache, logIfEnabled } from "./authCache";
 
@@ -7,7 +13,7 @@ export interface AuthPayload {
   org: { id: string; slug: string };
 }
 
-// -- fetchAuth implementation with enhanced error handling --
+// -- fetchAuth implementation (unchanged logic) --
 export async function fetchAuth(options: { forceCheck?: boolean } = {}): Promise<AuthPayload> {
   const { forceCheck = false } = options;
   const now = Date.now();
@@ -79,7 +85,6 @@ export async function fetchAuth(options: { forceCheck?: boolean } = {}): Promise
     }
   }
 
-  // Get the configured BASE_URL or fall back to empty string
   const BASE = import.meta.env.VITE_BACKEND_URL || '';
   const url = `${BASE}/api/auth/session`;
   logIfEnabled(`🔍 Fetching auth session from: ${url}`, null, forceCheck);
@@ -101,41 +106,42 @@ export async function fetchAuth(options: { forceCheck?: boolean } = {}): Promise
 
       clearTimeout(timeoutId);
 
-      // Enhanced response logging to better diagnose issues
-      const responseContentType = res.headers.get('content-type') || 'unknown';
-      const responseDetails = {
+      // Only log detailed response info if it's successful or a new error
+      const isFirstError = lastAuthCheckRef.consecutiveErrors === 0;
+      logIfEnabled("🔍 Auth session response:", {
         status: res.status,
-        statusText: res.statusText || 'no status text',
+        statusText: res.statusText,
         ok: res.ok,
-        contentType: responseContentType,
-        url: res.url,
-        isJson: responseContentType.includes('application/json'),
-        isHtml: responseContentType.includes('text/html')
-      };
-      
-      // Log more details for better debugging
-      console.log("🔍 Detailed auth session response:", responseDetails);
+        contentType: res.headers.get('content-type'),
+        url: res.url
+      }, res.ok || isFirstError);
 
       if (!res.ok) {
-        // Handle error responses
         let errorText;
         try {
-          if (responseContentType.includes('application/json')) {
+          const contentType = res.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
             const errorData = await res.json();
-            console.error('Auth fetch error data:', errorData);
+            
+            // Only log error data on first failure or forced checks
+            if (isFirstError || forceCheck) {
+              console.error('Auth fetch error data:', errorData);
+            }
+            
             errorText = JSON.stringify(errorData);
           } else {
-            // For HTML or other non-JSON responses, get the first 300 chars to see if it's an error page
             errorText = await res.text();
-            console.error('Auth fetch non-JSON response:', errorText.substring(0, 300));
-            throw new Error(`Server returned non-JSON response: ${errorText.substring(0, 100)}...`);
+            if (isFirstError || forceCheck) {
+              console.error('Auth fetch error text:', errorText.substring(0, 200));
+            }
           }
         } catch (parseErr) {
           errorText = 'Could not parse error response';
           console.error('Error parsing auth error response:', parseErr);
         }
         if (res.status === 401) {
-          logIfEnabled("🔍 Auth session returned 401 - Not authenticated (expected if not logged in)", null, true);
+          // Only log expected 401 errors occasionally
+          logIfEnabled("🔍 Auth session returned 401 - Not authenticated (expected if not logged in)", null, isFirstError);
           lastAuthCheckRef.consecutiveErrors = 0;
           const result = {
             session: null as any,
@@ -155,49 +161,7 @@ export async function fetchAuth(options: { forceCheck?: boolean } = {}): Promise
         throw new Error(error);
       }
 
-      // *** CRITICAL FIX: Handle HTML responses from auth endpoint ***
-      if (responseContentType.includes('text/html')) {
-        console.warn('⚠️ Auth API returned HTML instead of JSON. This is typically a backend misconfiguration.');
-        console.warn('⚠️ The backend needs to be configured to return JSON for API endpoints.');
-        
-        // Create a fallback response to avoid breaking the app
-        lastAuthCheckRef.result = {
-          session: null as any,
-          user: null as any,
-          org: null as any
-        };
-        lastAuthCheckRef.timestamp = now;
-        lastAuthCheckRef.pending = false;
-        lastAuthCheckRef.consecutiveErrors++;
-        lastAuthCheckRef.lastErrorTime = now;
-        
-        // Return a structured error that can be handled by the UI
-        return lastAuthCheckRef.result;
-      }
-
       try {
-        // When response is OK, try to parse as JSON with better error handling
-        if (!responseContentType.includes('application/json')) {
-          // If not JSON but still OK, this could be a misconfiguration
-          console.warn('Server returned non-JSON content type but status OK:', responseContentType);
-          
-          // Try to parse as JSON anyway (some servers mis-report content type)
-          try {
-            const responseData = await res.json();
-            console.log("✅ Successfully parsed response despite incorrect content type");
-            lastAuthCheckRef.consecutiveErrors = 0;
-            lastAuthCheckRef.result = responseData;
-            lastAuthCheckRef.timestamp = now;
-            lastAuthCheckRef.pending = false;
-            return responseData;
-          } catch (jsonError) {
-            // If it's not valid JSON, try to get text for debugging
-            const textResponse = await res.text();
-            console.error('Non-JSON response preview:', textResponse.substring(0, 300));
-            throw new Error(`Server returned OK status but non-JSON content: ${textResponse.substring(0, 100)}...`);
-          }
-        }
-        
         const responseData = await res.json();
         logIfEnabled("✅ Auth session data received:", {
           hasSession: !!responseData?.session,
@@ -212,20 +176,12 @@ export async function fetchAuth(options: { forceCheck?: boolean } = {}): Promise
         return responseData;
       } catch (parseError) {
         console.error("❌ Failed to parse JSON from auth response:", parseError);
-        
-        // Try to get the raw text for better debugging
         try {
-          // Can't use res.clone() here if body is already used
-          // Instead, log the error and throw a more descriptive error
-          console.error("❌ JSON parse error details:", {
-            message: parseError.message,
-            contentType: responseContentType,
-            status: res.status
-          });
+          const textResponse = await res.clone().text();
+          console.log("📄 Raw response text:", textResponse.substring(0, 200));
         } catch (textError) {
-          console.error("❌ Could not get text response:", textError);
+          console.error("❌ Could not get text response either:", textError);
         }
-        
         lastAuthCheckRef.consecutiveErrors++;
         lastAuthCheckRef.lastErrorTime = now;
         lastAuthCheckRef.pending = false;

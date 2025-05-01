@@ -31,8 +31,6 @@ export const useLoginForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
   const loginAttemptRef = useRef<boolean>(false);
-  const maxRetries = 3;
-  const [retryCount, setRetryCount] = useState(0);
 
   const { activeIntent, executeRedirect, clearIntent } = useRedirectIntentManager();
 
@@ -89,44 +87,10 @@ export const useLoginForm = () => {
           return;
         }
 
-        // Add a small delay before checking auth to ensure cookies are fully processed
-        await new Promise(resolve => setTimeout(resolve, 500));
-
         try {
           console.log("🔄 Fetching updated auth state after login");
           // Force fetch auth to ensure we get the latest session after login
-          
-          let authData;
-          let fetchSuccess = false;
-          let currentRetry = 0;
-          
-          // Try to fetch auth data with retries
-          while (!fetchSuccess && currentRetry < maxRetries) {
-            try {
-              currentRetry++;
-              console.log(`🔄 Auth fetch attempt ${currentRetry}/${maxRetries}`);
-              authData = await fetchAuth({ forceCheck: true });
-              if (authData && authData.session) {
-                fetchSuccess = true;
-                console.log("✅ Auth fetch succeeded on attempt", currentRetry);
-              } else {
-                // Short delay before retry
-                await new Promise(resolve => setTimeout(resolve, 1000));
-              }
-            } catch (retryError) {
-              console.error(`❌ Auth fetch retry ${currentRetry} failed:`, retryError);
-              // If not the last retry, wait before trying again
-              if (currentRetry < maxRetries) {
-                await new Promise(resolve => setTimeout(resolve, 1000));
-              }
-            }
-          }
-          
-          setRetryCount(currentRetry);
-          
-          if (!fetchSuccess) {
-            throw new Error(`Failed to fetch auth data after ${maxRetries} attempts`);
-          }
+          await fetchAuth({ forceCheck: true });
           
           // Explicitly refresh session to update auth context
           if (refreshSession) {
@@ -138,15 +102,11 @@ export const useLoginForm = () => {
           }
         } catch (sessionErr) {
           console.error("❌ Session fetch error:", sessionErr);
-          // More descriptive error message
-          setAuthError(
-            "Authentication successful, but there was a problem loading your session. " + 
-            "This could be due to a server configuration issue. Please try again or contact support."
-          );
+          setAuthError("Authenticated, but failed to load session context. Please try reloading.");
           toast({
             variant: "destructive",
             title: "Session Error",
-            description: "Failed to load session context. The server may be misconfigured."
+            description: "Failed to load session context. Please try reloading."
           });
           setIsLoading(false);
           setIsSubmitting(false);
@@ -179,7 +139,7 @@ export const useLoginForm = () => {
         loginAttemptRef.current = false;
       }
     },
-    [refreshSession, activeIntent, executeRedirect, navigate, isSubmitting, maxRetries]
+    [refreshSession, activeIntent, executeRedirect, navigate, isSubmitting]
   );
 
   return {
@@ -187,7 +147,6 @@ export const useLoginForm = () => {
     isLoading,
     authError,
     onSubmit,
-    formSubmitted,
-    retryCount
+    formSubmitted
   };
 };

@@ -13,7 +13,7 @@ export * from './readiness-evaluators';
 export * from './hydration';
 export * from './use-sage-context';
 
-// Export the sageContextApi as part of the public API
+// Export the new sageContextApi as part of the public API
 export { 
   fetchSageContext, 
   fetchSageUserContext, 
