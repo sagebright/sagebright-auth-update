@@ -1,12 +1,10 @@
-
 /**
  * Specific auth API operations (login, logout, etc)
  */
 
 import { makeAuthRequest } from './authRequest';
 import { handleAuthApiError } from './authApiUtils';
-import { AuthApiOptions, AuthResponse } from './types';
-import { AuthPayload } from '../../api/auth/types';
+import { AuthApiOptions, AuthResponse, AuthPayload } from './types';
 import { toast } from '@/hooks/use-toast';
 
 /**

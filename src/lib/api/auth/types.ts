@@ -25,5 +25,12 @@ export interface AuthApiOptions {
   timeout?: number;
 }
 
+// Auth session payload structure
+export interface AuthPayload {
+  session: any | null;
+  user: any | null;
+  org: any | null;
+}
+
 // Request tracking
 export const activeAuthRequests: Record<string, AuthApiRequestState> = {};
