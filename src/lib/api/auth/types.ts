@@ -15,6 +15,8 @@ export interface AuthResponse {
   data?: any;
   error?: string;
   status?: number;
+  fallback?: boolean;  // Added fallback property to support HTML responses
+  warning?: string;    // Added for warning messages
 }
 
 // Options for API calls
@@ -30,6 +32,8 @@ export interface AuthPayload {
   session: any | null;
   user: any | null;
   org: any | null;
+  fallback?: boolean;  // Added fallback property to support HTML responses
+  warning?: string;    // Added for warning messages
 }
 
 // Request tracking

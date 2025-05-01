@@ -40,7 +40,7 @@ export async function makeAuthFetch(url: string, options: RequestInit = {}): Pro
         // If this is specifically the session endpoint
         if (url.includes('/session')) {
           console.warn('🔄 Returning empty auth payload as fallback for session endpoint');
-          return createEmptyAuthPayload();
+          return createEmptyAuthPayload(true);
         }
         
         return {
