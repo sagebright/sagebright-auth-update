@@ -1,4 +1,3 @@
-
 import { hasAuthCookie } from "./authCookies";
 import { lastAuthCheckRef, resetAuthStateCache, logIfEnabled } from "./authCache";
 
@@ -118,6 +117,7 @@ export async function fetchAuth(options: { forceCheck?: boolean } = {}): Promise
       console.log("🔍 Detailed auth session response:", responseDetails);
 
       if (!res.ok) {
+        // Handle error responses
         let errorText;
         try {
           if (responseContentType.includes('application/json')) {
@@ -155,16 +155,47 @@ export async function fetchAuth(options: { forceCheck?: boolean } = {}): Promise
         throw new Error(error);
       }
 
+      // *** CRITICAL FIX: Handle HTML responses from auth endpoint ***
+      if (responseContentType.includes('text/html')) {
+        console.warn('⚠️ Auth API returned HTML instead of JSON. This is typically a backend misconfiguration.');
+        console.warn('⚠️ The backend needs to be configured to return JSON for API endpoints.');
+        
+        // Create a fallback response to avoid breaking the app
+        lastAuthCheckRef.result = {
+          session: null as any,
+          user: null as any,
+          org: null as any
+        };
+        lastAuthCheckRef.timestamp = now;
+        lastAuthCheckRef.pending = false;
+        lastAuthCheckRef.consecutiveErrors++;
+        lastAuthCheckRef.lastErrorTime = now;
+        
+        // Return a structured error that can be handled by the UI
+        return lastAuthCheckRef.result;
+      }
+
       try {
         // When response is OK, try to parse as JSON with better error handling
         if (!responseContentType.includes('application/json')) {
           // If not JSON but still OK, this could be a misconfiguration
-          const textResponse = await res.text();
-          console.error('Server returned non-JSON content type but status OK:', {
-            contentType: responseContentType,
-            previewText: textResponse.substring(0, 300)
-          });
-          throw new Error(`Server returned OK status but non-JSON content type: ${responseContentType}`);
+          console.warn('Server returned non-JSON content type but status OK:', responseContentType);
+          
+          // Try to parse as JSON anyway (some servers mis-report content type)
+          try {
+            const responseData = await res.json();
+            console.log("✅ Successfully parsed response despite incorrect content type");
+            lastAuthCheckRef.consecutiveErrors = 0;
+            lastAuthCheckRef.result = responseData;
+            lastAuthCheckRef.timestamp = now;
+            lastAuthCheckRef.pending = false;
+            return responseData;
+          } catch (jsonError) {
+            // If it's not valid JSON, try to get text for debugging
+            const textResponse = await res.text();
+            console.error('Non-JSON response preview:', textResponse.substring(0, 300));
+            throw new Error(`Server returned OK status but non-JSON content: ${textResponse.substring(0, 100)}...`);
+          }
         }
         
         const responseData = await res.json();

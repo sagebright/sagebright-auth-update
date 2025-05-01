@@ -8,7 +8,7 @@ import { componentTagger } from "lovable-tagger";
 export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
-    port: 5050, // Using port 5050 for frontend
+    port: 8080, // Using port 8080 for backend
     allowedHosts: [
       'lvh.me',
       '.lvh.me',
@@ -17,19 +17,28 @@ export default defineConfig(({ mode }) => ({
     ],
     proxy: {
       "/api": {
-        target: "http://localhost:8080", // Backend server on port 8080
+        target: "http://localhost:5050", // Backend server on port 5050
         changeOrigin: true,
         secure: false,
-        rewrite: (path) => path,
+        // Ensure content-type is preserved
         configure: (proxy, _options) => {
           proxy.on('error', (err, _req, _res) => {
             console.log('proxy error', err);
           });
           proxy.on('proxyReq', (proxyReq, req, _res) => {
+            // Add proper headers for JSON API communication
+            if (req.url.includes('/api/auth/')) {
+              proxyReq.setHeader('Accept', 'application/json');
+              if (req.method === 'POST') {
+                proxyReq.setHeader('Content-Type', 'application/json');
+              }
+            }
             console.log('Sending Request to the Target:', req.method, req.url);
           });
           proxy.on('proxyRes', (proxyRes, req, _res) => {
-            console.log('Received Response from the Target:', proxyRes.statusCode, req.url);
+            // Log the content type to help with debugging
+            console.log('Received Response from the Target:', proxyRes.statusCode, req.url, 
+              'Content-Type:', proxyRes.headers['content-type']);
           });
         },
       },
