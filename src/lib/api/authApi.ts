@@ -35,9 +35,12 @@ export async function getAuthSession(): Promise<AuthPayload> {
   activeAuthCalls.session = true;
   
   try {
-    const BASE = import.meta.env.VITE_BACKEND_URL || '';
+    // Fix: Use relative URLs in local dev to properly leverage Vite's proxy
+    const isLocal = !import.meta.env.VITE_BACKEND_URL;
+    const BASE = isLocal ? '' : import.meta.env.VITE_BACKEND_URL; 
     const url = `${BASE}/api/auth/session`;
-    console.log(`📡 Fetching auth session from: ${url}`);
+    
+    console.log(`📡 Auth session fetch using URL: ${url} (local proxy: ${isLocal})`);
     
     const response = await fetch(url, {
       method: 'GET',
