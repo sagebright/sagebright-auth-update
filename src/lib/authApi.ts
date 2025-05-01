@@ -85,8 +85,8 @@ export async function fetchAuth(options: { forceCheck?: boolean } = {}): Promise
     }
   }
 
-  const BASE = import.meta.env.VITE_BACKEND_URL || '';
-  const url = `${BASE}/api/auth/session`;
+  // Always use relative URL for API request
+  const url = '/api/auth/session';
   logIfEnabled(`🔍 Fetching auth session from: ${url}`, null, forceCheck);
 
   try {
@@ -161,6 +161,24 @@ export async function fetchAuth(options: { forceCheck?: boolean } = {}): Promise
         throw new Error(error);
       }
 
+      // Check for correct content type
+      const contentType = res.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        console.error('Auth session response is not JSON:', contentType);
+        if (isFirstError || forceCheck) {
+          try {
+            const text = await res.text();
+            console.error('Response text (first 200 chars):', text.substring(0, 200));
+          } catch (textErr) {
+            console.error('Could not get response text:', textErr);
+          }
+        }
+        lastAuthCheckRef.consecutiveErrors++;
+        lastAuthCheckRef.lastErrorTime = now;
+        lastAuthCheckRef.pending = false;
+        throw new Error('Expected JSON response but received: ' + contentType);
+      }
+
       try {
         const responseData = await res.json();
         logIfEnabled("✅ Auth session data received:", {
@@ -176,12 +194,6 @@ export async function fetchAuth(options: { forceCheck?: boolean } = {}): Promise
         return responseData;
       } catch (parseError) {
         console.error("❌ Failed to parse JSON from auth response:", parseError);
-        try {
-          const textResponse = await res.clone().text();
-          console.log("📄 Raw response text:", textResponse.substring(0, 200));
-        } catch (textError) {
-          console.error("❌ Could not get text response either:", textError);
-        }
         lastAuthCheckRef.consecutiveErrors++;
         lastAuthCheckRef.lastErrorTime = now;
         lastAuthCheckRef.pending = false;

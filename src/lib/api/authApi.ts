@@ -1,3 +1,4 @@
+
 import { handleApiError } from '../handleApiError';
 import { AuthPayload } from '../backendAuth';
 import { toast } from '@/hooks/use-toast';
@@ -35,12 +36,10 @@ export async function getAuthSession(): Promise<AuthPayload> {
   activeAuthCalls.session = true;
   
   try {
-    // Fix: Use relative URLs in local dev to properly leverage Vite's proxy
-    const isLocal = !import.meta.env.VITE_BACKEND_URL;
-    const BASE = isLocal ? '' : import.meta.env.VITE_BACKEND_URL; 
-    const url = `${BASE}/api/auth/session`;
+    // Always use relative URLs for API requests to ensure proxy works
+    const url = '/api/auth/session';
     
-    console.log(`📡 Auth session fetch using URL: ${url} (local proxy: ${isLocal})`);
+    console.log(`📡 Auth session fetch using URL: ${url}`);
     
     const response = await fetch(url, {
       method: 'GET',
@@ -85,6 +84,15 @@ export async function getAuthSession(): Promise<AuthPayload> {
       throw new Error(`Auth session fetch failed: ${response.status} ${errorText}`);
     }
 
+    // Check for correct content type
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      console.error('Auth session response is not JSON:', contentType);
+      const text = await response.text();
+      console.error('Response text (first 200 chars):', text.substring(0, 200));
+      throw new Error('Expected JSON response but received: ' + contentType);
+    }
+
     return await response.json();
   } catch (error) {
     handleApiError(error, { context: 'auth-session' });
@@ -119,8 +127,8 @@ export async function signIn(email: string, password: string): Promise<any> {
   activeAuthCalls.login = true;
   
   try {
-    const BASE = import.meta.env.VITE_BACKEND_URL || '';
-    const loginEndpoint = `${BASE}/api/auth/login`;
+    // Use relative URL for API request
+    const loginEndpoint = '/api/auth/login';
     console.log(`📡 Preparing sign-in request to: ${loginEndpoint}`);
     
     const controller = new AbortController();
@@ -193,8 +201,8 @@ export async function signIn(email: string, password: string): Promise<any> {
 export async function signOut(): Promise<void> {
   console.log("📡 Signing out user");
   try {
-    const BASE = import.meta.env.VITE_BACKEND_URL || '';
-    const response = await fetch(`${BASE}/api/auth/signout`, {
+    // Use relative URL for API request
+    const response = await fetch('/api/auth/signout', {
       method: 'POST',
       credentials: 'include',
     });
@@ -236,8 +244,8 @@ export async function signUp(
 ): Promise<void> {
   console.log("📡 Signing up new user:", email);
   try {
-    const BASE = import.meta.env.VITE_BACKEND_URL || '';
-    const response = await fetch(`${BASE}/api/auth/signup`, {
+    // Use relative URL for API request
+    const response = await fetch('/api/auth/signup', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -273,8 +281,8 @@ export async function signUp(
 export async function resetPassword(email: string): Promise<void> {
   console.log("📡 Requesting password reset for:", email);
   try {
-    const BASE = import.meta.env.VITE_BACKEND_URL || '';
-    const response = await fetch(`${BASE}/api/auth/reset-password`, {
+    // Use relative URL for API request
+    const response = await fetch('/api/auth/reset-password', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
