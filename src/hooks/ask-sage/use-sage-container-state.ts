@@ -2,7 +2,6 @@
 import { useEffect } from 'react';
 import { useVoiceParamState } from '@/hooks/use-voice-param';
 import { useRedirectIntentManager } from '@/lib/redirect-intent';
-import { useContextHydration } from '@/hooks/sage-context';
 import { useSageContext } from '@/hooks/sage-context';
 import { useAuth } from '@/contexts/auth/AuthContext';
 import { useAskSageGuard } from '@/hooks/ask-sage/use-ask-sage-guard';
@@ -22,15 +21,9 @@ export function useSageContainerState() {
     isRedirectAllowed, 
     readinessBlockers,
     isProtected,
-    showLoading
+    showLoading,
+    contextHydration
   } = useAskSageGuard();
-  
-  // Use the enhanced context hydration system with our new context
-  const contextHydration = useContextHydration(
-    voiceParamState.currentVoice,
-    sageContext.userContext,
-    sageContext.orgContext
-  );
   
   const { userId, orgId } = useAuth();
 

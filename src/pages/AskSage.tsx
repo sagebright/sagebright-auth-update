@@ -2,11 +2,14 @@
 import React, { useEffect } from 'react';
 import { AskSageContainer } from '@/components/ask-sage/AskSageContainer';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { useAuth } from '@/contexts/auth/AuthContext';
 
 const AskSage = () => {
+  const { loading } = useAuth();
+
   useEffect(() => {
-    console.log("🌟 AskSage component mounted");
-  }, []);
+    console.log("🌟 AskSage page mounted", { authLoading: loading });
+  }, [loading]);
 
   return (
     <ErrorBoundary fallback={

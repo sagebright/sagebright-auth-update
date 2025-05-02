@@ -38,7 +38,8 @@ export const AskSageContainer: React.FC = () => {
     canInteract,
     shouldRender,
     isProtected,
-    canSendMessages
+    canSendMessages,
+    hydrationProgress: contextHydration?.hydration?.progressPercent || 0
   });
   
   // Use the main page logic hook
@@ -71,24 +72,20 @@ export const AskSageContainer: React.FC = () => {
     debugPanel
   } = useAskSagePage();
 
-  // Render loading states
-  const loadingElement = (
-    <SageLoadingStates 
-      authLoading={authLoading}
-      userId={userId}
-      orgId={orgId}
-      isProtected={isProtected}
-      canInteract={canInteract}
-      isRecoveringOrg={isRecoveringOrg}
-      contextHydration={contextHydration}
-      shouldRender={shouldRender}
-    />
-  );
-  
-  // If we should show a loading state, return it
-  if (loadingElement) {
-    console.log("🔄 AskSageContainer rendering loading state");
-    return loadingElement;
+  // Check if loading states should be displayed
+  if (!shouldRender || authLoading || !canInteract) {
+    return (
+      <SageLoadingStates 
+        authLoading={authLoading}
+        userId={userId}
+        orgId={orgId}
+        isProtected={isProtected}
+        canInteract={canInteract}
+        isRecoveringOrg={isRecoveringOrg}
+        contextHydration={contextHydration}
+        shouldRender={shouldRender}
+      />
+    );
   }
 
   console.log("✅ AskSageContainer rendering full UI");

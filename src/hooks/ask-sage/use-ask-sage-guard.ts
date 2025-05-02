@@ -2,8 +2,9 @@ import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/auth/AuthContext';
 import { useSageSessionStability } from './use-session-stability';
 import { useAskSageRouteProtection } from './use-route-protection';
-import { useSageContextReadiness } from '@/hooks/sage-context';
+import { useContextHydration } from '@/hooks/sage-context/hydration';
 import { useVoiceParamState } from '@/hooks/use-voice-param';
+import { useSageContext } from '@/hooks/sage-context';
 
 export function useAskSageGuard() {
   console.log("🛡️ useAskSageGuard initialized");
@@ -11,9 +12,19 @@ export function useAskSageGuard() {
   const { userId, orgId, user, loading: authLoading } = useAuth();
   console.log("🔐 Auth state in useAskSageGuard:", { userId, orgId, hasUser: !!user, authLoading });
   
-  const { sessionStable, stabilityTimeMs, readinessBlockers } = useSageSessionStability();
+  const { sessionStable, stabilityTimeMs, readinessBlockers: sessionBlockers } = useSageSessionStability();
   const { protectionActive, protectionStartTime } = useAskSageRouteProtection();
   const voiceParamState = useVoiceParamState();
+  
+  // Get the Sage context
+  const sageContext = useSageContext();
+  
+  // Use the canonical hydration tracking hook
+  const contextHydration = useContextHydration(
+    voiceParamState.currentVoice,
+    sageContext.userContext,
+    sageContext.orgContext
+  );
   
   // Track protection status
   const [isProtected, setIsProtected] = useState(true);
@@ -29,24 +40,6 @@ export function useAskSageGuard() {
     ? Date.now() - protectionStartTime 
     : null;
   
-  console.log("🚀 Preparing to evaluate context readiness with:", {
-    userId,
-    orgId,
-    orgSlug: user?.user_metadata?.org_slug ?? null,
-    voiceParam: voiceParamState.currentVoice
-  });
-  
-  // Context readiness check
-  const contextReadiness = useSageContextReadiness(
-    userId,
-    orgId,
-    user?.user_metadata?.org_slug ?? null,
-    user,
-    authLoading,
-    !!user,
-    voiceParamState.currentVoice
-  );
-  
   // Release protection after timeout
   useEffect(() => {
     if (isProtected && !protectionTimeoutRef.current) {
@@ -57,7 +50,7 @@ export function useAskSageGuard() {
         
         // After timeout, if we're still loading but have enough context,
         // we should allow limited interaction
-        if (!contextReadiness.isReadyToRender) {
+        if (!contextHydration.isReadyToRender) {
           console.log('⚠️ Context not fully ready after timeout, enabling limited interaction');
           setIsProtectedButReady(true);
         }
@@ -70,15 +63,15 @@ export function useAskSageGuard() {
         protectionTimeoutRef.current = null;
       }
     };
-  }, [isProtected, contextReadiness.isReadyToRender]);
+  }, [isProtected, contextHydration.isReadyToRender]);
   
   // Once context is ready, remove protection
   useEffect(() => {
-    if (contextReadiness.isReadyToRender && isProtected) {
+    if (contextHydration.isReadyToRender && isProtected) {
       console.log('✅ Context ready, removing protection');
       setIsProtected(false);
     }
-  }, [contextReadiness.isReadyToRender, isProtected]);
+  }, [contextHydration.isReadyToRender, isProtected]);
   
   // Track can-interact state
   useEffect(() => {
@@ -117,7 +110,7 @@ export function useAskSageGuard() {
         setShouldRender(true);
       } else {
         // Otherwise, follow normal rules but be more permissive
-        const shouldRenderValue = isProtectedButReady || !isProtected || contextReadiness.isReadyToRender;
+        const shouldRenderValue = isProtectedButReady || !isProtected || contextHydration.isReadyToRender;
         console.log('🖼️ Updating shouldRender in dev mode:', { shouldRenderValue });
         setShouldRender(shouldRenderValue);
       }
@@ -125,13 +118,13 @@ export function useAskSageGuard() {
     }
     
     // Production logic
-    const shouldRenderValue = isProtectedButReady || !isProtected || contextReadiness.isReadyToRender;
+    const shouldRenderValue = isProtectedButReady || !isProtected || contextHydration.isReadyToRender;
     console.log('🖼️ Updating shouldRender in production:', { shouldRenderValue });
     setShouldRender(shouldRenderValue);
   }, [
     isProtected, 
     isProtectedButReady, 
-    contextReadiness.isReadyToRender, 
+    contextHydration.isReadyToRender, 
     userId, 
     authLoading,
     protectionTimeMs
@@ -139,15 +132,16 @@ export function useAskSageGuard() {
   
   // Combine all readiness blockers
   const combinedBlockers = [
-    ...readinessBlockers,
-    ...contextReadiness.blockers
+    ...sessionBlockers,
+    ...contextHydration.blockers
   ].filter((blocker, index, self) => self.indexOf(blocker) === index);
   
   console.log("🛡️ useAskSageGuard returning final state:", { 
     canInteract, 
     shouldRender, 
     isProtected,
-    blockerCount: combinedBlockers.length
+    blockerCount: combinedBlockers.length,
+    hydrationProgress: contextHydration.hydration.progressPercent
   });
   
   return {
@@ -159,6 +153,7 @@ export function useAskSageGuard() {
     readinessBlockers: combinedBlockers,
     protectionTimeMs,
     stabilityTimeMs,
-    showLoading: !canInteract || !shouldRender
+    showLoading: !canInteract || !shouldRender,
+    contextHydration  // Expose the full hydration context for components
   };
 }
