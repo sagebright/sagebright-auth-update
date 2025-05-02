@@ -1,14 +1,12 @@
 .
-├── CONTRIBUTING.md
-├── DECOUPLING-SUMMARY.md
-├── README.md
-├── TEST-PLAN.md
 ├── backend
 │   └── routes
 │       └── api
 │           └── auth.js
 ├── bun.lockb
 ├── components.json
+├── CONTRIBUTING.md
+├── DECOUPLING-SUMMARY.md
 ├── docs
 │   └── component-docs.md
 ├── eslint.config.js
@@ -30,34 +28,19 @@
 │   │   ├── hr-dashboard-screenshot.png
 │   │   ├── hr-dashboard-screenshot.webp
 │   │   ├── sage_avatar.png
-│   │   ├── sb_logo.png
-│   │   ├── sb_logo.svg
 │   │   ├── sb_logo_type.png
 │   │   ├── sb_logo_type.svg
+│   │   ├── sb_logo.png
+│   │   ├── sb_logo.svg
 │   │   ├── sb_type.png
 │   │   └── sb_type.svg
 │   ├── og-image.png
 │   └── placeholder.svg
+├── README.md
 ├── src
 │   ├── App.css
 │   ├── App.tsx
 │   ├── components
-│   │   ├── DesignedToFeelHuman.tsx
-│   │   ├── ErrorBoundary.tsx
-│   │   ├── Footer.tsx
-│   │   ├── HeroSection.tsx
-│   │   ├── HowItWorks.tsx
-│   │   ├── HowSection.tsx
-│   │   ├── LanguageSwitcher.tsx
-│   │   ├── Logo.tsx
-│   │   ├── Navbar.tsx
-│   │   ├── PageErrorBoundary.tsx
-│   │   ├── ProtectedRoute.tsx
-│   │   ├── WaitlistSection.tsx
-│   │   ├── WhatAdminsGet.tsx
-│   │   ├── WhatEmployeesExperience.tsx
-│   │   ├── WhoSection.tsx
-│   │   ├── WhySection.tsx
 │   │   ├── admin
 │   │   │   ├── AdminDashboardLayout.tsx
 │   │   │   ├── AdminSidebar.tsx
@@ -66,20 +49,20 @@
 │   │   │   ├── DocumentUpload.tsx
 │   │   │   ├── EmptyState.tsx
 │   │   │   ├── OrgChartPreview.tsx
+│   │   │   ├── panels
+│   │   │   │   ├── DocumentsPanel.tsx
+│   │   │   │   ├── EngagementQuestionsPanel.tsx
+│   │   │   │   ├── integrations
+│   │   │   │   ├── IntegrationsPanel.tsx
+│   │   │   │   ├── questions
+│   │   │   │   ├── UserFormPanel.tsx
+│   │   │   │   └── UsersPanel.tsx
 │   │   │   ├── SectionWrapper.tsx
 │   │   │   ├── StatsRow.tsx
 │   │   │   ├── TagManagement.tsx
 │   │   │   ├── UserForm.tsx
 │   │   │   ├── UserTable.tsx
-│   │   │   ├── UserTableFilters.tsx
-│   │   │   └── panels
-│   │   │       ├── DocumentsPanel.tsx
-│   │   │       ├── EngagementQuestionsPanel.tsx
-│   │   │       ├── IntegrationsPanel.tsx
-│   │   │       ├── UserFormPanel.tsx
-│   │   │       ├── UsersPanel.tsx
-│   │   │       ├── integrations
-│   │   │       └── questions
+│   │   │   └── UserTableFilters.tsx
 │   │   ├── ask-sage
 │   │   │   ├── AskSageContainer.tsx
 │   │   │   ├── AskSageContent.tsx
@@ -90,6 +73,8 @@
 │   │   │   ├── ChatMessage.tsx
 │   │   │   ├── DebugHeader.tsx
 │   │   │   ├── HydrationUI.tsx
+│   │   │   ├── loading
+│   │   │   │   └── SageLoadingStates.tsx
 │   │   │   ├── LoadingSage.tsx
 │   │   │   ├── LoadingUI.tsx
 │   │   │   ├── OrgRecoveryUI.tsx
@@ -98,18 +83,19 @@
 │   │   │   ├── SageContentLayout.tsx
 │   │   │   ├── SuggestedQuestions.tsx
 │   │   │   ├── TypingIndicator.tsx
-│   │   │   ├── WelcomeMessage.tsx
-│   │   │   └── loading
-│   │   │       └── SageLoadingStates.tsx
+│   │   │   └── WelcomeMessage.tsx
 │   │   ├── auth
 │   │   │   ├── AuthDivider.tsx
 │   │   │   ├── AuthLayout.tsx
 │   │   │   ├── AuthRecovery.tsx
 │   │   │   ├── EmailInput.tsx
 │   │   │   ├── GoogleSignInButton.tsx
+│   │   │   ├── LoadingRedirect.tsx
 │   │   │   ├── LoginForm.tsx
 │   │   │   ├── PasswordInput.tsx
-│   │   │   └── README.md
+│   │   │   ├── README.md
+│   │   │   ├── SessionStatusIndicator.tsx
+│   │   │   └── SessionTimeoutDetector.tsx
 │   │   ├── contact
 │   │   │   ├── ContactForm.tsx
 │   │   │   ├── ContactHeader.tsx
@@ -146,21 +132,27 @@
 │   │   │   ├── ColorReference.tsx
 │   │   │   ├── FormValidationExamples.tsx
 │   │   │   ├── ImageUsageGuidelines.tsx
-│   │   │   ├── LoadingStateGuidelines.tsx
-│   │   │   └── loading
-│   │   │       ├── BestPracticesTab.tsx
-│   │   │       ├── ButtonStatesTab.tsx
-│   │   │       ├── PageLoadingTab.tsx
-│   │   │       ├── SimpleTable.tsx
-│   │   │       └── SkeletonLoadersTab.tsx
+│   │   │   ├── loading
+│   │   │   │   ├── BestPracticesTab.tsx
+│   │   │   │   ├── ButtonStatesTab.tsx
+│   │   │   │   ├── PageLoadingTab.tsx
+│   │   │   │   ├── SimpleTable.tsx
+│   │   │   │   └── SkeletonLoadersTab.tsx
+│   │   │   └── LoadingStateGuidelines.tsx
+│   │   ├── DesignedToFeelHuman.tsx
+│   │   ├── ErrorBoundary.tsx
+│   │   ├── Footer.tsx
 │   │   ├── form
 │   │   │   ├── CheckboxField.tsx
 │   │   │   ├── ExampleForm.tsx
+│   │   │   ├── index.ts
 │   │   │   ├── SelectField.tsx
 │   │   │   ├── SubmitButton.tsx
-│   │   │   ├── TextField.tsx
 │   │   │   ├── TextareaField.tsx
-│   │   │   └── index.ts
+│   │   │   └── TextField.tsx
+│   │   ├── HeroSection.tsx
+│   │   ├── HowItWorks.tsx
+│   │   ├── HowSection.tsx
 │   │   ├── hr
 │   │   │   ├── ClarityIndexPanel.tsx
 │   │   │   ├── MetricCardsGrid.tsx
@@ -168,98 +160,109 @@
 │   │   │   ├── SageFooter.tsx
 │   │   │   ├── SageGreetingHeader.tsx
 │   │   │   └── TrendsOverTimePanel.tsx
+│   │   ├── LanguageSwitcher.tsx
 │   │   ├── layout
 │   │   │   ├── AppShell.tsx
 │   │   │   ├── DashboardContainer.tsx
 │   │   │   └── SagePanel.tsx
+│   │   ├── Logo.tsx
 │   │   ├── navbar
 │   │   │   ├── DesktopNav.tsx
 │   │   │   ├── MobileNav.tsx
-│   │   │   ├── NavLink.tsx
 │   │   │   ├── NavbarButton.stories.tsx
 │   │   │   ├── NavbarButton.tsx
+│   │   │   ├── NavLink.tsx
 │   │   │   └── README.md
-│   │   └── ui
-│   │       ├── accessibility.tsx
-│   │       ├── accordion.tsx
-│   │       ├── alert-dialog.tsx
-│   │       ├── alert.tsx
-│   │       ├── animated.tsx
-│   │       ├── aspect-ratio.tsx
-│   │       ├── avatar.tsx
-│   │       ├── badge.tsx
-│   │       ├── breadcrumb.tsx
-│   │       ├── button
-│   │       │   ├── Button.stories.tsx
-│   │       │   ├── README.md
-│   │       │   └── index.ts
-│   │       ├── button.tsx
-│   │       ├── calendar.tsx
-│   │       ├── card
-│   │       │   └── Card.stories.tsx
-│   │       ├── card.tsx
-│   │       ├── carousel.tsx
-│   │       ├── chart.tsx
-│   │       ├── checkbox.tsx
-│   │       ├── collapsible.tsx
-│   │       ├── command.tsx
-│   │       ├── context-menu.tsx
-│   │       ├── dialog.tsx
-│   │       ├── drawer.tsx
-│   │       ├── dropdown-menu.tsx
-│   │       ├── form.tsx
-│   │       ├── hover-card.tsx
-│   │       ├── input
-│   │       │   └── Input.stories.tsx
-│   │       ├── input-otp.tsx
-│   │       ├── input.tsx
-│   │       ├── label.tsx
-│   │       ├── lazy-image.tsx
-│   │       ├── menubar.tsx
-│   │       ├── navigation-menu.tsx
-│   │       ├── pagination.tsx
-│   │       ├── popover.tsx
-│   │       ├── progress.tsx
-│   │       ├── radio-group.tsx
-│   │       ├── resizable.tsx
-│   │       ├── scroll-area.tsx
-│   │       ├── select.tsx
-│   │       ├── separator.tsx
-│   │       ├── sheet.tsx
-│   │       ├── sidebar
-│   │       │   ├── context.tsx
-│   │       │   ├── group.tsx
-│   │       │   ├── index.tsx
-│   │       │   ├── layout.tsx
-│   │       │   ├── menu.tsx
-│   │       │   ├── sidebar.tsx
-│   │       │   ├── submenu.tsx
-│   │       │   └── trigger.tsx
-│   │       ├── skeleton
-│   │       │   ├── ContactFormSkeleton.tsx
-│   │       │   ├── SkeletonAvatar.tsx
-│   │       │   ├── SkeletonCard.tsx
-│   │       │   ├── SkeletonText.tsx
-│   │       │   └── index.ts
-│   │       ├── skeleton.tsx
-│   │       ├── slider.tsx
-│   │       ├── smart-image.tsx
-│   │       ├── sonner.tsx
-│   │       ├── switch.tsx
-│   │       ├── table.tsx
-│   │       ├── tabs.tsx
-│   │       ├── textarea.tsx
-│   │       ├── toast.tsx
-│   │       ├── toaster.tsx
-│   │       ├── toggle-group.tsx
-│   │       ├── toggle.tsx
-│   │       ├── tooltip.tsx
-│   │       └── use-toast.ts
+│   │   ├── Navbar.tsx
+│   │   ├── PageErrorBoundary.tsx
+│   │   ├── ProtectedRoute.tsx
+│   │   ├── ui
+│   │   │   ├── accessibility.tsx
+│   │   │   ├── accordion.tsx
+│   │   │   ├── alert-dialog.tsx
+│   │   │   ├── alert.tsx
+│   │   │   ├── animated.tsx
+│   │   │   ├── aspect-ratio.tsx
+│   │   │   ├── avatar.tsx
+│   │   │   ├── badge.tsx
+│   │   │   ├── breadcrumb.tsx
+│   │   │   ├── button
+│   │   │   │   ├── Button.stories.tsx
+│   │   │   │   ├── index.ts
+│   │   │   │   └── README.md
+│   │   │   ├── button.tsx
+│   │   │   ├── calendar.tsx
+│   │   │   ├── card
+│   │   │   │   └── Card.stories.tsx
+│   │   │   ├── card.tsx
+│   │   │   ├── carousel.tsx
+│   │   │   ├── chart.tsx
+│   │   │   ├── checkbox.tsx
+│   │   │   ├── collapsible.tsx
+│   │   │   ├── command.tsx
+│   │   │   ├── context-menu.tsx
+│   │   │   ├── dialog.tsx
+│   │   │   ├── drawer.tsx
+│   │   │   ├── dropdown-menu.tsx
+│   │   │   ├── form.tsx
+│   │   │   ├── hover-card.tsx
+│   │   │   ├── input
+│   │   │   │   └── Input.stories.tsx
+│   │   │   ├── input-otp.tsx
+│   │   │   ├── input.tsx
+│   │   │   ├── label.tsx
+│   │   │   ├── lazy-image.tsx
+│   │   │   ├── menubar.tsx
+│   │   │   ├── navigation-menu.tsx
+│   │   │   ├── pagination.tsx
+│   │   │   ├── popover.tsx
+│   │   │   ├── progress.tsx
+│   │   │   ├── radio-group.tsx
+│   │   │   ├── resizable.tsx
+│   │   │   ├── scroll-area.tsx
+│   │   │   ├── select.tsx
+│   │   │   ├── separator.tsx
+│   │   │   ├── sheet.tsx
+│   │   │   ├── sidebar
+│   │   │   │   ├── context.tsx
+│   │   │   │   ├── group.tsx
+│   │   │   │   ├── index.tsx
+│   │   │   │   ├── layout.tsx
+│   │   │   │   ├── menu.tsx
+│   │   │   │   ├── sidebar.tsx
+│   │   │   │   ├── submenu.tsx
+│   │   │   │   └── trigger.tsx
+│   │   │   ├── skeleton
+│   │   │   │   ├── ContactFormSkeleton.tsx
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── SkeletonAvatar.tsx
+│   │   │   │   ├── SkeletonCard.tsx
+│   │   │   │   └── SkeletonText.tsx
+│   │   │   ├── skeleton.tsx
+│   │   │   ├── slider.tsx
+│   │   │   ├── smart-image.tsx
+│   │   │   ├── sonner.tsx
+│   │   │   ├── switch.tsx
+│   │   │   ├── table.tsx
+│   │   │   ├── tabs.tsx
+│   │   │   ├── textarea.tsx
+│   │   │   ├── toast.tsx
+│   │   │   ├── toaster.tsx
+│   │   │   ├── toggle-group.tsx
+│   │   │   ├── toggle.tsx
+│   │   │   ├── tooltip.tsx
+│   │   │   └── use-toast.ts
+│   │   ├── WaitlistSection.tsx
+│   │   ├── WhatAdminsGet.tsx
+│   │   ├── WhatEmployeesExperience.tsx
+│   │   ├── WhoSection.tsx
+│   │   └── WhySection.tsx
 │   ├── contexts
 │   │   ├── auth
-│   │   │   ├── AuthContext.tsx
 │   │   │   ├── authActions.ts
+│   │   │   ├── AuthContext.tsx
 │   │   │   ├── hooks
+│   │   │   │   ├── useAuthErrorHandler.ts
 │   │   │   │   ├── useOrgContext.ts
 │   │   │   │   ├── useSessionInit.ts
 │   │   │   │   ├── useSessionRefresh.ts
@@ -305,7 +308,6 @@
 │   │   │   │   └── use-readiness-evaluator.ts
 │   │   │   ├── readiness-logger.ts
 │   │   │   ├── types.ts
-│   │   │   ├── use-context-hydration.ts
 │   │   │   ├── use-readiness-evaluator.ts
 │   │   │   ├── use-readiness-state.ts
 │   │   │   ├── use-sage-context-readiness.ts
@@ -330,6 +332,7 @@
 │   │   ├── useCurrentUser.ts
 │   │   ├── useDataFetching.ts
 │   │   ├── useLoginForm.ts
+│   │   ├── useLoginRedirect.ts
 │   │   ├── useOrgRedirect.ts
 │   │   ├── useRedirectLogic.ts
 │   │   ├── useRequireAuth.ts
@@ -354,9 +357,13 @@
 │   │   └── supabase
 │   │       └── types.ts
 │   ├── lib
-│   │   ├── README.md
 │   │   ├── api
 │   │   │   ├── apiClient.ts
+│   │   │   ├── auth
+│   │   │   │   ├── authApiUtils.ts
+│   │   │   │   ├── authOperations.ts
+│   │   │   │   ├── authRequest.ts
+│   │   │   │   └── types.ts
 │   │   │   ├── authApi.ts
 │   │   │   ├── coreApiClient.ts
 │   │   │   ├── departmentsApi.ts
@@ -368,12 +375,27 @@
 │   │   │   ├── types.ts
 │   │   │   └── usersApi.ts
 │   │   ├── api.ts
+│   │   ├── auth
+│   │   │   ├── cache
+│   │   │   │   └── authStateCache.ts
+│   │   │   ├── cookies
+│   │   │   │   └── cookieDetection.ts
+│   │   │   ├── logging
+│   │   │   │   └── authLogger.ts
+│   │   │   └── utils
+│   │   │       ├── emptyStateUtils.ts
+│   │   │       ├── fetchUtils.ts
+│   │   │       ├── responseUtils.ts
+│   │   │       └── throttleUtils.ts
+│   │   ├── authApi.ts
+│   │   ├── authCache.ts
+│   │   ├── authCookies.ts
 │   │   ├── backendApi.ts
 │   │   ├── backendAuth.ts
 │   │   ├── context
-│   │   │   ├── buildSageContext.ts
 │   │   │   ├── builders
 │   │   │   │   └── contextBuilder.ts
+│   │   │   ├── buildSageContext.ts
 │   │   │   ├── contextLogger.ts
 │   │   │   ├── contextValidation.ts
 │   │   │   ├── fetchers
@@ -394,6 +416,7 @@
 │   │   ├── performance.ts
 │   │   ├── permissions.ts
 │   │   ├── promptBuilder.ts
+│   │   ├── README.md
 │   │   ├── redirect-intent
 │   │   │   ├── constants.ts
 │   │   │   ├── hooks
@@ -421,24 +444,26 @@
 │   │   ├── AdminDashboard.tsx
 │   │   ├── ApiDebug.tsx
 │   │   ├── AskSage.tsx
+│   │   ├── auth
+│   │   │   ├── ForgotPassword.tsx
+│   │   │   ├── Login.tsx
+│   │   │   ├── RecoveryPage.tsx
+│   │   │   └── Signup.tsx
 │   │   ├── AuthDebug.tsx
 │   │   ├── ContactUs.tsx
 │   │   ├── Dashboard.tsx
 │   │   ├── DesignSystem.tsx
+│   │   ├── dev-debug.tsx
+│   │   ├── dev-roadmaps.tsx
 │   │   ├── ErrorHandlingExample.tsx
 │   │   ├── FormComponentsExample.tsx
 │   │   ├── HRDashboard.tsx
 │   │   ├── ImageComponentPreview.tsx
 │   │   ├── Index.tsx
 │   │   ├── NotFound.tsx
-│   │   ├── SkeletonPreview.tsx
-│   │   ├── auth
-│   │   │   ├── ForgotPassword.tsx
-│   │   │   ├── Login.tsx
-│   │   │   ├── RecoveryPage.tsx
-│   │   │   └── Signup.tsx
-│   │   ├── dev-debug.tsx
-│   │   └── dev-roadmaps.tsx
+│   │   └── SkeletonPreview.tsx
+│   ├── routes
+│   │   └── AppRoutes.tsx
 │   ├── theme
 │   │   ├── animations.ts
 │   │   ├── colors.ts
@@ -454,7 +479,8 @@
 │   ├── utils
 │   │   ├── messageUtils.ts
 │   │   └── sageErrorUtils.ts
-│   └── vite-env.d.ts
+│   ├── vite-env.d.ts
+│   └── vite.config.ts
 ├── supabase
 │   ├── config.toml
 │   ├── functions
@@ -469,9 +495,10 @@
 │   └── migrations
 │       └── 20250409_fix_user_triggers.sql
 ├── tailwind.config.ts
+├── TEST-PLAN.md
 ├── tsconfig.app.json
 ├── tsconfig.json
 ├── tsconfig.node.json
 └── vite.config.ts
 
-72 directories, 403 files
+79 directories, 423 files
