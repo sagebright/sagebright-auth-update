@@ -5,15 +5,21 @@ import { useSageSessionStability } from '@/hooks/ask-sage/use-session-stability'
 import { useAuth } from '@/contexts/auth/AuthContext';
 import { useSageContextReadiness } from '@/hooks/sage-context';
 import { useAskSageGuard } from '@/hooks/ask-sage/use-ask-sage-guard';
-import { useContextHydration } from '@/hooks/sage-context/use-context-hydration';
+import { useContextHydration } from '@/hooks/sage-context/hydration';
 import { useVoiceParamState } from '@/hooks/use-voice-param';
+import { useSageContext } from '@/hooks/sage-context';
 
 export const DebugPanel = () => {
   const { userId, orgId, user } = useAuth();
   const voiceParamState = useVoiceParamState();
+  const sageContext = useSageContext();
   
   // Use the enhanced context hydration system
-  const contextHydration = useContextHydration(voiceParamState.currentVoice);
+  const contextHydration = useContextHydration(
+    voiceParamState.currentVoice,
+    sageContext?.userContext,
+    sageContext?.orgContext
+  );
   
   const {
     canInteract,
@@ -150,6 +156,7 @@ export const DebugPanel = () => {
         
         {/* Display categorized blockers when present */}
         {contextHydration.blockersByCategory && 
+         typeof contextHydration.blockersByCategory === 'object' &&
          Object.keys(contextHydration.blockersByCategory).length > 0 && (
           <div className="border-t pt-2">
             <h4 className="font-medium text-primary">Blockers By Category</h4>
@@ -157,7 +164,7 @@ export const DebugPanel = () => {
               {Object.entries(contextHydration.blockersByCategory).map(([category, blockers]) => (
                 <div key={category} className="space-y-1">
                   <h5 className="text-xs font-medium text-muted-foreground">{category}</h5>
-                  {blockers.map((blocker, index) => (
+                  {Array.isArray(blockers) && blockers.map((blocker, index) => (
                     <div key={index} className="pl-2 text-xs text-red-500">
                       • {blocker}
                     </div>
