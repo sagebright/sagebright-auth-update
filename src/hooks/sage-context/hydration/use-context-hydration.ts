@@ -1,9 +1,10 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSageContextReadiness } from '../use-sage-context-readiness';
 import { useAuth } from '@/contexts/auth/AuthContext';
 import { HydrationState } from './types';
 import { useHydrationTracking } from './use-hydration-tracking';
+import { hydrateSageContext } from '@/lib/api/sageContextApi';
 
 /**
  * Hook to track and ensure complete context hydration
@@ -30,9 +31,66 @@ export function useContextHydration(
     completedSteps: [],
     totalSteps: 5 // Auth, Session, User Metadata, Org, and Voice
   });
+
+  // Track backend context state
+  const [backendContext, setBackendContext] = useState({
+    userContext: userContext,
+    orgContext: orgContext,
+    isLoading: false,
+    error: null
+  });
   
   // Extract the orgSlug from user metadata
   const orgSlug = user?.user_metadata?.org_slug ?? null;
+  
+  // Fetch context from the backend when dependencies change
+  useEffect(() => {
+    // Skip if we don't have the necessary IDs yet
+    if (!userId || !orgId || authLoading) {
+      console.log("⏳ Waiting for auth data before fetching context", { userId, orgId, authLoading });
+      return;
+    }
+
+    let isMounted = true;
+    setBackendContext(prev => ({ ...prev, isLoading: true }));
+    
+    console.log("🔄 Fetching Sage context from backend", { userId, orgId, orgSlug });
+    
+    hydrateSageContext(userId, orgId, orgSlug)
+      .then(context => {
+        if (!isMounted) return;
+        
+        if (context) {
+          console.log("🧠 Live Sage context:", context);
+          setBackendContext({
+            userContext: context.user || null,
+            orgContext: context.org || null,
+            isLoading: false,
+            error: null
+          });
+        } else {
+          console.warn("⚠️ No context data returned from API");
+          setBackendContext(prev => ({ 
+            ...prev, 
+            isLoading: false,
+            error: new Error("Failed to load context data")
+          }));
+        }
+      })
+      .catch(error => {
+        if (!isMounted) return;
+        console.error("❌ Error fetching context:", error);
+        setBackendContext(prev => ({ 
+          ...prev, 
+          isLoading: false,
+          error: error instanceof Error ? error : new Error("Unknown error fetching context")
+        }));
+      });
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [userId, orgId, orgSlug, authLoading]);
   
   // Use the context readiness hook with provided context
   const contextReadiness = useSageContextReadiness(
@@ -44,8 +102,8 @@ export function useContextHydration(
     sessionUserReady,
     voiceParam,
     {
-      userContext,
-      orgContext
+      userContext: backendContext.userContext,
+      orgContext: backendContext.orgContext
     }
   );
   
@@ -54,12 +112,7 @@ export function useContextHydration(
   
   return {
     ...contextReadiness,
-    backendContext: {
-      userContext,
-      orgContext,
-      isLoading: false,
-      error: null
-    },
+    backendContext,
     hydration: {
       ...hydrationProgress,
       isComplete: !!hydrationProgress.endTime,

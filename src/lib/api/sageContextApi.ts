@@ -1,3 +1,4 @@
+
 import { apiRequest } from './coreApiClient';
 import { validateSageContext } from '../validation/contextSchema';
 import { SageContext } from '@/types/chat';
@@ -16,23 +17,28 @@ export async function fetchSageContext(userId: string, orgId: string, orgSlug: s
   
   console.log(`🛠️ backendApi route reached: ${endpoint}`);
   
-  const res = await apiRequest(endpoint, {}, {
-    context: 'fetching Sage context',
-    fallbackMessage: 'Unable to load Sage context. Using development data.',
-    ...options
-  });
-  
-  // Validate the returned context if we have data
-  if (res?.data) {
-    try {
-      validateSageContext(res.data);
-      console.log('✅ Sage context validation passed');
-    } catch (error) {
-      console.warn('⚠️ Sage context validation failed:', error);
+  try {
+    const res = await apiRequest(endpoint, {}, {
+      context: 'fetching Sage context',
+      fallbackMessage: 'Unable to load Sage context. Using development data.',
+      ...options
+    });
+    
+    // Validate the returned context if we have data
+    if (res?.data) {
+      try {
+        validateSageContext(res.data);
+        console.log('✅ Sage context validation passed');
+      } catch (error) {
+        console.warn('⚠️ Sage context validation failed:', error);
+      }
     }
+    
+    return res?.data || null;
+  } catch (error) {
+    console.error('❌ Error in fetchSageContext:', error);
+    throw error;
   }
-  
-  return res?.data || null;
 }
 
 /**
@@ -124,6 +130,6 @@ export async function hydrateSageContext(userId: string, orgId: string, orgSlug:
       } as SageContext;
     }
     
-    return null;
+    throw error; // Re-throw other errors to be handled by the caller
   }
 }

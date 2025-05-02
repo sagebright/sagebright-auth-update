@@ -3,13 +3,19 @@ import React, { useEffect } from 'react';
 import { AskSageContainer } from '@/components/ask-sage/AskSageContainer';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { useAuth } from '@/contexts/auth/AuthContext';
+import { useSageContext } from '@/hooks/sage-context';
 
 const AskSage = () => {
   const { loading } = useAuth();
+  const sageContext = useSageContext();
 
   useEffect(() => {
-    console.log("🌟 AskSage page mounted", { authLoading: loading });
-  }, [loading]);
+    console.log("🌟 AskSage page mounted", { 
+      authLoading: loading,
+      contextLoading: sageContext.loading,
+      contextReady: sageContext.isReady
+    });
+  }, [loading, sageContext.loading, sageContext.isReady]);
 
   return (
     <ErrorBoundary fallback={

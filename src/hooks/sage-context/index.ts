@@ -8,3 +8,5 @@ export * from './types';
 export * from './use-readiness-state';
 export * from './use-readiness-evaluator';
 export * from './hydration';
+export * from './readiness-logger';
+

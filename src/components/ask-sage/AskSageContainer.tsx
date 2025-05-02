@@ -29,6 +29,13 @@ export const AskSageContainer: React.FC = () => {
     canSendMessages
   } = useSageContainerState();
   
+  // Log context hydration status for debugging
+  useEffect(() => {
+    if (contextHydration?.hydration?.progressPercent === 100) {
+      console.log("🧠 Live Sage context:", contextHydration.backendContext);
+    }
+  }, [contextHydration?.hydration?.progressPercent, contextHydration.backendContext]);
+  
   console.log("🧩 AskSageContainer state:", {
     hasContext: !!sageContext.context,
     contextLoading: sageContext.loading,
@@ -39,7 +46,8 @@ export const AskSageContainer: React.FC = () => {
     shouldRender,
     isProtected,
     canSendMessages,
-    hydrationProgress: contextHydration?.hydration?.progressPercent || 0
+    hydrationProgress: contextHydration?.hydration?.progressPercent || 0,
+    backendFetched: !contextHydration.backendContext.isLoading && !contextHydration.backendContext.error
   });
   
   // Use the main page logic hook
