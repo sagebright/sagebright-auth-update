@@ -7,7 +7,7 @@ export default defineConfig({
       from: '/api',
       to: 'https://sagebright-backend.up.railway.app/api',
       secure: true,
-      rewrite: path => path,
+      rewrite: path => path.replace(/^\/api/, ''),
     },
   ],
 });
