@@ -20,6 +20,7 @@ export default function Login() {
   
   // Add a mount tracker to prevent duplicate initializations
   const isMountedRef = useRef(false);
+  const formInitializedRef = useRef(false);
   
   useEffect(() => {
     // Only log mount once per component lifecycle
@@ -29,6 +30,14 @@ export default function Login() {
       // Add timestamp to see when login components mount/unmount
       const timestamp = new Date().toISOString();
       console.log(`🔒 Login page mounted at ${timestamp} [auth: ${isAuthenticated}] [intent: ${activeIntent?.destination || 'none'}]`);
+
+      // Check if form is properly initialized
+      if (form) {
+        formInitializedRef.current = true;
+        console.log("✅ Login form is initialized:", form);
+      } else {
+        console.error("❌ Login form is not initialized properly");
+      }
     }
     
     return () => {
@@ -38,7 +47,7 @@ export default function Login() {
         isMountedRef.current = false;
       }
     };
-  }, [isAuthenticated, user, loading, authError, activeIntent]);
+  }, [isAuthenticated, user, loading, authError, activeIntent, form]);
   
   const handleGoogleSignIn = () => {
     console.log("🔍 Google sign-in button clicked");
@@ -66,7 +75,13 @@ export default function Login() {
   const isDev = import.meta.env.DEV;
 
   // For debugging purposes
-  console.log("📄 Login page mounted at", new Date().toISOString(), {
+  console.log("📄 Login page render data:", {
+    form: !!form,
+    formState: form?.formState ? {
+      isDirty: form.formState.isDirty,
+      isValid: form.formState.isValid,
+      hasErrors: Object.keys(form.formState.errors).length > 0
+    } : 'Not initialized',
     isAuthenticated, 
     hasUser: !!user, 
     loading, 
@@ -99,21 +114,30 @@ export default function Login() {
       <div className="space-y-4">
         <GoogleSignInButton onClick={handleGoogleSignIn} />
         <AuthDivider />
-        {/* Ensure LoginForm is always rendered */}
-        <LoginForm 
-          form={form}
-          onSubmit={handleLoginSubmit}
-          isLoading={isLoading}
-          authError={authError}
-        />
-        {activeIntent && (
-          <div className="text-xs text-gray-500 mt-2 italic">
-            You'll be redirected to your last location after signing in.
-          </div>
-        )}
-        {isLoading && (
-          <div className="text-xs text-gray-500 mt-2 italic text-center">
-            Signing in...
+        
+        {/* Debug rendering - ALWAYS try to render LoginForm regardless of form state */}
+        {form ? (
+          <>
+            <LoginForm 
+              form={form}
+              onSubmit={handleLoginSubmit}
+              isLoading={isLoading}
+              authError={authError}
+            />
+            {activeIntent && (
+              <div className="text-xs text-gray-500 mt-2 italic">
+                You'll be redirected to your last location after signing in.
+              </div>
+            )}
+            {isLoading && (
+              <div className="text-xs text-gray-500 mt-2 italic text-center">
+                Signing in...
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="p-4 bg-red-50 text-red-600 rounded-md">
+            Login form failed to initialize. Please refresh the page.
           </div>
         )}
       </div>

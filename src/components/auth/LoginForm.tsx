@@ -38,7 +38,10 @@ const LoginForm: React.FC<LoginFormProps> = memo(({
   useEffect(() => {
     if (!didMountRef.current) {
       didMountRef.current = true;
-      console.log("🧩 LoginForm mounted");
+      console.log("🧩 LoginForm mounted", { 
+        hasForm: !!form,
+        formValid: form?.formState?.isValid
+      });
     }
     return () => {
       if (didMountRef.current) {
@@ -46,11 +49,11 @@ const LoginForm: React.FC<LoginFormProps> = memo(({
         didMountRef.current = false;
       }
     };
-  }, []);
+  }, [form]);
 
   // Create a stable handleFormSubmit function that won't change on each render
   const handleFormSubmit = useCallback(async (values: LoginValues) => {
-    console.log("📝 Form validation passed, calling onSubmit");
+    console.log("📝 Form validation passed, calling onSubmit", values);
     try {
       await onSubmit(values);
     } catch (error) {
@@ -59,7 +62,22 @@ const LoginForm: React.FC<LoginFormProps> = memo(({
   }, [onSubmit]);
 
   // For debugging
-  console.log("LoginForm rendering with form:", !!form);
+  console.log("LoginForm rendering with form state:", { 
+    hasForm: !!form,
+    errors: Object.keys(errors).length,
+    isValid,
+    isSubmitted,
+    fields: form ? Object.keys(form.getValues()).join(', ') : 'no form'
+  });
+
+  if (!form) {
+    console.error("Form is not provided to LoginForm!");
+    return (
+      <div className="p-3 bg-red-50 border border-red-200 text-red-600 rounded-md">
+        Error: Form not initialized properly
+      </div>
+    );
+  }
 
   return (
     <Form {...form}>

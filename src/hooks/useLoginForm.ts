@@ -31,10 +31,10 @@ export const useLoginForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
   const loginAttemptRef = useRef<boolean>(false);
+  const initCompletedRef = useRef(false);
 
   const { activeIntent, executeRedirect, clearIntent } = useRedirectIntentManager();
 
-  // For debugging
   console.log("📋 LoginForm hook initializing");
 
   // Enable validation on change and blur for real-time feedback
@@ -48,6 +48,14 @@ export const useLoginForm = () => {
     },
     criteriaMode: "all"
   });
+
+  // Mark initialization as complete
+  useEffect(() => {
+    if (!initCompletedRef.current) {
+      initCompletedRef.current = true;
+      console.log("✅ LoginForm hook initialization complete with form:", !!form);
+    }
+  }, []);
 
   // Log form state for debugging
   useEffect(() => {

@@ -1,9 +1,11 @@
-
 import React, { Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 
 import PageErrorBoundary from "@/components/PageErrorBoundary";
 import ProtectedRoute from "@/components/ProtectedRoute";
+
+// Change to normal imports for the login path to avoid lazy loading issues
+import Login from "@/pages/auth/Login";
 
 const Index = React.lazy(() => import("@/pages/Index"));
 const Dashboard = React.lazy(() => import("@/pages/Dashboard"));
@@ -12,7 +14,7 @@ const AdminDashboard = React.lazy(() => import("@/pages/AdminDashboard"));
 const AskSage = React.lazy(() => import("@/pages/AskSage"));
 const ContactUs = React.lazy(() => import("@/pages/ContactUs"));
 const NotFound = React.lazy(() => import("@/pages/NotFound"));
-const Login = React.lazy(() => import("@/pages/auth/Login"));
+// Keeping Login directly imported above
 const Signup = React.lazy(() => import("@/pages/auth/Signup"));
 const ForgotPassword = React.lazy(() => import("@/pages/auth/ForgotPassword"));
 const RecoveryPage = React.lazy(() => import("@/pages/auth/RecoveryPage"));
@@ -41,7 +43,7 @@ const AppRoutes = ({ RootRedirectComponent }: { RootRedirectComponent: React.FC 
       <Route path="/" element={<RootRedirectComponent />} />
       <Route path="/contact-us" element={<ContactUs />} />
 
-      {/* Auth routes */}
+      {/* Auth routes with Login not lazily loaded */}
       <Route path="/auth/login" element={<Login />} />
       <Route path="/auth/signup" element={<Signup />} />
       <Route path="/auth/forgot-password" element={<ForgotPassword />} />

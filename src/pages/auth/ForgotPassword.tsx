@@ -36,12 +36,14 @@ export default function ForgotPassword() {
   });
 
   const onSubmit = async (data: ForgotPasswordValues) => {
+    console.log("Forgot password submitted with email:", data.email);
     setIsLoading(true);
     try {
       await resetPassword(data.email);
       setIsSuccess(true);
       form.reset();
     } catch (error) {
+      console.error("Error during password reset:", error);
       // Error is handled in the auth context
     } finally {
       setIsLoading(false);
@@ -86,7 +88,10 @@ export default function ForgotPassword() {
                       <EmailInput
                         id="reset-email"
                         disabled={isLoading}
-                        {...field}
+                        value={field.value}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
+                        name={field.name}
                       />
                     </FormControl>
                     <FormMessage />
