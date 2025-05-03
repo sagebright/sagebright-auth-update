@@ -17,10 +17,10 @@ export default defineConfig(({ mode }) => ({
     ],
     proxy: {
       "/api": {
-        target: "http://localhost:8080", // API backend also runs on port 8080
+        target: "https://sagebright-backend.up.railway.app",
         changeOrigin: true,
         secure: false,
-        rewrite: (path) => path, // Maintain original path
+        rewrite: (path) => path.replace(/^\/api/, ''), // Remove /api prefix to match lovable.config.ts
         configure: (proxy, _options) => {
           proxy.on('proxyReq', (proxyReq, req, res) => {
             // Log proxy requests during development for debugging
