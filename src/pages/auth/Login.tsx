@@ -10,6 +10,7 @@ import LoginForm from "@/components/auth/LoginForm";
 import { useLoginRedirect } from "@/hooks/useLoginRedirect";
 import LoadingRedirect from "@/components/auth/LoadingRedirect";
 import SessionStatusIndicator from "@/components/auth/SessionStatusIndicator";
+import BackendHealthCheck from "@/components/auth/BackendHealthCheck";
 
 export default function Login() {
   const { signInWithGoogle } = useAuth();
@@ -67,6 +68,9 @@ export default function Login() {
     return <LoadingRedirect />;
   }
 
+  // Check if we're in development mode to show diagnostic tools
+  const isDev = import.meta.env.DEV;
+
   // Always show the login form with optional loading indicator
   return (
     <AuthLayout
@@ -85,6 +89,9 @@ export default function Login() {
           Enter your credentials to sign in to your account
         </p>
       </>
+      
+      {/* Show backend health check in development mode */}
+      {isDev && <BackendHealthCheck />}
       
       <div className="space-y-4">
         <GoogleSignInButton onClick={handleGoogleSignIn} />

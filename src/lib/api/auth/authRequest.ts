@@ -48,9 +48,11 @@ export async function makeAuthRequest(
       credentials: 'include',
       headers: {
         'Accept': 'application/json',
+        'Content-Type': 'application/json',
         'Cache-Control': 'no-cache',
         ...(options.headers || {})
       },
+      mode: 'cors', // Explicitly set CORS mode for cross-origin requests
       ...options,
       signal: controller.signal
     });
@@ -64,6 +66,14 @@ export async function makeAuthRequest(
 
     return processAuthResponse(response, endpoint);
   } catch (error) {
+    // Handle CORS errors specifically
+    if (error instanceof TypeError && error.message === 'Failed to fetch') {
+      console.error(`📡 CORS error detected when accessing: ${absoluteUrl}`);
+      console.error("This is likely because the backend doesn't have CORS headers enabled for this origin.");
+      
+      throw new Error(`CORS policy blocked access to ${endpoint}. The backend needs to allow this origin.`);
+    }
+    
     if (error.name === 'AbortError') {
       console.error(`📡 ${endpoint} request timed out after ${timeout}ms`);
       throw new Error(`Request timed out. Please try again.`);

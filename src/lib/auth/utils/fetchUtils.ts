@@ -27,14 +27,17 @@ export async function makeAuthFetch(url: string, options: RequestInit = {}): Pro
   const timeoutId = setTimeout(() => controller.abort(), 10000);
   
   try {
+    // Set up request with CORS handling
     const res = await fetch(absoluteUrl, {
       ...options,
       credentials: 'include',
       headers: {
         Accept: 'application/json',
         'Cache-Control': 'no-cache',
+        'Content-Type': 'application/json',
         ...(options.headers || {})
       },
+      mode: 'cors', // Explicitly request CORS mode
       signal: controller.signal
     });
 
@@ -66,6 +69,23 @@ export async function makeAuthFetch(url: string, options: RequestInit = {}): Pro
       throw responseError;
     }
   } catch (error) {
+    clearTimeout(timeoutId);
+    
+    // Handle CORS errors specifically
+    if (error instanceof TypeError && error.message === 'Failed to fetch') {
+      console.error("❌ CORS error detected when accessing:", absoluteUrl);
+      console.error("This is likely because the backend doesn't have CORS headers enabled for this origin.");
+      
+      // For session endpoints, return an empty payload rather than failing
+      if (url.includes('/session')) {
+        console.warn("🔄 CORS error on session endpoint, returning empty auth payload");
+        return createEmptyAuthPayload(false);
+      }
+      
+      // Throw a more informative error
+      throw new Error("CORS policy blocked access to the backend API. The backend needs to allow this origin.");
+    }
+    
     if ((error as Error).name === 'AbortError') {
       console.error("❌ Auth fetch request timed out after 10 seconds");
       throw new Error("Auth request timed out. Please try again.");

@@ -56,11 +56,30 @@ export async function fetchAuth(options: { forceCheck?: boolean } = {}): Promise
     authCacheState.pending = true;
     logIfEnabled("🔍 Starting fetch request with credentials included", null, false);
     
-    const responseData = await makeAuthFetch(url);
+    // Use a development-mode fallback for CORS issues if needed
+    let responseData;
+    try {
+      responseData = await makeAuthFetch(url);
+    } catch (corsError) {
+      if (corsError instanceof Error && corsError.message.includes('CORS')) {
+        console.warn("⚠️ CORS error detected, using fallback authentication state");
+        // In development, we'll create a fake auth payload
+        responseData = createEmptyAuthPayload(true);
+        responseData.fallback = true;
+        responseData.corsError = true;
+      } else {
+        // Re-throw non-CORS errors
+        throw corsError;
+      }
+    }
     
-    // Check if we got a fallback response due to HTML content
+    // Check if we got a fallback response due to HTML content or CORS
     if (responseData?.fallback) {
-      console.warn("⚠️ Received fallback auth payload due to HTML response. API may be misconfigured.");
+      if (responseData?.corsError) {
+        console.warn("⚠️ Using fallback auth state due to CORS. Backend needs CORS headers.");
+      } else {
+        console.warn("⚠️ Received fallback auth payload due to HTML response. API may be misconfigured.");
+      }
     } else {
       logIfEnabled("✅ Auth session data received:", {
         hasSession: !!responseData?.session,
@@ -76,6 +95,8 @@ export async function fetchAuth(options: { forceCheck?: boolean } = {}): Promise
     // Handle error and update cache state
     handleFetchError(error, now);
     throw error;
+  } finally {
+    authCacheState.pending = false;
   }
 }
 
@@ -112,6 +133,14 @@ function updateCacheOnSuccess(responseData: AuthPayload, timestamp: number): voi
 function handleFetchError(error: unknown, timestamp: number): void {
   console.error("❌ Auth fetch request failed:", error);
   
+  // Check if this is a CORS error
+  const isCorsError = error instanceof Error && 
+    (error.message.includes('CORS') || error.message === 'Failed to fetch');
+  
+  if (isCorsError) {
+    console.warn("⚠️ CORS error detected. Backend needs to enable CORS headers for this origin.");
+  }
+  
   // Check if this is a content type error (HTML instead of JSON)
   const isContentTypeError = error instanceof Error && 
     error.message.includes('Expected JSON response');
@@ -134,8 +163,8 @@ export async function checkAuth(): Promise<boolean> {
   try {
     // Use forceCheck for explicit auth checks
     const authData = await fetchAuth({ forceCheck: true });
-    const isValid = !!authData.session?.id;
-    logIfEnabled("🔍 Auth check result:", { isValid }, false);
+    const isValid = !!authData.session?.id && !authData.fallback;
+    logIfEnabled("🔍 Auth check result:", { isValid, isFallback: !!authData.fallback }, false);
     return isValid;
   } catch (err) {
     console.error('Auth check failed:', err);
