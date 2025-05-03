@@ -58,6 +58,9 @@ const LoginForm: React.FC<LoginFormProps> = memo(({
     }
   }, [onSubmit]);
 
+  // For debugging
+  console.log("LoginForm rendering with form:", !!form);
+
   return (
     <Form {...form}>
       <form
@@ -95,7 +98,7 @@ const LoginForm: React.FC<LoginFormProps> = memo(({
                     onBlur={field.onBlur}
                     name={field.name}
                     id="email"
-                    aria-required={true} // Fix: Changed from string to boolean
+                    aria-required={true}
                   />
                 </FocusRing>
               </FormControl>
@@ -122,7 +125,7 @@ const LoginForm: React.FC<LoginFormProps> = memo(({
                     onBlur={field.onBlur}
                     name={field.name}
                     id="password"
-                    aria-required={true} // Fix: Changed from string to boolean
+                    aria-required={true}
                   />
                 </FocusRing>
               </FormControl>

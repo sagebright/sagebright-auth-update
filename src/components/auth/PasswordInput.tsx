@@ -14,7 +14,7 @@ interface PasswordInputProps {
   id: string;
   className?: string;
   required?: boolean;
-  'aria-required'?: boolean | 'true' | 'false'; // Fix: Change type to boolean | 'true' | 'false'
+  'aria-required'?: boolean | 'true' | 'false';
 }
 
 const PasswordInput: React.FC<PasswordInputProps> = ({
@@ -35,6 +35,9 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
+
+  // For debugging
+  console.log(`Rendering PasswordInput with id: ${id}`);
 
   return (
     <div className="relative">

@@ -34,6 +34,9 @@ export const useLoginForm = () => {
 
   const { activeIntent, executeRedirect, clearIntent } = useRedirectIntentManager();
 
+  // For debugging
+  console.log("📋 LoginForm hook initializing");
+
   // Enable validation on change and blur for real-time feedback
   const form = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
@@ -45,6 +48,16 @@ export const useLoginForm = () => {
     },
     criteriaMode: "all"
   });
+
+  // Log form state for debugging
+  useEffect(() => {
+    console.log("📋 LoginForm form state:", {
+      isDirty: form.formState.isDirty,
+      isValid: form.formState.isValid,
+      errors: Object.keys(form.formState.errors).length > 0,
+      hasValues: !!form.getValues().email || !!form.getValues().password
+    });
+  }, [form.formState]);
 
   // Cleanup function to prevent memory leaks
   useEffect(() => {

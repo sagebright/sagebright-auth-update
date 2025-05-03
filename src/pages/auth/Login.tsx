@@ -65,6 +65,15 @@ export default function Login() {
   // Check if we're in development mode to show diagnostic tools
   const isDev = import.meta.env.DEV;
 
+  // For debugging purposes
+  console.log("📄 Login page mounted at", new Date().toISOString(), {
+    isAuthenticated, 
+    hasUser: !!user, 
+    loading, 
+    authError, 
+    activeIntent: activeIntent?.destination || 'none'
+  });
+
   // Always show the login form with optional loading indicator
   return (
     <AuthLayout
@@ -90,6 +99,7 @@ export default function Login() {
       <div className="space-y-4">
         <GoogleSignInButton onClick={handleGoogleSignIn} />
         <AuthDivider />
+        {/* Ensure LoginForm is always rendered */}
         <LoginForm 
           form={form}
           onSubmit={handleLoginSubmit}
