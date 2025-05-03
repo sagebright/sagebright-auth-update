@@ -95,7 +95,7 @@ const LoginForm: React.FC<LoginFormProps> = memo(({
                     onBlur={field.onBlur}
                     name={field.name}
                     id="email"
-                    aria-required="true"
+                    aria-required={true} // Fix: Changed from string to boolean
                   />
                 </FocusRing>
               </FormControl>
@@ -122,7 +122,7 @@ const LoginForm: React.FC<LoginFormProps> = memo(({
                     onBlur={field.onBlur}
                     name={field.name}
                     id="password"
-                    aria-required="true"
+                    aria-required={true} // Fix: Changed from string to boolean
                   />
                 </FocusRing>
               </FormControl>

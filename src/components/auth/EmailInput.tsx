@@ -12,7 +12,7 @@ interface EmailInputProps {
   id: string;
   className?: string;
   required?: boolean;
-  'aria-required'?: string;
+  'aria-required'?: boolean | 'true' | 'false'; // Fix: Change type to boolean | 'true' | 'false'
 }
 
 const EmailInput: React.FC<EmailInputProps> = ({

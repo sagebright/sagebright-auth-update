@@ -84,6 +84,7 @@ export default function ForgotPassword() {
                     <FormLabel className="font-helvetica">Email</FormLabel>
                     <FormControl>
                       <EmailInput
+                        id="reset-email" // Fix: Added the required id prop
                         disabled={isLoading}
                         {...field}
                       />

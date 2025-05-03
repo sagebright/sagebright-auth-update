@@ -14,7 +14,7 @@ interface PasswordInputProps {
   id: string;
   className?: string;
   required?: boolean;
-  'aria-required'?: string;
+  'aria-required'?: boolean | 'true' | 'false'; // Fix: Change type to boolean | 'true' | 'false'
 }
 
 const PasswordInput: React.FC<PasswordInputProps> = ({
