@@ -1,4 +1,3 @@
-
 /**
  * Shared utilities for auth API operations
  */
@@ -14,6 +13,12 @@ export const DEFAULT_TIMEOUT = 15000; // 15 seconds
  * Processes API responses with error handling
  */
 export async function processAuthResponse(response: Response, context: string) {
+  console.log(`📡 Processing auth response for ${context}:`, {
+    status: response.status,
+    ok: response.ok,
+    contentType: response.headers.get('content-type')
+  });
+  
   if (!response.ok) {
     let errorMessage = `Error with ${context}`;
     try {
@@ -38,13 +43,32 @@ export async function processAuthResponse(response: Response, context: string) {
       return await response.json();
     }
     
-    // Non-JSON success response (common for some auth endpoints)
-    console.log(`📡 Response from ${context} is not JSON, returning success object`);
-    return { success: true };
+    // Non-JSON success response (HTML fallback issue)
+    console.warn(`⚠️ HTML fallback detected for ${context}. This indicates a proxy configuration issue.`);
+    console.warn(`Content type: ${response.headers.get('content-type')}`);
+    
+    // Get a sample of the response to help debug
+    try {
+      const text = await response.text();
+      console.warn('Response sample (first 200 chars):', text.substring(0, 200));
+    } catch (err) {
+      console.error('Could not sample response text:', err);
+    }
+    
+    // Return a fallback object to prevent the app from crashing
+    return { 
+      success: true, 
+      fallback: true,
+      warning: "API proxy issue: HTML returned instead of JSON"
+    };
   } catch (jsonError) {
     console.error(`📡 Failed to parse ${context} response:`, jsonError);
     // If we can't parse as JSON but the request was successful, return a simple success object
-    return { success: true };
+    return { 
+      success: true,
+      fallback: true,
+      warning: "Failed to parse JSON response"
+    };
   }
 }
 
