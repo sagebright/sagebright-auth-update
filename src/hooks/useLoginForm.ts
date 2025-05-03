@@ -38,6 +38,7 @@ export const useLoginForm = () => {
   console.log("📋 LoginForm hook initializing");
 
   // Enable validation on change and blur for real-time feedback
+  // Initialize form immediately without conditional logic to avoid rendering issues
   const form = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
     mode: "onChange",
@@ -101,7 +102,7 @@ export const useLoginForm = () => {
           console.log("✅ Login API call successful with response:", loginResult);
           
           // Check if the login result was a fallback (HTML response)
-          if (loginResult.fallback) {
+          if (loginResult?.fallback) {
             console.warn("⚠️ Login API returned HTML instead of JSON - proceeding with caution");
           }
         } catch (fetchError) {

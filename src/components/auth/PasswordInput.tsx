@@ -14,7 +14,7 @@ interface PasswordInputProps {
   id: string;
   className?: string;
   required?: boolean;
-  'aria-required'?: boolean | 'true' | 'false';
+  'aria-required'?: boolean | string;
 }
 
 const PasswordInput: React.FC<PasswordInputProps> = ({
@@ -31,13 +31,18 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
   ...props
 }) => {
   const [showPassword, setShowPassword] = useState(false);
+  
+  // Convert aria-required to boolean for proper typing
+  const ariaRequiredValue = ariaRequired === 'true' || ariaRequired === true;
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
 
   // For debugging
-  console.log(`Rendering PasswordInput with id: ${id}`);
+  console.log(`Rendering PasswordInput with id: ${id}`, {
+    ariaRequired: ariaRequiredValue
+  });
 
   return (
     <div className="relative">
@@ -52,7 +57,7 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
         placeholder={placeholder}
         className={`pr-10 bg-white ${className}`}
         required={required}
-        aria-required={ariaRequired}
+        aria-required={ariaRequiredValue}
         autoComplete="current-password"
         {...props}
       />

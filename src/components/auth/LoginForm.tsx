@@ -24,14 +24,6 @@ const LoginForm: React.FC<LoginFormProps> = memo(({
   isLoading,
   authError,
 }) => {
-  // Track field-level errors and touched state for real-time feedback
-  const {
-    formState: { errors, touchedFields, isValid, isSubmitted },
-    watch,
-    trigger,
-    handleSubmit,
-  } = form;
-
   // Only log mount/unmount once
   const didMountRef = React.useRef(false);
   
@@ -53,7 +45,10 @@ const LoginForm: React.FC<LoginFormProps> = memo(({
 
   // Create a stable handleFormSubmit function that won't change on each render
   const handleFormSubmit = useCallback(async (values: LoginValues) => {
-    console.log("📝 Form validation passed, calling onSubmit", values);
+    console.log("📝 Form validation passed, calling onSubmit", { 
+      email: values.email,
+      hasPassword: !!values.password
+    });
     try {
       await onSubmit(values);
     } catch (error) {
@@ -64,9 +59,9 @@ const LoginForm: React.FC<LoginFormProps> = memo(({
   // For debugging
   console.log("LoginForm rendering with form state:", { 
     hasForm: !!form,
-    errors: Object.keys(errors).length,
-    isValid,
-    isSubmitted,
+    errors: form ? Object.keys(form.formState.errors).length : 'N/A',
+    isValid: form?.formState.isValid,
+    isSubmitted: form?.formState.isSubmitted,
     fields: form ? Object.keys(form.getValues()).join(', ') : 'no form'
   });
 
@@ -82,7 +77,7 @@ const LoginForm: React.FC<LoginFormProps> = memo(({
   return (
     <Form {...form}>
       <form
-        onSubmit={handleSubmit(handleFormSubmit)}
+        onSubmit={form.handleSubmit(handleFormSubmit)}
         className="space-y-4"
         aria-label="Login form"
         noValidate
@@ -111,7 +106,7 @@ const LoginForm: React.FC<LoginFormProps> = memo(({
                     onChange={(e) => {
                       field.onChange(e);
                       // Real-time validation on input change
-                      trigger("email");
+                      form.trigger("email");
                     }}
                     onBlur={field.onBlur}
                     name={field.name}
@@ -138,7 +133,7 @@ const LoginForm: React.FC<LoginFormProps> = memo(({
                     value={field.value}
                     onChange={(e) => {
                       field.onChange(e);
-                      trigger("password"); // Real-time validation
+                      form.trigger("password"); // Real-time validation
                     }}
                     onBlur={field.onBlur}
                     name={field.name}

@@ -14,7 +14,7 @@ import BackendHealthCheck from "@/components/auth/BackendHealthCheck";
 
 export default function Login() {
   const { signInWithGoogle } = useAuth();
-  const { form, isLoading, authError, onSubmit, formSubmitted } = useLoginForm();
+  const { form, isLoading, authError, onSubmit } = useLoginForm();
   const { isAuthenticated, user, loading, activeIntent } = useLoginRedirect();
   const location = useLocation();
   
@@ -34,7 +34,11 @@ export default function Login() {
       // Check if form is properly initialized
       if (form) {
         formInitializedRef.current = true;
-        console.log("✅ Login form is initialized:", form);
+        console.log("✅ Login form is initialized:", { 
+          isDirty: form.formState.isDirty,
+          isValid: form.formState.isValid,
+          errors: Object.keys(form.formState.errors).length > 0
+        });
       } else {
         console.error("❌ Login form is not initialized properly");
       }
@@ -54,7 +58,7 @@ export default function Login() {
     signInWithGoogle();
   };
   
-  const handleLoginSubmit = async (values: any) => {
+  const handleLoginSubmit = async (values) => {
     console.log("📝 Login form submitted with values:", {
       email: values.email,
       hasPassword: !!values.password
@@ -66,6 +70,26 @@ export default function Login() {
     }
   };
   
+  // Add more detailed debugging logs
+  console.log("📄 Login page render data:", {
+    formExists: !!form,
+    formState: form?.formState ? {
+      isDirty: form.formState.isDirty,
+      isValid: form.formState.isValid,
+      hasErrors: Object.keys(form.formState.errors || {}).length > 0
+    } : 'Not initialized',
+    isAuthenticated, 
+    hasUser: !!user, 
+    loading, 
+    authError, 
+    activeIntent: activeIntent?.destination || 'none',
+    formMode: form?.mode,
+    formValues: form ? {
+      email: !!form.getValues().email,
+      password: !!form.getValues().password
+    } : 'No values',
+  });
+  
   // If authenticated and has user data, show loading/redirect UI
   if (isAuthenticated && user) {
     return <LoadingRedirect />;
@@ -74,22 +98,34 @@ export default function Login() {
   // Check if we're in development mode to show diagnostic tools
   const isDev = import.meta.env.DEV;
 
-  // For debugging purposes
-  console.log("📄 Login page render data:", {
-    form: !!form,
-    formState: form?.formState ? {
-      isDirty: form.formState.isDirty,
-      isValid: form.formState.isValid,
-      hasErrors: Object.keys(form.formState.errors).length > 0
-    } : 'Not initialized',
-    isAuthenticated, 
-    hasUser: !!user, 
-    loading, 
-    authError, 
-    activeIntent: activeIntent?.destination || 'none'
-  });
+  // Use a fallback UI when form initialization fails
+  const renderFormOrFallback = () => {
+    if (!form) {
+      return (
+        <div className="p-4 bg-red-50 text-red-600 rounded-md">
+          <h4 className="font-bold mb-2">Login Form Initialization Failed</h4>
+          <p>Please try refreshing the page or check console logs for errors.</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="mt-2 px-3 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded"
+          >
+            Refresh Page
+          </button>
+        </div>
+      );
+    }
 
-  // Always show the login form with optional loading indicator
+    return (
+      <LoginForm 
+        form={form}
+        onSubmit={handleLoginSubmit}
+        isLoading={isLoading}
+        authError={authError}
+      />
+    );
+  };
+
+  // Always return the auth layout with form or fallback
   return (
     <AuthLayout
       title="Sign in"
@@ -115,29 +151,17 @@ export default function Login() {
         <GoogleSignInButton onClick={handleGoogleSignIn} />
         <AuthDivider />
         
-        {/* Debug rendering - ALWAYS try to render LoginForm regardless of form state */}
-        {form ? (
-          <>
-            <LoginForm 
-              form={form}
-              onSubmit={handleLoginSubmit}
-              isLoading={isLoading}
-              authError={authError}
-            />
-            {activeIntent && (
-              <div className="text-xs text-gray-500 mt-2 italic">
-                You'll be redirected to your last location after signing in.
-              </div>
-            )}
-            {isLoading && (
-              <div className="text-xs text-gray-500 mt-2 italic text-center">
-                Signing in...
-              </div>
-            )}
-          </>
-        ) : (
-          <div className="p-4 bg-red-50 text-red-600 rounded-md">
-            Login form failed to initialize. Please refresh the page.
+        {/* Include the form or fallback UI */}
+        {renderFormOrFallback()}
+        
+        {activeIntent && (
+          <div className="text-xs text-gray-500 mt-2 italic">
+            You'll be redirected to your last location after signing in.
+          </div>
+        )}
+        {isLoading && (
+          <div className="text-xs text-gray-500 mt-2 italic text-center">
+            Signing in...
           </div>
         )}
       </div>
