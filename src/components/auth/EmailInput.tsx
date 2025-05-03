@@ -1,87 +1,50 @@
 
-import React from "react";
-import { Input } from "@/components/ui/input";
-import { Mail } from "lucide-react";
-import { useTranslation } from "@/hooks/useTranslation";
+import React from 'react';
+import { Input } from '@/components/ui/input';
 
-/**
- * EmailInput props interface
- */
 interface EmailInputProps {
-  /** Whether the input is disabled */
-  disabled?: boolean;
-  /** Current input value */
   value: string;
-  /** Change event handler */
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  /** Blur event handler */
-  onBlur?: () => void;
-  /** Input name attribute */
-  name?: string;
-  /** Input ID attribute */
-  id?: string;
-  /** Input placeholder text */
+  onChange: React.ChangeEventHandler<HTMLInputElement>;
+  onBlur?: React.FocusEventHandler<HTMLInputElement>;
+  disabled?: boolean;
   placeholder?: string;
-  /** Additional CSS class names */
+  name: string;
+  id: string;
   className?: string;
-  /** ARIA required attribute */
-  "aria-required"?: "true" | "false";
+  required?: boolean;
+  'aria-required'?: string;
 }
 
-/**
- * EmailInput - A styled input field for email addresses
- * 
- * Provides a consistent email input with a mail icon and styling that matches
- * the Sagebright design system.
- *
- * @example
- * ```tsx
- * <EmailInput
- *   value={email}
- *   onChange={(e) => setEmail(e.target.value)}
- *   placeholder="Enter your email"
- * />
- * ```
- * 
- * @accessibility Uses appropriate aria attributes for improved accessibility
- */
-const EmailInput = React.forwardRef<HTMLInputElement, EmailInputProps>(({
-  disabled = false,
+const EmailInput: React.FC<EmailInputProps> = ({
   value,
   onChange,
   onBlur,
+  disabled = false,
+  placeholder = 'Enter your email',
   name,
   id,
-  placeholder,
-  className = "",
-  "aria-required": ariaRequired,
+  className = '',
+  required,
+  'aria-required': ariaRequired,
   ...props
-}, ref) => {
-  const { t } = useTranslation();
-  const defaultPlaceholder = "you@example.com";
-  
+}) => {
   return (
-    <div className="relative">
-      <Mail className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" aria-hidden="true" />
-      <Input
-        type="email"
-        placeholder={placeholder || defaultPlaceholder}
-        className={`pl-10 font-roboto ${className}`}
-        disabled={disabled}
-        value={value}
-        onChange={onChange}
-        onBlur={onBlur}
-        name={name}
-        id={id}
-        ref={ref}
-        aria-required={ariaRequired}
-        autoComplete="email"
-        {...props}
-      />
-    </div>
+    <Input
+      type="email"
+      id={id}
+      name={name}
+      value={value}
+      onChange={onChange}
+      onBlur={onBlur}
+      disabled={disabled}
+      placeholder={placeholder}
+      className={`bg-white ${className}`}
+      required={required}
+      aria-required={ariaRequired}
+      autoComplete="email"
+      {...props}
+    />
   );
-});
-
-EmailInput.displayName = "EmailInput";
+};
 
 export default EmailInput;

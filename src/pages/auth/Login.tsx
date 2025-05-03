@@ -28,13 +28,7 @@ export default function Login() {
       
       // Add timestamp to see when login components mount/unmount
       const timestamp = new Date().toISOString();
-      console.log(`📄 Login page mounted at ${timestamp}`, { 
-        isAuthenticated, 
-        hasUser: !!user,
-        loading, 
-        authError,
-        activeIntent: activeIntent?.destination || 'none'
-      });
+      console.log(`🔒 Login page mounted at ${timestamp} [auth: ${isAuthenticated}] [intent: ${activeIntent?.destination || 'none'}]`);
     }
     
     return () => {
