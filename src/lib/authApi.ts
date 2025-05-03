@@ -12,6 +12,9 @@ import { shouldThrottleRequest, isDuplicateRequest, shouldApplyBackoff } from ".
 import { createEmptyAuthPayload } from "./auth/utils/emptyStateUtils";
 import type { AuthPayload } from "./api/auth/types";
 
+// Define the base URL for all backend API requests
+const API_BASE_URL = 'https://sagebright-backend.up.railway.app';
+
 /**
  * Fetches authentication data from the server
  */
@@ -44,9 +47,10 @@ export async function fetchAuth(options: { forceCheck?: boolean } = {}): Promise
     return authCacheState.result || createEmptyAuthPayload();
   }
 
-  // Always use relative URL for API request
+  // Use absolute URL for direct API request to Railway backend
   const url = '/api/auth/session';
-  logIfEnabled(`🔍 Fetching auth session from: ${url}`, null, forceCheck);
+  const absoluteUrl = `${API_BASE_URL}/auth/session`;
+  logIfEnabled(`🔍 Fetching auth session from: ${absoluteUrl}`, null, forceCheck);
 
   try {
     authCacheState.pending = true;

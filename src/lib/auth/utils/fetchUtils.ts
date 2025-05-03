@@ -7,15 +7,27 @@ import { processAuthResponse } from './responseUtils';
 import { hasAuthCookie } from '../cookies/cookieDetection';
 import { createEmptyAuthPayload } from './emptyStateUtils';
 
+// Define the base URL for all backend API requests
+const API_BASE_URL = 'https://sagebright-backend.up.railway.app';
+
 /**
  * Make an authenticated API request with proper error handling
  */
 export async function makeAuthFetch(url: string, options: RequestInit = {}): Promise<any> {
+  // Convert relative URLs to absolute URLs
+  const absoluteUrl = url.startsWith('/api') 
+    ? `${API_BASE_URL}${url.substring(4)}` // Remove '/api' prefix and add backend URL
+    : url.startsWith('http') 
+      ? url // Already absolute
+      : `${API_BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`; // Add leading slash if needed
+  
+  console.log(`🔍 Making auth fetch to absolute URL: ${absoluteUrl}`);
+  
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 10000);
   
   try {
-    const res = await fetch(url, {
+    const res = await fetch(absoluteUrl, {
       ...options,
       credentials: 'include',
       headers: {
