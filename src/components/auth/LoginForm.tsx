@@ -24,16 +24,21 @@ const LoginForm: React.FC<LoginFormProps> = memo(({
   isLoading,
   authError,
 }) => {
+  // Track field-level errors and touched state for real-time feedback
+  const {
+    formState: { errors, touchedFields, isValid, isSubmitted },
+    watch,
+    trigger,
+    handleSubmit,
+  } = form;
+
   // Only log mount/unmount once
   const didMountRef = React.useRef(false);
   
   useEffect(() => {
     if (!didMountRef.current) {
       didMountRef.current = true;
-      console.log("🧩 LoginForm mounted", { 
-        hasForm: !!form,
-        formValid: form?.formState?.isValid
-      });
+      console.log("🧩 LoginForm mounted");
     }
     return () => {
       if (didMountRef.current) {
@@ -41,14 +46,11 @@ const LoginForm: React.FC<LoginFormProps> = memo(({
         didMountRef.current = false;
       }
     };
-  }, [form]);
+  }, []);
 
   // Create a stable handleFormSubmit function that won't change on each render
   const handleFormSubmit = useCallback(async (values: LoginValues) => {
-    console.log("📝 Form validation passed, calling onSubmit", { 
-      email: values.email,
-      hasPassword: !!values.password
-    });
+    console.log("📝 Form validation passed, calling onSubmit");
     try {
       await onSubmit(values);
     } catch (error) {
@@ -56,28 +58,10 @@ const LoginForm: React.FC<LoginFormProps> = memo(({
     }
   }, [onSubmit]);
 
-  // For debugging
-  console.log("LoginForm rendering with form state:", { 
-    hasForm: !!form,
-    errors: form ? Object.keys(form.formState.errors).length : 'N/A',
-    isValid: form?.formState.isValid,
-    isSubmitted: form?.formState.isSubmitted,
-    fields: form ? Object.keys(form.getValues()).join(', ') : 'no form'
-  });
-
-  if (!form) {
-    console.error("Form is not provided to LoginForm!");
-    return (
-      <div className="p-3 bg-red-50 border border-red-200 text-red-600 rounded-md">
-        Error: Form not initialized properly
-      </div>
-    );
-  }
-
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit(handleFormSubmit)}
+        onSubmit={handleSubmit(handleFormSubmit)}
         className="space-y-4"
         aria-label="Login form"
         noValidate
@@ -106,12 +90,12 @@ const LoginForm: React.FC<LoginFormProps> = memo(({
                     onChange={(e) => {
                       field.onChange(e);
                       // Real-time validation on input change
-                      form.trigger("email");
+                      trigger("email");
                     }}
                     onBlur={field.onBlur}
                     name={field.name}
                     id="email"
-                    aria-required={true}
+                    aria-required="true"
                   />
                 </FocusRing>
               </FormControl>
@@ -133,12 +117,12 @@ const LoginForm: React.FC<LoginFormProps> = memo(({
                     value={field.value}
                     onChange={(e) => {
                       field.onChange(e);
-                      form.trigger("password"); // Real-time validation
+                      trigger("password"); // Real-time validation
                     }}
                     onBlur={field.onBlur}
                     name={field.name}
                     id="password"
-                    aria-required={true}
+                    aria-required="true"
                   />
                 </FocusRing>
               </FormControl>

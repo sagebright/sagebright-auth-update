@@ -31,14 +31,10 @@ export const useLoginForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
   const loginAttemptRef = useRef<boolean>(false);
-  const initCompletedRef = useRef(false);
 
   const { activeIntent, executeRedirect, clearIntent } = useRedirectIntentManager();
 
-  console.log("📋 LoginForm hook initializing");
-
   // Enable validation on change and blur for real-time feedback
-  // Initialize form immediately without conditional logic to avoid rendering issues
   const form = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
     mode: "onChange",
@@ -49,24 +45,6 @@ export const useLoginForm = () => {
     },
     criteriaMode: "all"
   });
-
-  // Mark initialization as complete
-  useEffect(() => {
-    if (!initCompletedRef.current) {
-      initCompletedRef.current = true;
-      console.log("✅ LoginForm hook initialization complete with form:", !!form);
-    }
-  }, []);
-
-  // Log form state for debugging
-  useEffect(() => {
-    console.log("📋 LoginForm form state:", {
-      isDirty: form.formState.isDirty,
-      isValid: form.formState.isValid,
-      errors: Object.keys(form.formState.errors).length > 0,
-      hasValues: !!form.getValues().email || !!form.getValues().password
-    });
-  }, [form.formState]);
 
   // Cleanup function to prevent memory leaks
   useEffect(() => {
@@ -102,7 +80,7 @@ export const useLoginForm = () => {
           console.log("✅ Login API call successful with response:", loginResult);
           
           // Check if the login result was a fallback (HTML response)
-          if (loginResult?.fallback) {
+          if (loginResult.fallback) {
             console.warn("⚠️ Login API returned HTML instead of JSON - proceeding with caution");
           }
         } catch (fetchError) {

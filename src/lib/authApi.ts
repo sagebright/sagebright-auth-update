@@ -1,3 +1,4 @@
+
 /**
  * Core Auth API Functions
  * Provides authentication functionality with improved error handling and response parsing
@@ -48,7 +49,7 @@ export async function fetchAuth(options: { forceCheck?: boolean } = {}): Promise
 
   // Use absolute URL for direct API request to Railway backend
   const url = '/api/auth/session';
-  const absoluteUrl = `${API_BASE_URL}/api/auth/session`;
+  const absoluteUrl = `${API_BASE_URL}/auth/session`;
   logIfEnabled(`🔍 Fetching auth session from: ${absoluteUrl}`, null, forceCheck);
 
   try {

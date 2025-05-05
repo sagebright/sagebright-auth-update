@@ -22,8 +22,8 @@ export default function BackendHealthCheck() {
     try {
       const startTime = performance.now();
       
-      // Try the session endpoint first (most important) with the /api prefix
-      const sessionResponse = await fetch(`${backendUrl}/api/auth/session`, {
+      // Try the session endpoint first (most important)
+      const sessionResponse = await fetch(`${backendUrl}/auth/session`, {
         method: 'GET',
         credentials: 'include',
         headers: {
@@ -105,7 +105,7 @@ export default function BackendHealthCheck() {
       )}
       
       <div className="text-xs text-gray-500 mt-2">
-        <p>Backend URL: {backendUrl}/api/auth/session</p>
+        <p>Backend URL: {backendUrl}</p>
         <p className="mt-1">
           ℹ️ If requests fail with CORS errors, you need to enable CORS on your backend for this origin.
         </p>

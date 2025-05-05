@@ -1,58 +1,87 @@
 
-import React from 'react';
-import { Input } from '@/components/ui/input';
+import React from "react";
+import { Input } from "@/components/ui/input";
+import { Mail } from "lucide-react";
+import { useTranslation } from "@/hooks/useTranslation";
 
+/**
+ * EmailInput props interface
+ */
 interface EmailInputProps {
-  value: string;
-  onChange: React.ChangeEventHandler<HTMLInputElement>;
-  onBlur?: React.FocusEventHandler<HTMLInputElement>;
+  /** Whether the input is disabled */
   disabled?: boolean;
+  /** Current input value */
+  value: string;
+  /** Change event handler */
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  /** Blur event handler */
+  onBlur?: () => void;
+  /** Input name attribute */
+  name?: string;
+  /** Input ID attribute */
+  id?: string;
+  /** Input placeholder text */
   placeholder?: string;
-  name: string;
-  id: string;
+  /** Additional CSS class names */
   className?: string;
-  required?: boolean;
-  'aria-required'?: boolean | string;
+  /** ARIA required attribute */
+  "aria-required"?: "true" | "false";
 }
 
-const EmailInput: React.FC<EmailInputProps> = ({
+/**
+ * EmailInput - A styled input field for email addresses
+ * 
+ * Provides a consistent email input with a mail icon and styling that matches
+ * the Sagebright design system.
+ *
+ * @example
+ * ```tsx
+ * <EmailInput
+ *   value={email}
+ *   onChange={(e) => setEmail(e.target.value)}
+ *   placeholder="Enter your email"
+ * />
+ * ```
+ * 
+ * @accessibility Uses appropriate aria attributes for improved accessibility
+ */
+const EmailInput = React.forwardRef<HTMLInputElement, EmailInputProps>(({
+  disabled = false,
   value,
   onChange,
   onBlur,
-  disabled = false,
-  placeholder = 'Enter your email',
   name,
   id,
-  className = '',
-  required,
-  'aria-required': ariaRequired,
+  placeholder,
+  className = "",
+  "aria-required": ariaRequired,
   ...props
-}) => {
-  // Convert aria-required to boolean for proper typing
-  const ariaRequiredValue = ariaRequired === 'true' || ariaRequired === true;
-  
-  // For debugging
-  console.log(`Rendering EmailInput with id: ${id}, value: ${value?.substring(0, 3)}...`, {
-    ariaRequired: ariaRequiredValue
-  });
+}, ref) => {
+  const { t } = useTranslation();
+  const defaultPlaceholder = "you@example.com";
   
   return (
-    <Input
-      type="email"
-      id={id}
-      name={name}
-      value={value}
-      onChange={onChange}
-      onBlur={onBlur}
-      disabled={disabled}
-      placeholder={placeholder}
-      className={`bg-white ${className}`}
-      required={required}
-      aria-required={ariaRequiredValue}
-      autoComplete="email"
-      {...props}
-    />
+    <div className="relative">
+      <Mail className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" aria-hidden="true" />
+      <Input
+        type="email"
+        placeholder={placeholder || defaultPlaceholder}
+        className={`pl-10 font-roboto ${className}`}
+        disabled={disabled}
+        value={value}
+        onChange={onChange}
+        onBlur={onBlur}
+        name={name}
+        id={id}
+        ref={ref}
+        aria-required={ariaRequired}
+        autoComplete="email"
+        {...props}
+      />
+    </div>
   );
-};
+});
+
+EmailInput.displayName = "EmailInput";
 
 export default EmailInput;

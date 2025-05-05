@@ -1,83 +1,71 @@
 
-import React, { useState } from 'react';
-import { Input } from '@/components/ui/input';
-import { Eye, EyeOff } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import React, { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Eye, EyeOff } from "lucide-react";
 
 interface PasswordInputProps {
-  value: string;
-  onChange: React.ChangeEventHandler<HTMLInputElement>;
-  onBlur?: React.FocusEventHandler<HTMLInputElement>;
   disabled?: boolean;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onBlur?: () => void;
+  name?: string;
+  id?: string;
   placeholder?: string;
-  name: string;
-  id: string;
   className?: string;
-  required?: boolean;
-  'aria-required'?: boolean | string;
+  "aria-required"?: "true" | "false";
 }
 
-const PasswordInput: React.FC<PasswordInputProps> = ({
+const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(({
+  disabled = false,
   value,
   onChange,
   onBlur,
-  disabled = false,
-  placeholder = 'Enter your password',
   name,
   id,
-  className = '',
-  required,
-  'aria-required': ariaRequired,
+  placeholder = "••••••••",
+  className = "",
+  "aria-required": ariaRequired,
   ...props
-}) => {
-  const [showPassword, setShowPassword] = useState(false);
-  
-  // Convert aria-required to boolean for proper typing
-  const ariaRequiredValue = ariaRequired === 'true' || ariaRequired === true;
-
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
-  };
-
-  // For debugging
-  console.log(`Rendering PasswordInput with id: ${id}`, {
-    ariaRequired: ariaRequiredValue
-  });
+}, ref) => {
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const toggleBtnId = `${id || name}-toggle`;
 
   return (
     <div className="relative">
       <Input
-        type={showPassword ? 'text' : 'password'}
-        id={id}
-        name={name}
+        type={showPassword ? "text" : "password"}
+        placeholder={placeholder}
+        className={`pr-10 font-roboto ${className}`}
+        disabled={disabled}
         value={value}
         onChange={onChange}
         onBlur={onBlur}
-        disabled={disabled}
-        placeholder={placeholder}
-        className={`pr-10 bg-white ${className}`}
-        required={required}
-        aria-required={ariaRequiredValue}
+        name={name}
+        id={id}
+        ref={ref}
+        aria-required={ariaRequired}
         autoComplete="current-password"
+        aria-describedby={toggleBtnId}
         {...props}
       />
-      <Button
+      <button
         type="button"
-        variant="ghost"
-        size="sm"
-        onClick={togglePasswordVisibility}
-        className="absolute right-0 top-0 h-full px-3 text-gray-400 hover:text-gray-600"
-        aria-label={showPassword ? 'Hide password' : 'Show password'}
-        tabIndex={-1}
+        id={toggleBtnId}
+        className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm"
+        onClick={() => setShowPassword(!showPassword)}
+        aria-label={showPassword ? "Hide password" : "Show password"}
+        tabIndex={0}
       >
         {showPassword ? (
           <EyeOff className="h-4 w-4" aria-hidden="true" />
         ) : (
           <Eye className="h-4 w-4" aria-hidden="true" />
         )}
-      </Button>
+      </button>
     </div>
   );
-};
+});
+
+PasswordInput.displayName = "PasswordInput";
 
 export default PasswordInput;

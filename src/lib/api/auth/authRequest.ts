@@ -30,12 +30,12 @@ export async function makeAuthRequest(
     return null;
   }
   
-  // Convert relative URLs to absolute URLs with correct /api prefix
+  // Convert relative URLs to absolute URLs
   const absoluteUrl = url.startsWith('/api') 
-    ? `${API_BASE_URL}${url}` // Keep the /api prefix intact
+    ? `${API_BASE_URL}${url.substring(4)}` // Remove '/api' prefix and add backend URL
     : url.startsWith('http') 
       ? url // Already absolute
-      : `${API_BASE_URL}/api${url.startsWith('/') ? '' : '/'}${url}`; // Add /api prefix
+      : `${API_BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`; // Add leading slash if needed
   
   console.log(`📡 Making auth API request to: ${absoluteUrl}`);
   
