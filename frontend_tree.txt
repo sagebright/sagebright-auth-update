@@ -12,6 +12,7 @@
 ├── eslint.config.js
 ├── frontend_tree.txt
 ├── index.html
+├── lovable.config.ts
 ├── package-lock.json
 ├── package.json
 ├── postcss.config.js
@@ -88,6 +89,7 @@
 │   │   │   ├── AuthDivider.tsx
 │   │   │   ├── AuthLayout.tsx
 │   │   │   ├── AuthRecovery.tsx
+│   │   │   ├── BackendHealthCheck.tsx
 │   │   │   ├── EmailInput.tsx
 │   │   │   ├── GoogleSignInButton.tsx
 │   │   │   ├── LoadingRedirect.tsx
@@ -479,8 +481,7 @@
 │   ├── utils
 │   │   ├── messageUtils.ts
 │   │   └── sageErrorUtils.ts
-│   ├── vite-env.d.ts
-│   └── vite.config.ts
+│   └── vite-env.d.ts
 ├── supabase
 │   ├── config.toml
 │   ├── functions
@@ -501,4 +502,4 @@
 ├── tsconfig.node.json
 └── vite.config.ts
 
-79 directories, 423 files
+79 directories, 424 files
