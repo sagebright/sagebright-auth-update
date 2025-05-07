@@ -1,7 +1,6 @@
 import { getOrgFromUrl, redirectToOrgUrl, getOrgById } from '@/lib/subdomainUtils';
 import { handleApiError } from '@/lib/handleApiError';
 import { toast } from '@/hooks/use-toast';
-import { makeAuthRequest } from '@/lib/api/auth/authRequest';
 
 /**
  * Signs up a new user
@@ -54,33 +53,44 @@ export async function signIn(
   onError: (error: any) => void
 ) {
   try {
-    const response = await makeAuthRequest('/api/auth/login', {
+    const response = await fetch('/api/auth/login', {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({
         email,
         password,
       }),
+      credentials: 'include',
     });
 
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Error signing in');
+    }
+
+    const data = await response.json();
+    
     // Explicit logging for successful login
     console.log('🔑 Login successful, session established');
-
+    
     toast({
       title: "Login successful",
       description: "Welcome back!",
       variant: "default",
     });
-
+    
     // Check if redirection to organization is needed
     const currentOrgSlug = getOrgFromUrl();
-    const userOrgSlug = response?.user?.user_metadata?.org_slug;
-
+    const userOrgSlug = data?.user?.user_metadata?.org_slug;
+    
     if (userOrgSlug && currentOrgSlug !== userOrgSlug) {
       console.log('🔄 Redirecting to correct organization:', userOrgSlug);
       redirectToOrgUrl(userOrgSlug);
     }
-
-    return response;
+    
+    return data;
   } catch (error: any) {
     handleApiError(error, { context: 'login' });
     onError(error);
