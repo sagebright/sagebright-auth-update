@@ -1,4 +1,3 @@
-
 import React from "react";
 import Logo from "@/components/Logo";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";

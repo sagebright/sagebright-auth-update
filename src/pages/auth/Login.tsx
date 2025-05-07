@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/auth/AuthContext";
@@ -82,37 +81,34 @@ export default function Login() {
           New user accounts can only be created by an administrator.
         </p>
       }
-    >
-      <>
-        <SessionStatusIndicator loading={loading} />
-        <p className="mb-4 text-gray-600">
-          Enter your credentials to sign in to your account
-        </p>
-      </>
-      
-      {/* Show backend health check in development mode */}
-      {isDev && <BackendHealthCheck />}
-      
-      <div className="space-y-4">
-        <GoogleSignInButton onClick={handleGoogleSignIn} />
-        <AuthDivider />
-        <LoginForm 
-          form={form}
-          onSubmit={handleLoginSubmit}
-          isLoading={isLoading}
-          authError={authError}
-        />
-        {activeIntent && (
-          <div className="text-xs text-gray-500 mt-2 italic">
-            You'll be redirected to your last location after signing in.
-          </div>
-        )}
-        {isLoading && (
-          <div className="text-xs text-gray-500 mt-2 italic text-center">
-            Signing in...
-          </div>
-        )}
-      </div>
-    </AuthLayout>
+      children={[
+        <>
+          <SessionStatusIndicator loading={loading} />
+          <p className="mb-4 text-gray-600">
+            Enter your credentials to sign in to your account
+          </p>
+        </>,
+        <div className="space-y-4">
+          <GoogleSignInButton onClick={handleGoogleSignIn} />
+          <AuthDivider />
+          <LoginForm 
+            form={form}
+            onSubmit={handleLoginSubmit}
+            isLoading={isLoading}
+            authError={authError}
+          />
+          {activeIntent && (
+            <div className="text-xs text-gray-500 mt-2 italic">
+              You'll be redirected to your last location after signing in.
+            </div>
+          )}
+          {isLoading && (
+            <div className="text-xs text-gray-500 mt-2 italic text-center">
+              Signing in...
+            </div>
+          )}
+        </div>
+      ]}
+    />
   );
 }
