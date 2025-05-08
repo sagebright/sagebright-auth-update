@@ -1,7 +1,6 @@
-import { getOrgFromUrl, redirectToOrgUrl } from '@/lib/subdomainUtils';
+import { getOrgFromUrl, redirectToOrgUrl, getOrgById } from '@/lib/subdomainUtils';
 import { handleApiError } from '@/lib/handleApiError';
 import { toast } from '@/hooks/use-toast';
-import { makeAuthRequest } from '@/lib/api/auth/authRequest';
 
 /**
  * Signs up a new user
@@ -14,8 +13,11 @@ export async function signUp(
   onError: (error: any) => void
 ) {
   try {
-    const response = await makeAuthRequest('/api/auth/signup', {
+    const response = await fetch('/api/auth/signup', {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({
         email,
         password,
@@ -23,8 +25,9 @@ export async function signUp(
       }),
     });
 
-    if (!response) {
-      throw new Error('Error signing up - no response received');
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Error signing up');
     }
 
     toast({
@@ -50,17 +53,24 @@ export async function signIn(
   onError: (error: any) => void
 ) {
   try {
-    const response = await makeAuthRequest('/api/auth/login', {
+    const response = await fetch('/api/auth/login', {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({
         email,
         password,
       }),
+      credentials: 'include',
     });
 
-    if (!response) {
-      throw new Error('Error signing in - no response received');
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Error signing in');
     }
+
+    const data = await response.json();
     
     // Explicit logging for successful login
     console.log('🔑 Login successful, session established');
@@ -73,14 +83,14 @@ export async function signIn(
     
     // Check if redirection to organization is needed
     const currentOrgSlug = getOrgFromUrl();
-    const userOrgSlug = response?.user?.user_metadata?.org_slug;
+    const userOrgSlug = data?.user?.user_metadata?.org_slug;
     
     if (userOrgSlug && currentOrgSlug !== userOrgSlug) {
       console.log('🔄 Redirecting to correct organization:', userOrgSlug);
       redirectToOrgUrl(userOrgSlug);
     }
     
-    return response;
+    return data;
   } catch (error: any) {
     handleApiError(error, { context: 'login' });
     onError(error);
@@ -110,12 +120,14 @@ export async function signOut(onError: (error: any) => void) {
     // Store the current org slug before signing out
     const currentOrgSlug = getOrgFromUrl();
     
-    const response = await makeAuthRequest('/api/auth/signout', {
+    const response = await fetch('/api/auth/signout', {
       method: 'POST',
+      credentials: 'include',
     });
 
-    if (!response && response !== null) {
-      throw new Error('Error signing out - unexpected response');
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Error signing out');
     }
     
     toast({
@@ -149,13 +161,17 @@ export async function signOut(onError: (error: any) => void) {
  */
 export async function resetPassword(email: string, onError: (error: any) => void) {
   try {
-    const response = await makeAuthRequest('/api/auth/reset-password', {
+    const response = await fetch('/api/auth/reset-password', {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({ email }),
     });
 
-    if (!response && response !== null) {
-      throw new Error('Error resetting password - unexpected response');
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Error resetting password');
     }
     
     toast({
@@ -177,16 +193,21 @@ export async function resetPassword(email: string, onError: (error: any) => void
  */
 export async function updateProfile(data: any) {
   try {
-    const response = await makeAuthRequest('/api/users/profile', {
+    const response = await fetch('/api/users/profile', {
       method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify(data),
+      credentials: 'include',
     });
 
-    if (!response) {
-      throw new Error('Error updating profile - no response received');
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Error updating profile');
     }
 
-    return response;
+    return response.json();
   } catch (error) {
     handleApiError(error, { context: 'profile-update' });
     throw error;
