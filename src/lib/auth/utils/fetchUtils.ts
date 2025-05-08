@@ -14,12 +14,10 @@ const API_BASE_URL = 'https://sagebright-backend.up.railway.app';
  * Make an authenticated API request with proper error handling
  */
 export async function makeAuthFetch(url: string, options: RequestInit = {}): Promise<any> {
-  // Convert relative URLs to absolute URLs
-  const absoluteUrl = url.startsWith('/api') 
-    ? `${API_BASE_URL}${url.substring(4)}` // Remove '/api' prefix and add backend URL
-    : url.startsWith('http') 
-      ? url // Already absolute
-      : `${API_BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`; // Add leading slash if needed
+  // Convert relative URLs to absolute URLs without modifying paths
+  const absoluteUrl = url.startsWith('http') 
+    ? url // Already absolute
+    : `${API_BASE_URL}${url}`; // Trust the caller's path
   
   console.log(`🔍 Making auth fetch to absolute URL: ${absoluteUrl}`);
   
