@@ -80,8 +80,8 @@ export const AskSageContainer: React.FC = () => {
     debugPanel
   } = useAskSagePage();
 
-  // Fix: Convert the potential Error object to a boolean for the isRecoveringOrg prop
-  const isRecoveringOrgBoolean = typeof isRecoveringOrg === 'boolean' ? isRecoveringOrg : false;
+  // Properly convert isRecoveringOrg to a boolean, regardless of its actual type
+  const isRecoveringOrgSafe = isRecoveringOrg === true;
 
   // Check if loading states should be displayed
   if (!shouldRender || authLoading || !canInteract) {
@@ -92,7 +92,7 @@ export const AskSageContainer: React.FC = () => {
         orgId={orgId}
         isProtected={isProtected}
         canInteract={canInteract}
-        isRecoveringOrg={isRecoveringOrgBoolean}
+        isRecoveringOrg={isRecoveringOrgSafe}
         contextHydration={contextHydration}
         shouldRender={shouldRender}
       />
