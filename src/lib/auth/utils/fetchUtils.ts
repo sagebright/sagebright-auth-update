@@ -26,14 +26,14 @@ export async function makeAuthFetch(url: string, options: RequestInit = {}): Pro
     // Set up request with CORS handling
     const res = await fetch(absoluteUrl, {
       ...options,
-      credentials: 'include', // Always include credentials for cross-origin requests
+      credentials: 'include' as RequestCredentials, // Always include credentials for cross-origin requests
       headers: {
         Accept: 'application/json',
         'Cache-Control': 'no-cache',
         'Content-Type': 'application/json',
         ...(options.headers || {})
       },
-      mode: 'cors', // Explicitly request CORS mode
+      mode: 'cors' as RequestMode, // Explicitly request CORS mode
       signal: controller.signal
     });
 

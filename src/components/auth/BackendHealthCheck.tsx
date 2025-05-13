@@ -25,11 +25,11 @@ export default function BackendHealthCheck() {
       // Try the session endpoint first (most important)
       const sessionResponse = await fetch(`${API_BASE_URL}/auth/session`, {
         method: 'GET',
-        credentials: 'include', // Include credentials for cross-origin requests
+        credentials: 'include' as RequestCredentials, // Include credentials for cross-origin requests
         headers: {
           'Accept': 'application/json',
         },
-        mode: 'cors',
+        mode: 'cors' as RequestMode,
       });
       
       const endTime = performance.now();

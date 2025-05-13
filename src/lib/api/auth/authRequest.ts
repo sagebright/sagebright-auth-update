@@ -41,14 +41,14 @@ export async function makeAuthRequest(
     const timeoutId = setTimeout(() => controller.abort(), timeout);
     
     const response = await fetch(absoluteUrl, {
-      credentials: 'include', // Always include credentials for auth requests
+      credentials: 'include' as RequestCredentials, // Always include credentials for auth requests
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
         'Cache-Control': 'no-cache',
         ...(options.headers || {})
       },
-      mode: 'cors', // Explicitly set CORS mode for cross-origin requests
+      mode: 'cors' as RequestMode, // Explicitly set CORS mode for cross-origin requests
       ...options,
       signal: controller.signal
     });

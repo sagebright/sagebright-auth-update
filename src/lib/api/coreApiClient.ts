@@ -48,8 +48,8 @@ export async function apiRequest(
         'Content-Type': 'application/json',
         ...(options.headers || {})
       },
-      credentials: 'include',
-      mode: 'cors',
+      credentials: 'include' as RequestCredentials,
+      mode: 'cors' as RequestMode,
       signal
     });
     

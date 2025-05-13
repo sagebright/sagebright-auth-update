@@ -21,7 +21,7 @@ export async function fetchSageContext(userId: string, orgId: string, orgSlug: s
   try {
     const fetchOptions = {
       method: 'GET',
-      credentials: 'include',
+      credentials: 'include' as RequestCredentials,
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
