@@ -81,7 +81,6 @@ export const AskSageContainer: React.FC = () => {
   } = useAskSagePage();
 
   // Ensure isRecoveringOrg is treated as a boolean
-  // This approach makes TypeScript explicitly understand we're enforcing a boolean type
   const isRecoveringOrgBoolean = Boolean(isRecoveringOrg === true);
 
   // Check if loading states should be displayed
@@ -100,6 +99,13 @@ export const AskSageContainer: React.FC = () => {
     );
   }
 
+  // Convert the feedback handler to match expected types
+  const handleFeedbackFormatted = (messageId: string, feedback: 'like' | 'dislike') => {
+    // Map 'like'/'dislike' to 'positive'/'negative' expected by the handler
+    const mappedFeedback = feedback === 'like' ? 'positive' : 'negative';
+    handleFeedback(messageId, mappedFeedback);
+  };
+
   console.log("✅ AskSageContainer rendering full UI");
   return (
     <DashboardContainer showSagePanel={false}>
@@ -117,7 +123,7 @@ export const AskSageContainer: React.FC = () => {
         handleSelectQuestion={handleSelectQuestion}
         sendMessageToSage={sendMessageToSage}
         handleReflectionSubmit={handleReflectionSubmit}
-        handleFeedback={handleFeedback}
+        handleFeedback={handleFeedbackFormatted}
         isContextReady={isContextReady}
         showWelcomeMessage={showWelcomeMessage}
         canInteract={canInteract}

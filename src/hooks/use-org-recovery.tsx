@@ -8,8 +8,8 @@ export const useOrgRecovery = (
   orgId: string | null, 
   isAuthenticated: boolean
 ): OrgRecoveryState => {
-  const [isRecoveringOrg, setIsRecoveringOrg] = useState(false);
-  const [hasRecoveredOrgId, setHasRecoveredOrgId] = useState(false);
+  const [isRecoveringOrg, setIsRecoveringOrg] = useState<boolean>(false);
+  const [hasRecoveredOrgId, setHasRecoveredOrgId] = useState<boolean>(false);
   const [recoveryError, setRecoveryError] = useState<Error | null>(null);
 
   useEffect(() => {
