@@ -10,6 +10,8 @@ export interface ApiRequestOptions {
   useMockInDev?: boolean;
   mockEvenIn404?: boolean;
   validateRoute?: boolean;
+  timeout?: number;
+  abortSignal?: AbortSignal;
 }
 
 export interface ApiResponse<T = any> {
@@ -23,3 +25,4 @@ export interface ApiResponse<T = any> {
 export interface MockResponseProvider {
   getResponseForEndpoint: (endpoint: string) => ApiResponse;
 }
+
