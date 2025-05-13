@@ -13,7 +13,7 @@ import { createEmptyAuthPayload } from "./auth/utils/emptyStateUtils";
 import type { AuthPayload } from "./api/auth/types";
 
 // Define the base URL for all backend API requests
-const API_BASE_URL = 'https://sagebright-backend.up.railway.app';
+const API_BASE_URL = 'https://sagebright-backend.onrender.com';
 
 /**
  * Fetches authentication data from the server
@@ -47,7 +47,7 @@ export async function fetchAuth(options: { forceCheck?: boolean } = {}): Promise
     return authCacheState.result || createEmptyAuthPayload();
   }
 
-  // Use absolute URL for direct API request to Railway backend
+  // Use absolute URL for direct API request to Render backend
   const url = '/api/auth/session';
   const absoluteUrl = `${API_BASE_URL}/api/auth/session`;
   logIfEnabled(`🔍 Fetching auth session from: ${absoluteUrl}`, null, forceCheck);

@@ -43,7 +43,7 @@ export async function makeAuthRequest(
     const timeoutId = setTimeout(() => controller.abort(), timeout);
     
     const response = await fetch(absoluteUrl, {
-      credentials: 'include',
+      credentials: 'include', // Always include credentials for auth requests
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',

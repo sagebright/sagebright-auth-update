@@ -1,3 +1,4 @@
+
 /**
  * Utilities for making authenticated fetch requests
  */
@@ -27,7 +28,7 @@ export async function makeAuthFetch(url: string, options: RequestInit = {}): Pro
     // Set up request with CORS handling
     const res = await fetch(absoluteUrl, {
       ...options,
-      credentials: 'include',
+      credentials: 'include', // Always include credentials for cross-origin requests
       headers: {
         Accept: 'application/json',
         'Cache-Control': 'no-cache',

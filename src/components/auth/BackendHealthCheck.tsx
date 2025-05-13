@@ -25,7 +25,7 @@ export default function BackendHealthCheck() {
       // Try the session endpoint first (most important)
       const sessionResponse = await fetch(`${backendUrl}/auth/session`, {
         method: 'GET',
-        credentials: 'include',
+        credentials: 'include', // Include credentials for cross-origin requests
         headers: {
           'Accept': 'application/json',
         },
