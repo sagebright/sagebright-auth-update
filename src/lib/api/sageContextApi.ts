@@ -31,6 +31,21 @@ export async function fetchSageContext(userId: string, orgId: string, orgSlug: s
     };
     
     const response = await fetch(endpoint, fetchOptions);
+    
+    // Handle 404 errors gracefully - provide fallback context
+    if (response.status === 404) {
+      console.warn(`⚠️ Context endpoint not found (404): ${endpoint}`);
+      return {
+        user: { id: userId, _fallback: true },
+        org: { id: orgId, slug: orgSlug || 'default', _fallback: true },
+        _meta: {
+          source: 'fallback-404',
+          hydratedAt: new Date().toISOString(),
+          error: 'Context API endpoint not found (404)'
+        }
+      };
+    }
+    
     if (!response.ok) {
       throw new Error(`Context API error: ${response.status}`);
     }
@@ -83,6 +98,7 @@ export async function fetchSageOrgContext(orgId: string, options = {}) {
 /**
  * Function to hydrate all context data in a single request
  * This should be the primary way to get context going forward
+ * Enhanced with better 404 handling and fallbacks
  */
 export async function hydrateSageContext(userId: string, orgId: string, orgSlug: string | null = null, timeout: number = 5000): Promise<SageContext | null> {
   console.log('🔄 hydrateSageContext called', { userId, orgId, orgSlug, timeout });
@@ -95,54 +111,86 @@ export async function hydrateSageContext(userId: string, orgId: string, orgSlug:
   try {
     if (!userId || !orgId) {
       console.error('❌ hydrateSageContext called with missing required parameters');
-      return null;
+      return {
+        user: { id: userId || 'unknown', _fallback: true },
+        org: { id: orgId || 'unknown', slug: orgSlug || 'default', _fallback: true },
+        userId: userId || 'unknown',
+        orgId: orgId || 'unknown',
+        messages: [],
+        _meta: {
+          source: 'fallback-missing-params',
+          hydratedAt: new Date().toISOString(),
+          error: 'Missing required parameters'
+        }
+      } as SageContext;
     }
     
     // Race between the actual fetch and the timeout
-    const context = await Promise.race([
-      fetchSageContext(userId, orgId, orgSlug),
-      timeoutPromise
-    ]);
-    
-    if (!context) {
-      console.error('❌ Failed to hydrate Sage context');
-      return null;
-    }
-    
-    console.log('✅ Successfully hydrated Sage context');
-    return {
-      user: context.user,
-      org: context.org,
-      userId,
-      orgId,
-      messages: [],
-      _meta: context._meta || { 
-        source: 'api', 
-        hydratedAt: new Date().toISOString(),
-        timeout: false
+    try {
+      const context = await Promise.race([
+        fetchSageContext(userId, orgId, orgSlug),
+        timeoutPromise
+      ]);
+      
+      if (!context) {
+        console.error('❌ Failed to hydrate Sage context');
+        return createFallbackContext(userId, orgId, orgSlug, 'api-null-response');
       }
-    } as SageContext;
+      
+      console.log('✅ Successfully hydrated Sage context');
+      return {
+        user: context.user,
+        org: context.org,
+        userId,
+        orgId,
+        messages: [],
+        _meta: context._meta || { 
+          source: 'api', 
+          hydratedAt: new Date().toISOString(),
+          timeout: false
+        }
+      } as SageContext;
+    } catch (fetchError) {
+      console.warn('⚠️ Error fetching context, using fallback:', fetchError);
+      return createFallbackContext(userId, orgId, orgSlug, 'fetch-error');
+    }
   } catch (error) {
     console.error('❌ Error hydrating Sage context:', error);
     
     // If it was a timeout error, return a minimal context with a timeout flag
     if (error instanceof Error && error.message.includes('timed out')) {
       console.warn('⏱️ Context hydration timed out, using fallback');
-      return {
-        user: null,
-        org: null,
-        userId,
-        orgId,
-        messages: [],
-        _meta: {
-          source: 'timeout-fallback',
-          hydratedAt: new Date().toISOString(),
-          timeout: true,
-          error: 'Hydration timed out'
-        }
-      } as SageContext;
+      return createFallbackContext(userId, orgId, orgSlug, 'timeout');
     }
     
-    throw error; // Re-throw other errors to be handled by the caller
+    return createFallbackContext(userId, orgId, orgSlug, 'unknown-error');
   }
+}
+
+/**
+ * Helper to create a consistent fallback context
+ */
+function createFallbackContext(userId: string, orgId: string, orgSlug: string | null, reason: string): SageContext {
+  return {
+    user: { 
+      id: userId, 
+      _fallback: true,
+      displayName: 'User'
+    },
+    org: { 
+      id: orgId, 
+      slug: orgSlug || 'default',
+      _fallback: true,
+      name: 'Organization'
+    },
+    userId,
+    orgId,
+    messages: [],
+    _meta: {
+      source: `fallback-${reason}`,
+      hydratedAt: new Date().toISOString(),
+      timeout: reason === 'timeout',
+      error: `Context creation failed: ${reason}`
+    }
+  } as SageContext;
 }

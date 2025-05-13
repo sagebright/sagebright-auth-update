@@ -4,6 +4,7 @@ import { AskSageContainer } from '@/components/ask-sage/AskSageContainer';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { useAuth } from '@/contexts/auth/AuthContext';
 import { useSageContext } from '@/hooks/sage-context';
+import { toast } from '@/components/ui/use-toast';
 
 const AskSage = () => {
   const { loading } = useAuth();
@@ -15,7 +16,27 @@ const AskSage = () => {
       contextLoading: sageContext.loading,
       contextReady: sageContext.isReady
     });
-  }, [loading, sageContext.loading, sageContext.isReady]);
+    
+    // Show notification for backend API issues
+    if (sageContext.error) {
+      console.warn("⚠️ Backend API error:", sageContext.error);
+      toast({
+        title: "Backend connection issue",
+        description: "Unable to connect to the backend. Some features may be limited.",
+        duration: 5000,
+      });
+    }
+    
+    // Show notification for backend timeout
+    if (sageContext.timedOut) {
+      console.warn("⏱️ Backend context timed out");
+      toast({
+        title: "Loading took too long",
+        description: sageContext.fallbackMessage || "Some data couldn't load in time. You can continue with limited features.",
+        duration: 5000,
+      });
+    }
+  }, [loading, sageContext.loading, sageContext.isReady, sageContext.error, sageContext.timedOut, sageContext.fallbackMessage]);
 
   return (
     <ErrorBoundary fallback={

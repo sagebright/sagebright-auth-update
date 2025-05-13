@@ -28,9 +28,13 @@ export function useSageContainerState() {
   const { userId, orgId } = useAuth();
 
   // Force canSendMessages to true after timeout even if not fully ready
+  // Also allow sending if either the user or org context is a fallback
   const canSendMessages = contextHydration.isReadyToSend || 
                            contextHydration.hydration.timedOut || 
-                           (contextHydration.backendContext.userContext?._fallback === true);
+                           sageContext.error || // Allow sending if there was an API error
+                           sageContext.timedOut || // Allow sending if there was a timeout
+                           (contextHydration.backendContext.userContext?._fallback === true) ||
+                           (contextHydration.backendContext.orgContext?._fallback === true);
 
   // Preserve voice parameters
   useEffect(() => {
@@ -66,6 +70,13 @@ export function useSageContainerState() {
     userId,
     orgId,
     canSendMessages,
-    hasTimedOut: contextHydration.hydration.timedOut
+    hasTimedOut: contextHydration.hydration.timedOut || sageContext.timedOut,
+    // Add these extra flags to make interface more resilient
+    hasApiError: !!sageContext.error,
+    useFallback: !!sageContext.error || 
+                sageContext.timedOut || 
+                contextHydration.hydration.timedOut || 
+                (contextHydration.backendContext.userContext?._fallback === true) ||
+                (contextHydration.backendContext.orgContext?._fallback === true)
   };
 }

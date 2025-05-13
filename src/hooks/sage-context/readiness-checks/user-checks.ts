@@ -34,6 +34,7 @@ export function checkUserMetadataReadiness(
 
 /**
  * Function to check if backend context is ready
+ * Enhanced with better 404 error handling
  */
 export function checkBackendContextReadiness(
   userContext: any | null,
@@ -53,9 +54,18 @@ export function checkBackendContextReadiness(
   const isUserFallback = userContext && userContext._fallback === true;
   const isOrgFallback = orgContext && orgContext._fallback === true;
   
-  // In development mode or with fallback contexts, we'll be more forgiving
-  if (process.env.NODE_ENV === 'development' || isUserFallback || isOrgFallback) {
-    console.info('🧪 Development mode or using fallback context: Suppressing backend context blockers');
+  // If we have fallback contexts (even in production), consider them ready
+  if (isUserFallback || isOrgFallback) {
+    console.info('🔄 Using fallback context: Suppressing backend context blockers');
+    return {
+      isReady: true,
+      blockers: []
+    };
+  }
+  
+  // In development mode, we'll be more forgiving
+  if (process.env.NODE_ENV === 'development') {
+    console.info('🧪 Development mode: Suppressing backend context blockers');
     return {
       isReady: true,
       blockers: []

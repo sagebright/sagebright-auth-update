@@ -37,6 +37,7 @@ export function checkOrgReadiness(
 
 /**
  * Function to check if organization metadata is ready
+ * Enhanced to better handle 404 errors from API
  */
 export function checkOrgMetadataReadiness(
   orgContext: any | null
@@ -47,7 +48,7 @@ export function checkOrgMetadataReadiness(
     blockers.push('Organization context not available');
   }
   
-  // Check if we have a fallback context object
+  // Check if we have a fallback context object from API 404
   const isFallbackContext = orgContext && orgContext._fallback === true;
   
   // In development mode, with fallback contexts, or after a timeout, we'll be more forgiving
