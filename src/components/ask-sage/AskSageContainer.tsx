@@ -80,9 +80,9 @@ export const AskSageContainer: React.FC = () => {
     debugPanel
   } = useAskSagePage();
 
-  // Type assertion approach: This is the root fix for the TypeScript error
-  // Explicitly cast to boolean using the Boolean constructor
-  const isRecoveringOrgBoolean: boolean = Boolean(isRecoveringOrg === true);
+  // Create a safe boolean value from isRecoveringOrg regardless of its actual type
+  // TypeScript will know this is definitely a boolean because we're using type assertion
+  const isRecoveringOrgBoolean = typeof isRecoveringOrg === 'boolean' ? isRecoveringOrg : false;
 
   // Check if loading states should be displayed
   if (!shouldRender || authLoading || !canInteract) {
