@@ -6,15 +6,13 @@
 import { processAuthResponse } from './responseUtils';
 import { hasAuthCookie } from '../cookies/cookieDetection';
 import { createEmptyAuthPayload } from './emptyStateUtils';
-
-// Define the base URL for all backend API requests
-const API_BASE_URL = 'https://sagebright-backend.onrender.com';
+import { API_BASE_URL } from '../../constants';
 
 /**
  * Make an authenticated API request with proper error handling
  */
 export async function makeAuthFetch(url: string, options: RequestInit = {}): Promise<any> {
-  // Convert relative URLs to absolute URLs without modifying paths
+  // Convert relative URLs to absolute URLs using the API_BASE_URL constant
   const absoluteUrl = url.startsWith('http') 
     ? url // Already absolute
     : `${API_BASE_URL}${url}`; // Trust the caller's path

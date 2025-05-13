@@ -1,6 +1,7 @@
 
 import { contextLogger } from '../contextLogger';
 import { hydrateSageContext } from '../../api/sageContextApi';
+import { API_BASE_URL } from '../../constants';
 
 /**
  * Attempts to fetch context via the unified API endpoint

@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
+import { API_BASE_URL } from '@/lib/constants';
 
 /**
  * Backend health check component for development and diagnostics
@@ -14,7 +15,6 @@ export default function BackendHealthCheck() {
     status: 'success' | 'error';
     message: string;
   } | null>(null);
-  const backendUrl = 'https://sagebright-backend.onrender.com';
 
   const checkHealth = async () => {
     setChecking(true);
@@ -23,7 +23,7 @@ export default function BackendHealthCheck() {
       const startTime = performance.now();
       
       // Try the session endpoint first (most important)
-      const sessionResponse = await fetch(`${backendUrl}/auth/session`, {
+      const sessionResponse = await fetch(`${API_BASE_URL}/auth/session`, {
         method: 'GET',
         credentials: 'include', // Include credentials for cross-origin requests
         headers: {
@@ -105,7 +105,7 @@ export default function BackendHealthCheck() {
       )}
       
       <div className="text-xs text-gray-500 mt-2">
-        <p>Backend URL: {backendUrl}</p>
+        <p>Backend URL: {API_BASE_URL}</p>
         <p className="mt-1">
           ℹ️ If requests fail with CORS errors, you need to enable CORS on your backend for this origin.
         </p>

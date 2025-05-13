@@ -11,9 +11,7 @@ import { makeAuthFetch } from "./auth/utils/fetchUtils";
 import { shouldThrottleRequest, isDuplicateRequest, shouldApplyBackoff } from "./auth/utils/throttleUtils";
 import { createEmptyAuthPayload } from "./auth/utils/emptyStateUtils";
 import type { AuthPayload } from "./api/auth/types";
-
-// Define the base URL for all backend API requests
-const API_BASE_URL = 'https://sagebright-backend.onrender.com';
+import { API_BASE_URL } from "./constants";
 
 /**
  * Fetches authentication data from the server

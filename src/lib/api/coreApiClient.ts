@@ -1,107 +1,88 @@
 
 /**
- * Core API client for making requests with improved validation and error handling
+ * Core API client functionality for making backend requests
  */
-import { ApiRequestOptions, ApiResponse } from './types';
-import { isValidApiRoute } from './routeValidation';
+import { API_BASE_URL } from '../constants';
+
+interface ApiRequestOptions {
+  context?: string;
+  fallbackMessage?: string;
+  timeout?: number;
+  abortSignal?: AbortSignal;
+}
 
 /**
- * Makes a request to the API with enhanced error handling and validation
+ * Makes an API request with proper error handling and timeout
  */
-export async function apiRequest<T = any>(
-  endpoint: string, 
-  options: RequestInit = {}, 
+export async function apiRequest(
+  endpoint: string,
+  options: RequestInit = {},
   requestOptions: ApiRequestOptions = {}
-): Promise<ApiResponse<T>> {
-  const {
-    context = 'API request',
-    fallbackMessage = 'An error occurred. Please try again.',
-    silent = false,
-    useMockInDev = false,
-    mockEvenIn404 = false,
-    validateRoute = true
-  } = requestOptions;
-
+) {
+  const { timeout = 10000 } = requestOptions;
+  
+  // Ensure endpoint is properly formatted
+  const fixedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  
+  // Always use the absolute URL with API_BASE_URL
+  const url = endpoint.startsWith('http') 
+    ? endpoint 
+    : `${API_BASE_URL}${fixedEndpoint}`;
+  
+  console.log(`🌐 API request to ${url}`);
+  
+  // Set up abort controller for timeout
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+  
+  // Merge the abort signal with any provided signal
+  const signal = requestOptions.abortSignal 
+    ? AbortSignal.any([controller.signal, requestOptions.abortSignal]) 
+    : controller.signal;
+  
   try {
-    // Optional route validation to catch invalid API paths early
-    if (validateRoute && !isValidApiRoute(endpoint)) {
-      console.warn(`⚠️ Potentially invalid API route: ${endpoint}`);
-      
-      // In production, this should be a hard error unless explicitly bypassed
-      if (process.env.NODE_ENV === 'production' && !requestOptions.validateRoute === false) {
-        throw new Error(`Invalid API route: ${endpoint}`);
-      }
-    }
-
-    // Use mock data in development if configured
-    if (process.env.NODE_ENV === 'development' && useMockInDev) {
-      console.log(`🧪 Using mock data for endpoint: ${endpoint}`);
-      
-      const { getMockResponseForEndpoint } = await import('./mockDataProvider');
-      const mockResponse = getMockResponseForEndpoint(endpoint);
-      
-      return mockResponse as ApiResponse<T>;
-    }
-
-    // Make the actual API request
-    console.log(`🔄 API request: ${endpoint}`);
-    const response = await fetch(endpoint, {
+    const response = await fetch(url, {
+      ...options,
       headers: {
-        'Content-Type': 'application/json',
         'Accept': 'application/json',
-        ...options.headers
+        'Content-Type': 'application/json',
+        ...(options.headers || {})
       },
-      ...options
+      credentials: 'include',
+      mode: 'cors',
+      signal
     });
-
-    // Handle 404s with mock data if configured
-    if (!response.ok && response.status === 404 && process.env.NODE_ENV === 'development' && mockEvenIn404) {
-      console.warn(`⚠️ 404 for ${endpoint}, using mock data`);
-      const { getMockResponseForEndpoint } = await import('./mockDataProvider');
-      const mockResponse = getMockResponseForEndpoint(endpoint);
-      return mockResponse as ApiResponse<T>;
-    }
-
-    // Process the response
+    
+    clearTimeout(timeoutId);
+    
+    // Handle non-OK responses
     if (!response.ok) {
-      console.error(`❌ API error (${context}): ${response.status} ${response.statusText}`);
-      
-      let errorMessage = fallbackMessage;
-      try {
-        const errorData = await response.json();
-        errorMessage = errorData.message || errorData.error || fallbackMessage;
-      } catch (e) {
-        // If we can't parse JSON, just use the fallback message
-      }
-
-      return {
-        ok: false,
+      console.error(`API error (${response.status}): ${url}`);
+      return { error: `${response.status} ${response.statusText}`, status: response.status };
+    }
+    
+    // Parse JSON response
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      const data = await response.json();
+      return { data, status: response.status };
+    } else {
+      console.warn(`API response not JSON: ${contentType}`);
+      return { 
+        error: 'Invalid response format',
         status: response.status,
-        error: errorMessage,
-        errorDetails: { status: response.status, statusText: response.statusText }
+        contentType
       };
     }
-
-    // Parse the successful response
-    const data = await response.json();
-    return { 
-      ok: true, 
-      status: response.status,
-      data 
-    };
   } catch (error) {
-    // Handle unexpected errors
-    console.error(`❌ Exception in ${context}:`, error);
+    clearTimeout(timeoutId);
     
-    if (!silent) {
-      // Here we would typically show a toast notification
-      // but we'll leave that to the caller
+    if (error.name === 'AbortError') {
+      console.error(`API request timed out after ${timeout}ms: ${url}`);
+      return { error: 'Request timed out', status: 408 };
     }
-
-    return { 
-      ok: false, 
-      error: error instanceof Error ? error.message : fallbackMessage,
-      errorDetails: error
-    };
+    
+    console.error('API request error:', error);
+    return { error: error.message, status: 0 };
   }
 }
