@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/auth/AuthContext';
 import { useSageSessionStability } from './use-session-stability';
@@ -40,8 +41,25 @@ export function useAskSageGuard() {
     ? Date.now() - protectionStartTime 
     : null;
   
+  // Check for debug flag in URL
+  const isDebugModeActive = () => {
+    // Check for ?debug=stuck or other debug mode flags
+    const params = new URLSearchParams(window.location.search);
+    return params.get('debug') === 'stuck';
+  };
+  
   // Release protection after timeout
   useEffect(() => {
+    // Check if we're in debug mode
+    const debugMode = isDebugModeActive();
+    if (debugMode) {
+      console.log('🧪 Debug mode active: Disabling protection and gating');
+      setIsProtected(false);
+      setCanInteract(true);
+      setShouldRender(true);
+      return; // Skip protection logic in debug mode
+    }
+    
     if (isProtected && !protectionTimeoutRef.current) {
       console.log('⏱️ Setting up Ask Sage protection window timeout (8s)');
       protectionTimeoutRef.current = window.setTimeout(() => {
@@ -67,6 +85,9 @@ export function useAskSageGuard() {
   
   // Once context is ready, remove protection
   useEffect(() => {
+    // Skip in debug mode
+    if (isDebugModeActive()) return;
+    
     if (contextHydration.isReadyToRender && isProtected) {
       console.log('✅ Context ready, removing protection');
       setIsProtected(false);
@@ -75,6 +96,9 @@ export function useAskSageGuard() {
   
   // Track can-interact state
   useEffect(() => {
+    // Skip in debug mode - already set
+    if (isDebugModeActive()) return;
+    
     const newCanInteract = isProtectedButReady || !isProtected;
     
     // If in development mode and protection has been active for more than 5 seconds,
@@ -98,6 +122,9 @@ export function useAskSageGuard() {
   
   // Track should-render state
   useEffect(() => {
+    // Skip in debug mode - already set
+    if (isDebugModeActive()) return;
+    
     // In development, we're more permissive about rendering
     if (process.env.NODE_ENV === 'development') {
       if (!userId && authLoading) {
@@ -141,7 +168,8 @@ export function useAskSageGuard() {
     shouldRender, 
     isProtected,
     blockerCount: combinedBlockers.length,
-    hydrationProgress: contextHydration.hydration.progressPercent
+    hydrationProgress: contextHydration.hydration.progressPercent,
+    debugMode: isDebugModeActive()
   });
   
   return {
@@ -154,6 +182,7 @@ export function useAskSageGuard() {
     protectionTimeMs,
     stabilityTimeMs,
     showLoading: !canInteract || !shouldRender,
-    contextHydration  // Expose the full hydration context for components
+    contextHydration,  // Expose the full hydration context for components
+    isDebugMode: isDebugModeActive() // Expose debug mode status
   };
 }

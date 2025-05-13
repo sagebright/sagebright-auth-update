@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAskSageRouteProtection } from '@/hooks/ask-sage/use-route-protection';
 import { useSageSessionStability } from '@/hooks/ask-sage/use-session-stability';
 import { useAuth } from '@/contexts/auth/AuthContext';
@@ -9,10 +9,21 @@ import { useContextHydration } from '@/hooks/sage-context/hydration';
 import { useVoiceParamState } from '@/hooks/use-voice-param';
 import { useSageContext } from '@/hooks/sage-context';
 
+// Define the voice transition record structure
+interface VoiceTransition {
+  previousVoice: string | null;
+  newVoice: string | null;
+  timestamp: number;
+  source: string;
+}
+
 export const DebugPanel = () => {
   const { userId, orgId, user } = useAuth();
   const voiceParamState = useVoiceParamState();
   const sageContext = useSageContext();
+  
+  // Track voice transition history
+  const [voiceTransitions, setVoiceTransitions] = useState<VoiceTransition[]>([]);
   
   // Use the enhanced context hydration system
   const contextHydration = useContextHydration(
@@ -30,6 +41,41 @@ export const DebugPanel = () => {
     protectionTimeMs,
     stabilityTimeMs
   } = useAskSageGuard();
+
+  // Load voice transitions from localStorage and track new ones
+  useEffect(() => {
+    // Load existing transitions from localStorage
+    const storedTransitions = localStorage.getItem('voiceParamTransitions');
+    const parsedTransitions = storedTransitions ? JSON.parse(storedTransitions) : [];
+    setVoiceTransitions(parsedTransitions);
+    
+    // Track current voice param for change detection
+    const currentVoice = voiceParamState.currentVoice;
+    const currentSource = voiceParamState.source || 'unknown';
+    
+    return () => {
+      // When voice changes, record the transition
+      if (voiceParamState.currentVoice !== currentVoice) {
+        const newTransition: VoiceTransition = {
+          previousVoice: currentVoice,
+          newVoice: voiceParamState.currentVoice,
+          timestamp: Date.now(),
+          source: currentSource
+        };
+        
+        // Get existing transitions and add new one at the beginning
+        const existingTransitions = localStorage.getItem('voiceParamTransitions');
+        const parsedTransitions = existingTransitions ? JSON.parse(existingTransitions) : [];
+        const updatedTransitions = [newTransition, ...parsedTransitions].slice(0, 3); // Keep last 3
+        
+        // Save back to localStorage
+        localStorage.setItem('voiceParamTransitions', JSON.stringify(updatedTransitions));
+        
+        // Update state
+        setVoiceTransitions(updatedTransitions);
+      }
+    };
+  }, [voiceParamState.currentVoice, voiceParamState.source]);
 
   return (
     <div className="fixed bottom-4 right-4 z-50 bg-background/95 border rounded-lg shadow-lg p-4 max-w-sm overflow-auto max-h-[80vh]">
@@ -65,6 +111,39 @@ export const DebugPanel = () => {
               '⏳ Stabilizing'
             }</span>
           </div>
+        </div>
+        
+        <div className="border-t pt-2">
+          <h4 className="font-medium text-primary">Voice Parameters</h4>
+          <div className="grid grid-cols-2 gap-1">
+            <span>Current Voice:</span>
+            <span>{voiceParamState.currentVoice || 'default'}</span>
+            
+            <span>Source:</span>
+            <span>{voiceParamState.source || 'N/A'}</span>
+            
+            <span>Is Valid:</span>
+            <span>{voiceParamState.isValid ? '✅ Yes' : '⚠️ No'}</span>
+          </div>
+          
+          {voiceTransitions.length > 0 && (
+            <div className="mt-2">
+              <h5 className="text-xs font-medium mb-1">Recent Voice Transitions:</h5>
+              <div className="space-y-2 bg-muted/30 p-2 rounded text-[10px]">
+                {voiceTransitions.map((transition, index) => (
+                  <div key={index} className="flex flex-col">
+                    <span>
+                      {new Date(transition.timestamp).toLocaleTimeString()} via {transition.source}
+                    </span>
+                    <span className="font-mono">
+                      {transition.previousVoice || '(none)'} → {transition.newVoice || '(none)'}
+                    </span>
+                    {index < voiceTransitions.length - 1 && <hr className="my-1 border-muted" />}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="border-t pt-2">
