@@ -49,9 +49,13 @@ export function checkBackendContextReadiness(
     blockers.push('Organization context not available');
   }
   
-  // In development mode, we'll be more forgiving
-  if (process.env.NODE_ENV === 'development' && blockers.length > 0) {
-    console.info('🧪 Development mode: Suppressing backend context blockers');
+  // Check if we have fallback context objects
+  const isUserFallback = userContext && userContext._fallback === true;
+  const isOrgFallback = orgContext && orgContext._fallback === true;
+  
+  // In development mode or with fallback contexts, we'll be more forgiving
+  if (process.env.NODE_ENV === 'development' || isUserFallback || isOrgFallback) {
+    console.info('🧪 Development mode or using fallback context: Suppressing backend context blockers');
     return {
       isReady: true,
       blockers: []

@@ -56,7 +56,7 @@ export function useContextHydration(
     userId,
     orgId, 
     orgSlug,
-    userMetadata: JSON.stringify(user?.user_metadata) || 'missing',
+    userMetadata: user?.user_metadata ? JSON.stringify(user.user_metadata) : 'missing',
     hasBackendUserContext: !!backendContext.userContext,
     hasBackendOrgContext: !!backendContext.orgContext,
     authLoading,
@@ -86,6 +86,16 @@ export function useContextHydration(
           ...prev, 
           isLoading: false,
           timedOut: true,
+          // Create minimal fallback contexts to satisfy readiness checks
+          userContext: prev.userContext || { 
+            _fallback: true, 
+            id: userId || 'fallback-user'
+          },
+          orgContext: prev.orgContext || {
+            _fallback: true,
+            id: orgId || 'fallback-org',
+            slug: orgSlug || 'fallback-slug'
+          },
           error: new Error("Context hydration timed out")
         }));
         
@@ -103,7 +113,7 @@ export function useContextHydration(
         window.clearTimeout(hydrationTimeoutRef.current);
       }
     };
-  }, [hydrationProgress.startTime, backendContext.isLoading]);
+  }, [hydrationProgress.startTime, backendContext.isLoading, userId, orgId, orgSlug]);
   
   // Fetch context from the backend when dependencies change
   useEffect(() => {
@@ -136,6 +146,16 @@ export function useContextHydration(
           setBackendContext(prev => ({ 
             ...prev, 
             isLoading: false,
+            // Create minimal fallback contexts on API failure
+            userContext: prev.userContext || {
+              _fallback: true,
+              id: userId
+            },
+            orgContext: prev.orgContext || {
+              _fallback: true,
+              id: orgId,
+              slug: orgSlug || 'default-org'
+            },
             error: new Error("Failed to load context data")
           }));
         }
@@ -146,6 +166,16 @@ export function useContextHydration(
         setBackendContext(prev => ({ 
           ...prev, 
           isLoading: false,
+          // Create minimal fallback contexts on error
+          userContext: prev.userContext || {
+            _fallback: true,
+            id: userId
+          },
+          orgContext: prev.orgContext || {
+            _fallback: true,
+            id: orgId,
+            slug: orgSlug || 'default-org'
+          },
           error: error instanceof Error ? error : new Error("Unknown error fetching context")
         }));
       });
@@ -178,7 +208,9 @@ export function useContextHydration(
     hasOrgContext: !!backendContext.orgContext,
     contextReadyToRender: contextReadiness.isReadyToRender,
     contextReadyToSend: contextReadiness.isReadyToSend,
-    timedOut: backendContext.timedOut
+    timedOut: backendContext.timedOut,
+    userContextFallback: backendContext.userContext?._fallback || false,
+    orgContextFallback: backendContext.orgContext?._fallback || false
   });
   
   // Track steps and update hydration progress
@@ -189,8 +221,8 @@ export function useContextHydration(
     backendContext: {
       ...backendContext,
       // Add fallback handling
-      userContext: backendContext.userContext || (backendContext.timedOut ? { _fallback: true } : null),
-      orgContext: backendContext.orgContext || (backendContext.timedOut ? { _fallback: true } : null)
+      userContext: backendContext.userContext || (backendContext.timedOut ? { _fallback: true, id: userId } : null),
+      orgContext: backendContext.orgContext || (backendContext.timedOut ? { _fallback: true, id: orgId, slug: orgSlug || 'default-org' } : null)
     },
     hydration: {
       ...hydrationProgress,

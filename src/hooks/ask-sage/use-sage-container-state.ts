@@ -29,7 +29,8 @@ export function useSageContainerState() {
 
   // Force canSendMessages to true after timeout even if not fully ready
   const canSendMessages = contextHydration.isReadyToSend || 
-                           contextHydration.hydration.timedOut;
+                           contextHydration.hydration.timedOut || 
+                           (contextHydration.backendContext.userContext?._fallback === true);
 
   // Preserve voice parameters
   useEffect(() => {

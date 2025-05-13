@@ -1,3 +1,4 @@
+
 import { ReadinessCheck } from '../types';
 
 /**
@@ -46,9 +47,12 @@ export function checkOrgMetadataReadiness(
     blockers.push('Organization context not available');
   }
   
-  // In development mode or after a timeout, we'll be more forgiving
-  if (process.env.NODE_ENV === 'development') {
-    console.info('🧪 Development mode: Suppressing org metadata blockers');
+  // Check if we have a fallback context object
+  const isFallbackContext = orgContext && orgContext._fallback === true;
+  
+  // In development mode, with fallback contexts, or after a timeout, we'll be more forgiving
+  if (process.env.NODE_ENV === 'development' || isFallbackContext) {
+    console.info('🧪 Development mode or using fallback: Suppressing org metadata blockers');
     return {
       isReady: true,
       blockers: []
