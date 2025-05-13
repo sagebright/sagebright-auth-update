@@ -43,6 +43,17 @@ export function useContextHydration(
   // Extract the orgSlug from user metadata
   const orgSlug = user?.user_metadata?.org_slug ?? null;
   
+  // DETAILED LOGGING: Extra information about user and org state
+  console.log("🔎 useContextHydration state:", {
+    userId,
+    orgId, 
+    orgSlug,
+    userMetadata: user?.user_metadata || 'missing',
+    hasBackendUserContext: !!backendContext.userContext,
+    hasBackendOrgContext: !!backendContext.orgContext,
+    authLoading
+  });
+  
   // Fetch context from the backend when dependencies change
   useEffect(() => {
     // Skip if we don't have the necessary IDs yet
@@ -107,6 +118,16 @@ export function useContextHydration(
     }
   );
   
+  // DETAILED LOGGING: Log backend context fetch status
+  console.log("🔄 Backend context fetch state:", {
+    isLoading: backendContext.isLoading,
+    error: backendContext.error ? backendContext.error.message : null,
+    hasUserContext: !!backendContext.userContext,
+    hasOrgContext: !!backendContext.orgContext,
+    contextReadyToRender: contextReadiness.isReadyToRender,
+    contextReadyToSend: contextReadiness.isReadyToSend
+  });
+  
   // Track steps and update hydration progress
   useHydrationTracking(userId, contextReadiness, hydrationProgress, setHydrationProgress);
   
@@ -122,3 +143,4 @@ export function useContextHydration(
     }
   };
 }
+

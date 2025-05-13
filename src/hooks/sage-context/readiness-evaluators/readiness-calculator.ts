@@ -33,6 +33,15 @@ export function calculateReadinessState(
     console.log('Backend context readiness:', backendContextCheck);
     console.log('Session stability:', stabilityCheck);
     
+    // DETAILED LOGGING: Show exact blockers with more context
+    console.log('🔍 Detailed blockers:', {
+      orgId: orgSlug ? 'present' : 'missing',
+      orgSlug: orgSlug,
+      orgBlockers: orgCheck.blockers,
+      orgMetadataBlockers: orgMetadataCheck.blockers,
+      backendBlockers: backendContextCheck.blockers
+    });
+    
     // Group blockers by category
     const blockersByCategory = categorizeBlockers(
       authCheck.blockers,
@@ -153,3 +162,4 @@ export function calculateReadinessState(
     console.groupEnd();
   }
 }
+

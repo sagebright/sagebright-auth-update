@@ -11,7 +11,13 @@ export function useAskSageGuard() {
   console.log("🛡️ useAskSageGuard initialized");
   
   const { userId, orgId, user, loading: authLoading } = useAuth();
-  console.log("🔐 Auth state in useAskSageGuard:", { userId, orgId, hasUser: !!user, authLoading });
+  console.log("🔐 Auth state in useAskSageGuard:", { 
+    userId, 
+    orgId, 
+    hasUser: !!user,
+    authLoading,
+    userMetadata: user?.user_metadata || 'missing'
+  });
   
   const { sessionStable, stabilityTimeMs, readinessBlockers: sessionBlockers } = useSageSessionStability();
   const { protectionActive, protectionStartTime } = useAskSageRouteProtection();
@@ -19,6 +25,16 @@ export function useAskSageGuard() {
   
   // Get the Sage context
   const sageContext = useSageContext();
+  
+  // DETAILED LOGGING: Log Sage context status
+  console.log("🧠 Sage context status:", {
+    loading: sageContext.loading,
+    hasContext: !!sageContext.context,
+    error: sageContext.error?.message || null,
+    hasUserContext: !!sageContext.userContext,
+    hasOrgContext: !!sageContext.orgContext,
+    hasVoiceConfig: !!sageContext.voiceConfig
+  });
   
   // Use the canonical hydration tracking hook
   const contextHydration = useContextHydration(
@@ -47,6 +63,21 @@ export function useAskSageGuard() {
     const params = new URLSearchParams(window.location.search);
     return params.get('debug') === 'stuck';
   };
+  
+  // DETAILED LOGGING: Log guard dependency values to check for churn
+  console.log("⚠️ Guard dependency values:", {
+    userId,
+    orgId,
+    userObject: !!user,
+    sessionStable,
+    blockers: contextHydration.blockers,
+    blockersCount: contextHydration.blockers.length,
+    blockersByCategory: contextHydration.blockersByCategory,
+    contextHydrationProgress: contextHydration?.hydration?.progressPercent,
+    canInteract,
+    shouldRender,
+    isProtected
+  });
   
   // Release protection after timeout
   useEffect(() => {
@@ -168,6 +199,7 @@ export function useAskSageGuard() {
     shouldRender, 
     isProtected,
     blockerCount: combinedBlockers.length,
+    blockers: combinedBlockers,
     hydrationProgress: contextHydration.hydration.progressPercent,
     debugMode: isDebugModeActive()
   });
@@ -186,3 +218,4 @@ export function useAskSageGuard() {
     isDebugMode: isDebugModeActive() // Expose debug mode status
   };
 }
+
