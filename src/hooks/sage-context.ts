@@ -55,6 +55,8 @@ export function useSageContext() {
   const [context, setContext] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [timedOut, setTimedOut] = useState(false);
+  const [fallbackMessage, setFallbackMessage] = useState<string | null>(null);
 
   useEffect(() => {
     // If auth is still loading or no userId or orgId, don't fetch context yet
@@ -63,6 +65,16 @@ export function useSageContext() {
     }
 
     let isMounted = true;
+    
+    // Set a timeout to detect if context is taking too long to load
+    const timeoutId = setTimeout(() => {
+      if (isMounted && loading) {
+        console.warn('⚠️ Context fetch timed out');
+        setTimedOut(true);
+        setFallbackMessage("Some context information is taking too long to load. " +
+                          "You can continue with limited personalization.");
+      }
+    }, 10000); // 10 second timeout
     
     const fetchContext = async () => {
       try {
@@ -90,6 +102,7 @@ export function useSageContext() {
         console.error('❌ Error fetching context:', err);
         if (isMounted) {
           setError(err instanceof Error ? err : new Error('Unknown error fetching context'));
+          setFallbackMessage("Unable to load your personalized context. Some features may be limited.");
         }
       } finally {
         if (isMounted) {
@@ -102,6 +115,7 @@ export function useSageContext() {
 
     return () => {
       isMounted = false;
+      clearTimeout(timeoutId);
     };
   }, [userId, orgId, orgSlug, currentUserData, authLoading]);
 
@@ -109,6 +123,8 @@ export function useSageContext() {
     context,
     loading,
     error,
+    timedOut,
+    fallbackMessage,
     userContext: context?.user || null,
     orgContext: context?.org || null,
     voiceConfig: context?.voiceConfig || null,

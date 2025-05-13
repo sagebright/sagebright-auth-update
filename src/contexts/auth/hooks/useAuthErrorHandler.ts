@@ -1,7 +1,7 @@
 
 import { useCallback } from 'react';
 import { toast } from '@/hooks/use-toast';
-import { handleApiError, ApiErrorOptions } from '@/lib/handleApiError';
+import { handleApiError, ApiErrorOptions, ApiErrorResponse } from '@/lib/handleApiError';
 import { useRedirectIntentManager } from '@/lib/redirect-intent';
 import { useNavigate } from 'react-router-dom';
 import { RedirectReason } from '@/lib/redirect-intent/types';

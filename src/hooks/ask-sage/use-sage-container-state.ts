@@ -31,8 +31,8 @@ export function useSageContainerState() {
   // Also allow sending if either the user or org context is a fallback
   const canSendMessages = contextHydration.isReadyToSend || 
                            contextHydration.hydration.timedOut || 
-                           sageContext.error || // Allow sending if there was an API error
-                           sageContext.timedOut || // Allow sending if there was a timeout
+                           sageContext.timedOut || // Allow sending if there was an API error
+                           sageContext.error || // Allow sending if there was a timeout
                            (contextHydration.backendContext.userContext?._fallback === true) ||
                            (contextHydration.backendContext.orgContext?._fallback === true);
 
