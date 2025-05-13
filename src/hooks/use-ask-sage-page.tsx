@@ -12,8 +12,10 @@ import { useReflectionHandler } from '@/hooks/ask-sage/use-reflection-handler';
 import { useQuestionSelection } from '@/hooks/ask-sage/use-question-selection';
 import { useContextMonitor } from '@/hooks/ask-sage/use-context-monitor';
 import { useSageMessenger } from '@/hooks/ask-sage/use-sage-messenger';
+import { AskSagePageState } from '@/hooks/ask-sage/types';
+import { useOrgRecovery } from '@/hooks/use-org-recovery';
 
-export const useAskSagePage = () => {
+export const useAskSagePage = (): AskSagePageState => {
   console.group('🌟 Ask Sage Page Initialization');
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -30,6 +32,10 @@ export const useAskSagePage = () => {
   
   const { currentUser: currentUserData } = useAuth();
   const sessionUserReady = !!user;
+  
+  // Get organization recovery state with proper typing
+  const orgRecovery = useOrgRecovery(userId, orgId, isAuthenticated);
+  const isRecoveringOrg = orgRecovery.isRecoveringOrg;
   
   // Debug panel
   const debugPanel = useDebugPanel();
@@ -59,7 +65,7 @@ export const useAskSagePage = () => {
     suggestedQuestions,
     handleSendMessage,
     handleFeedback,
-    isRecoveringOrg
+    isRecoveringOrg: chatRecoveringOrg
   } = useChat(debugPanel, contextReadiness.isContextReady);
   
   // UI state hooks
@@ -125,7 +131,7 @@ export const useAskSagePage = () => {
     handleFeedback,
     
     // Context state
-    isRecoveringOrg,
+    isRecoveringOrg, // This is now guaranteed to be a boolean from useOrgRecovery
     voiceParam,
     
     // Debug and readiness
