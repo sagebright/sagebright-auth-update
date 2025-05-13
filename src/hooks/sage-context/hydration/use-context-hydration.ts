@@ -1,10 +1,14 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSageContextReadiness } from '../use-sage-context-readiness';
 import { useAuth } from '@/contexts/auth/AuthContext';
 import { HydrationState } from './types';
 import { useHydrationTracking } from './use-hydration-tracking';
 import { hydrateSageContext } from '@/lib/api/sageContextApi';
+import { toast } from '@/components/ui/use-toast';
+
+// Maximum time to wait for context hydration before using fallback
+const MAX_HYDRATION_TIME = 10000; // 10 seconds
 
 /**
  * Hook to track and ensure complete context hydration
@@ -37,8 +41,12 @@ export function useContextHydration(
     userContext: userContext,
     orgContext: orgContext,
     isLoading: false,
-    error: null
+    error: null,
+    timedOut: false
   });
+  
+  // Add timeout reference for hydration
+  const hydrationTimeoutRef = useRef<number | null>(null);
   
   // Extract the orgSlug from user metadata
   const orgSlug = user?.user_metadata?.org_slug ?? null;
@@ -48,11 +56,54 @@ export function useContextHydration(
     userId,
     orgId, 
     orgSlug,
-    userMetadata: user?.user_metadata || 'missing',
+    userMetadata: JSON.stringify(user?.user_metadata) || 'missing',
     hasBackendUserContext: !!backendContext.userContext,
     hasBackendOrgContext: !!backendContext.orgContext,
-    authLoading
+    authLoading,
+    timedOut: backendContext.timedOut
   });
+  
+  // Trigger timeout fallback if hydration takes too long
+  useEffect(() => {
+    if (!hydrationProgress.startTime) return;
+    
+    // Clear any existing timeout
+    if (hydrationTimeoutRef.current) {
+      window.clearTimeout(hydrationTimeoutRef.current);
+    }
+    
+    // Set a timeout to provide a fallback experience if hydration takes too long
+    hydrationTimeoutRef.current = window.setTimeout(() => {
+      console.warn("⚠️ Context hydration timeout exceeded", {
+        maxTime: MAX_HYDRATION_TIME,
+        startTime: hydrationProgress.startTime,
+        currentTime: Date.now()
+      });
+      
+      // Only set timeout if we're still loading
+      if (backendContext.isLoading) {
+        setBackendContext(prev => ({ 
+          ...prev, 
+          isLoading: false,
+          timedOut: true,
+          error: new Error("Context hydration timed out")
+        }));
+        
+        // Show a toast to the user about the partial data
+        toast({
+          title: "Some data may be incomplete",
+          description: "We're having trouble loading all your information, but you can continue using the app with limited personalization.",
+          duration: 5000
+        });
+      }
+    }, MAX_HYDRATION_TIME);
+    
+    return () => {
+      if (hydrationTimeoutRef.current) {
+        window.clearTimeout(hydrationTimeoutRef.current);
+      }
+    };
+  }, [hydrationProgress.startTime, backendContext.isLoading]);
   
   // Fetch context from the backend when dependencies change
   useEffect(() => {
@@ -77,7 +128,8 @@ export function useContextHydration(
             userContext: context.user || null,
             orgContext: context.org || null,
             isLoading: false,
-            error: null
+            error: null,
+            timedOut: false
           });
         } else {
           console.warn("⚠️ No context data returned from API");
@@ -125,7 +177,8 @@ export function useContextHydration(
     hasUserContext: !!backendContext.userContext,
     hasOrgContext: !!backendContext.orgContext,
     contextReadyToRender: contextReadiness.isReadyToRender,
-    contextReadyToSend: contextReadiness.isReadyToSend
+    contextReadyToSend: contextReadiness.isReadyToSend,
+    timedOut: backendContext.timedOut
   });
   
   // Track steps and update hydration progress
@@ -133,14 +186,19 @@ export function useContextHydration(
   
   return {
     ...contextReadiness,
-    backendContext,
+    backendContext: {
+      ...backendContext,
+      // Add fallback handling
+      userContext: backendContext.userContext || (backendContext.timedOut ? { _fallback: true } : null),
+      orgContext: backendContext.orgContext || (backendContext.timedOut ? { _fallback: true } : null)
+    },
     hydration: {
       ...hydrationProgress,
-      isComplete: !!hydrationProgress.endTime,
-      progressPercent: Math.round(
+      isComplete: !!hydrationProgress.endTime || backendContext.timedOut,
+      progressPercent: backendContext.timedOut ? 100 : Math.round(
         (hydrationProgress.completedSteps.length / hydrationProgress.totalSteps) * 100
-      )
+      ),
+      timedOut: backendContext.timedOut
     }
   };
 }
-

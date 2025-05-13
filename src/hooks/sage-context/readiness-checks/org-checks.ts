@@ -1,4 +1,3 @@
-
 import { ReadinessCheck } from '../types';
 
 /**
@@ -18,12 +17,14 @@ export function checkOrgReadiness(
     blockers.push('Organization slug not available');
   }
   
-  // In development mode, we'll be more forgiving
-  if (process.env.NODE_ENV === 'development' && blockers.length > 0) {
-    console.info('🧪 Development mode: Suppressing organization blockers');
+  // In development mode, we'll be more forgiving and tolerate missing orgSlug
+  if (process.env.NODE_ENV === 'development') {
+    console.info('🧪 Development mode: Suppressing some organization blockers');
+    
+    // Only keep the orgId blocker in dev mode
     return {
-      isReady: true,
-      blockers: []
+      isReady: !!orgId,
+      blockers: !orgId ? ['Organization ID not available'] : []
     };
   }
   
@@ -45,8 +46,8 @@ export function checkOrgMetadataReadiness(
     blockers.push('Organization context not available');
   }
   
-  // In development mode, we'll be more forgiving
-  if (process.env.NODE_ENV === 'development' && blockers.length > 0) {
+  // In development mode or after a timeout, we'll be more forgiving
+  if (process.env.NODE_ENV === 'development') {
     console.info('🧪 Development mode: Suppressing org metadata blockers');
     return {
       isReady: true,

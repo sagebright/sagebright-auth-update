@@ -27,6 +27,10 @@ export function useSageContainerState() {
   
   const { userId, orgId } = useAuth();
 
+  // Force canSendMessages to true after timeout even if not fully ready
+  const canSendMessages = contextHydration.isReadyToSend || 
+                           contextHydration.hydration.timedOut;
+
   // Preserve voice parameters
   useEffect(() => {
     if (!isMounted) return;
@@ -60,6 +64,7 @@ export function useSageContainerState() {
     contextHydration,
     userId,
     orgId,
-    canSendMessages: contextHydration.isReadyToSend
+    canSendMessages,
+    hasTimedOut: contextHydration.hydration.timedOut
   };
 }

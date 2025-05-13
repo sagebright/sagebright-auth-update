@@ -37,9 +37,9 @@ export function calculateReadinessState(
     console.log('🔍 Detailed blockers:', {
       orgId: orgSlug ? 'present' : 'missing',
       orgSlug: orgSlug,
-      orgBlockers: orgCheck.blockers,
-      orgMetadataBlockers: orgMetadataCheck.blockers,
-      backendBlockers: backendContextCheck.blockers
+      orgBlockers: JSON.stringify(orgCheck.blockers),
+      orgMetadataBlockers: JSON.stringify(orgMetadataCheck.blockers),
+      backendBlockers: JSON.stringify(backendContextCheck.blockers)
     });
     
     // Group blockers by category
@@ -50,6 +50,14 @@ export function calculateReadinessState(
       voiceCheck.blockers,
       backendContextCheck.blockers
     );
+    
+    // Log blockers in a more easily readable format
+    if (Object.keys(blockersByCategory).length > 0) {
+      console.log('⚠️ Active blockers by category:');
+      Object.entries(blockersByCategory).forEach(([category, blockers]) => {
+        console.log(`  ${category}: ${JSON.stringify(blockers)}`);
+      });
+    }
     
     // Combine all blockers for backward compatibility
     const allBlockers = [
@@ -162,4 +170,3 @@ export function calculateReadinessState(
     console.groupEnd();
   }
 }
-
