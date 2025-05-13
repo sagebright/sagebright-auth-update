@@ -3,13 +3,7 @@
  * Core API client functionality for making backend requests
  */
 import { API_BASE_URL } from '../constants';
-
-interface ApiRequestOptions {
-  context?: string;
-  fallbackMessage?: string;
-  timeout?: number;
-  abortSignal?: AbortSignal;
-}
+import { ApiRequestOptions, ApiResponse } from './types';
 
 /**
  * Makes an API request with proper error handling and timeout
