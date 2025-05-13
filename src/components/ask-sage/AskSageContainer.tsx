@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { DashboardContainer } from '@/components/layout/DashboardContainer';
 import { useAskSagePage } from '@/hooks/use-ask-sage-page';
@@ -80,9 +79,9 @@ export const AskSageContainer: React.FC = () => {
     debugPanel
   } = useAskSagePage();
 
-  // Create a safe boolean value from isRecoveringOrg regardless of its actual type
-  // TypeScript will know this is definitely a boolean because we're using type assertion
-  const isRecoveringOrgBoolean = typeof isRecoveringOrg === 'boolean' ? isRecoveringOrg : false;
+  // Ensure isRecoveringOrg is treated as a boolean
+  // This approach makes TypeScript explicitly understand we're enforcing a boolean type
+  const isRecoveringOrgBoolean = Boolean(isRecoveringOrg === true);
 
   // Check if loading states should be displayed
   if (!shouldRender || authLoading || !canInteract) {

@@ -1,14 +1,16 @@
 
 import { useState, useEffect } from 'react';
 import { fetchAuth } from '@/lib/backendAuth';
+import { OrgRecoveryState } from './sage-context/hydration/types';
 
 export const useOrgRecovery = (
   userId: string | null, 
   orgId: string | null, 
   isAuthenticated: boolean
-) => {
+): OrgRecoveryState => {
   const [isRecoveringOrg, setIsRecoveringOrg] = useState(false);
   const [hasRecoveredOrgId, setHasRecoveredOrgId] = useState(false);
+  const [recoveryError, setRecoveryError] = useState<Error | null>(null);
 
   useEffect(() => {
     if (isAuthenticated && userId && !orgId && !isRecoveringOrg && !hasRecoveredOrgId) {
@@ -30,6 +32,8 @@ export const useOrgRecovery = (
           console.warn("⚠️ No org ID found for user in backend auth");
         } catch (err) {
           console.error("❌ Error recovering org data:", err);
+          // Properly capture the error in a dedicated state variable
+          setRecoveryError(err instanceof Error ? err : new Error(String(err)));
         } finally {
           setIsRecoveringOrg(false);
           setHasRecoveredOrgId(true);
@@ -42,6 +46,7 @@ export const useOrgRecovery = (
 
   return {
     isRecoveringOrg,
-    hasRecoveredOrgId
+    hasRecoveredOrgId,
+    recoveryError
   };
 };
