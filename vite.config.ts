@@ -13,11 +13,14 @@ export default defineConfig(({ mode }) => ({
       'lvh.me',
       '.lvh.me',
       '127.0.0.1.nip.io',
-      '.127.0.0.1.nip.io'
+      '.127.0.0.1.nip.io',
+      // Add Lovable project domains
+      '.lovableproject.com',
+      '.lovable.app'
     ],
     proxy: {
       "/api": {
-        target: "https://sagebright-backend.up.railway.app",
+        target: "https://sagebright-backend.onrender.com",
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/api/, ''), // Remove /api prefix to match lovable.config.ts

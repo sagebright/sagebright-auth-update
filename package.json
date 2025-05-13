@@ -48,6 +48,7 @@
     "@storybook/types": "^7.6.20",
     "@supabase/supabase-js": "^2.49.1",
     "@tanstack/react-query": "^5.56.2",
+    "@types/uuid": "^10.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",
@@ -71,6 +72,7 @@
     "storybook": "^8.6.12",
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7",
+    "uuid": "^11.1.0",
     "vaul": "^0.9.3",
     "zod": "^3.22.4"
   },
@@ -97,5 +99,4 @@
   "overrides": {
     "node-fetch": "^2.7.0"
   }
-
 }
