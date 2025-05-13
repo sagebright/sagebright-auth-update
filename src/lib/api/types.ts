@@ -25,4 +25,3 @@ export interface ApiResponse<T = any> {
 export interface MockResponseProvider {
   getResponseForEndpoint: (endpoint: string) => ApiResponse;
 }
-
