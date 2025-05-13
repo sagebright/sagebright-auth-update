@@ -1,4 +1,3 @@
-
 /**
  * Utilities for making authenticated fetch requests
  */
@@ -8,7 +7,7 @@ import { hasAuthCookie } from '../cookies/cookieDetection';
 import { createEmptyAuthPayload } from './emptyStateUtils';
 
 // Define the base URL for all backend API requests
-const API_BASE_URL = 'https://sagebright-backend.up.railway.app';
+const API_BASE_URL = 'https://sagebright-backend.onrender.com';
 
 /**
  * Make an authenticated API request with proper error handling

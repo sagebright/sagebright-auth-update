@@ -14,7 +14,7 @@ export default function BackendHealthCheck() {
     status: 'success' | 'error';
     message: string;
   } | null>(null);
-  const backendUrl = 'https://sagebright-backend.up.railway.app';
+  const backendUrl = 'https://sagebright-backend.onrender.com';
 
   const checkHealth = async () => {
     setChecking(true);

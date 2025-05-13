@@ -12,7 +12,7 @@ import {
 import { AuthApiOptions } from './types';
 
 // Define the base URL for all backend API requests
-const API_BASE_URL = 'https://sagebright-backend.up.railway.app';
+const API_BASE_URL = 'https://sagebright-backend.onrender.com';
 
 /**
  * Makes an authenticated API request with error handling
