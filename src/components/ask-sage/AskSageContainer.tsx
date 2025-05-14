@@ -1,144 +1,101 @@
 
-import React, { useEffect } from 'react';
-import { DashboardContainer } from '@/components/layout/DashboardContainer';
+import React from 'react';
 import { useAskSagePage } from '@/hooks/use-ask-sage-page';
-import { DebugPanel } from '@/components/debug/DebugPanel';
-import { AskSageReflectionDialog } from '@/components/ask-sage/AskSageReflectionDialog';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { SageLoadingStates } from '@/components/ask-sage/loading/SageLoadingStates';
-import { SageContentLayout } from '@/components/ask-sage/SageContentLayout';
-import { useSageContainerState } from '@/hooks/ask-sage/use-sage-container-state';
+import AuthRequiredUI from './AuthRequiredUI';
+import LoadingUI from './LoadingUI';
+import OrgRecoveryUI from './OrgRecoveryUI';
+import HydrationUI from './HydrationUI';
+import AskSageContent from './AskSageContent';
+import DebugHeader from './DebugHeader';
+import { FeedbackType } from '@/types/chat';
 
-export const AskSageContainer: React.FC = () => {
-  useEffect(() => {
-    console.log("🏗️ AskSageContainer component mounted");
-  }, []);
-
-  const isMobile = useIsMobile();
-  
-  // Use our custom hook for container state management
+/**
+ * Main container for the Ask Sage chatbot interface
+ * Handles authentication, loading states, and organization context recovery
+ */
+const AskSageContainer: React.FC = () => {
   const {
-    voiceParamState,
-    sageContext,
-    canInteract,
-    shouldRender,
-    isProtected,
-    contextHydration,
-    userId,
-    orgId,
-    canSendMessages
-  } = useSageContainerState();
-  
-  // Log context hydration status for debugging
-  useEffect(() => {
-    if (contextHydration?.hydration?.progressPercent === 100) {
-      console.log("🧠 Live Sage context:", contextHydration.backendContext);
-    }
-  }, [contextHydration?.hydration?.progressPercent, contextHydration.backendContext]);
-  
-  console.log("🧩 AskSageContainer state:", {
-    hasContext: !!sageContext.context,
-    contextLoading: sageContext.loading,
-    hasError: !!sageContext.error,
-    userId,
-    orgId,
-    canInteract,
-    shouldRender,
-    isProtected,
-    canSendMessages,
-    hydrationProgress: contextHydration?.hydration?.progressPercent || 0,
-    backendFetched: !contextHydration.backendContext.isLoading && !contextHydration.backendContext.error
-  });
-  
-  // Use the main page logic hook
-  const {
+    // Auth state
     authLoading,
     isAuthenticated,
-    isContextReady,
-    sessionUserReady,
-    isSessionStable,
+    userId,
+    orgId,
+    canInteract,
     
-    sidebarOpen,
-    setSidebarOpen,
-    isRecoveryVisible,
+    // Context and hydration state
+    shouldRender,
+    contextHydration,
+    isRecoveringOrg,
     
+    // Messaging
     messages,
-    isLoading,
-    suggestedQuestions,
-    showReflection,
-    setShowReflection,
-    
-    handleReflectionSubmit,
-    sendMessageToSage,
-    handleSelectQuestion,
+    inputValue,
+    handleInputChange,
+    handleFormSubmit,
+    handleClearHistory,
+    isMessageSending,
+    canSendMessages,
     handleFeedback,
     
-    isRecoveringOrg,
+    // Voice parameters
     voiceParam,
-    showWelcomeMessage,
     
+    // Debug
     debugPanel
   } = useAskSagePage();
 
-  // Force boolean type for isRecoveringOrg
-  // This explicitly casts to boolean to resolve the TypeScript error
+  // Force boolean type for isRecoveringOrg to resolve TypeScript error
   const isRecoveringOrgBoolean: boolean = Boolean(isRecoveringOrg);
 
   // Check if loading states should be displayed
   if (!shouldRender || authLoading || !canInteract) {
-    return (
-      <SageLoadingStates 
-        authLoading={authLoading}
-        userId={userId}
-        orgId={orgId}
-        isProtected={isProtected}
-        canInteract={canInteract}
-        isRecoveringOrg={isRecoveringOrgBoolean}
-        contextHydration={contextHydration}
-        shouldRender={shouldRender}
-      />
-    );
+    return <LoadingUI state={contextHydration} />;
   }
 
-  // Convert the feedback handler to match expected types
-  const handleFeedbackFormatted = (messageId: string, feedback: 'like' | 'dislike') => {
-    // Map 'like'/'dislike' to 'positive'/'negative' expected by the handler
-    const mappedFeedback = feedback === 'like' ? 'positive' : 'negative';
-    handleFeedback(messageId, mappedFeedback);
+  // Organization recovery UI
+  if (isRecoveringOrgBoolean) {
+    return <OrgRecoveryUI />;
+  }
+
+  // Show hydration UI if context is loading or timed out
+  if (contextHydration.hydration.isLoading || contextHydration.hydration.timedOut) {
+    return <HydrationUI state={contextHydration} />;
+  }
+
+  // Auth check - show login UI if not authenticated
+  if (!isAuthenticated || !userId || !orgId) {
+    return <AuthRequiredUI />;
+  }
+
+  // Adapting feedback types between different parts of the application
+  const handleFeedbackAdapter = (messageId: string, feedback: 'like' | 'dislike'): void => {
+    // Map 'like'/'dislike' to 'positive'/'negative' for backend compatibility
+    const adaptedFeedback: 'positive' | 'negative' = 
+      feedback === 'like' ? 'positive' : 'negative';
+    
+    // Call the original handler with the adapted feedback type
+    handleFeedback(messageId, adaptedFeedback);
   };
 
-  console.log("✅ AskSageContainer rendering full UI");
-  return (
-    <DashboardContainer showSagePanel={false}>
-      <SageContentLayout 
-        sidebarOpen={sidebarOpen}
-        setSidebarOpen={setSidebarOpen}
-        isProtected={isProtected}
-        voiceParam={voiceParam}
-        voiceSource={voiceParamState.source}
-        isSessionStable={isSessionStable}
-        canSendMessages={canSendMessages}
-        messages={messages}
-        isLoading={isLoading}
-        suggestedQuestions={suggestedQuestions}
-        handleSelectQuestion={handleSelectQuestion}
-        sendMessageToSage={sendMessageToSage}
-        handleReflectionSubmit={handleReflectionSubmit}
-        handleFeedback={handleFeedbackFormatted}
-        isContextReady={isContextReady}
-        showWelcomeMessage={showWelcomeMessage}
-        canInteract={canInteract}
-        isOrgReady={!!orgId}
-      />
+  // Debug overlay (only in development)
+  const showDebugHeader = process.env.NODE_ENV === 'development';
 
-      <AskSageReflectionDialog 
-        showReflection={showReflection} 
-        setShowReflection={setShowReflection}
-        handleReflectionSubmit={handleReflectionSubmit}
-        isMobile={isMobile}
+  return (
+    <div className="flex flex-col h-full bg-background">
+      {showDebugHeader && <DebugHeader debugState={debugPanel} />}
+      <AskSageContent
+        messages={messages}
+        inputValue={inputValue}
+        onInputChange={handleInputChange}
+        onSubmit={handleFormSubmit}
+        onClearHistory={handleClearHistory}
+        isMessageSending={isMessageSending}
+        canSendMessages={canSendMessages}
+        voiceParam={voiceParam}
+        onFeedback={handleFeedbackAdapter}
       />
-      
-      {process.env.NODE_ENV === 'development' && <DebugPanel />}
-    </DashboardContainer>
+    </div>
   );
 };
+
+export default AskSageContainer;
