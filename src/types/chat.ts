@@ -49,3 +49,6 @@ export interface SageContext {
     timestamp?: string;
   };
 }
+
+// Add FeedbackType which was missing
+export type FeedbackType = 'positive' | 'negative';

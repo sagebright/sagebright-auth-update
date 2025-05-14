@@ -32,23 +32,25 @@ export function useAskSageGuard() {
   
   // Get hydration state from the context hydration hook
   const contextHydration = useContextHydration({
-    userId,
-    orgId,
-    orgSlug
+    userId: userId || '',
+    orgId: orgId || '',
+    orgSlug: orgSlug || ''
   });
   
   // Determine if user can interact with the app
   const canInteract = !authLoading && isAuthenticated;
   
   // Determine if content should render
-  const shouldRender = contextReadiness.isReadyToRender || contextReadiness.hasTimedOut;
+  const shouldRender = contextReadiness.isReadyToRender || contextReadiness.contextCheckComplete;
   
   // Determine if redirects should be allowed (only block if actively loading context)
   const isRedirectAllowed = !authLoading || !isAuthenticated;
   
   // Update loading state based on hydration progress
   useEffect(() => {
-    if (contextHydration.hydration.completedSteps === contextHydration.hydration.totalSteps) {
+    if (contextHydration.hydration.completedSteps 
+        && contextHydration.hydration.totalSteps 
+        && contextHydration.hydration.completedSteps === contextHydration.hydration.totalSteps) {
       const timer = setTimeout(() => setShowLoading(false), 500);
       return () => clearTimeout(timer);
     }
@@ -61,6 +63,10 @@ export function useAskSageGuard() {
     readinessBlockers: contextReadiness.blockers,
     isProtected,
     showLoading,
-    contextHydration
+    contextHydration,
+    // Add additional properties needed by DebugPanel
+    isProtectedButReady: isProtected && contextReadiness.isReadyToRender,
+    protectionTimeMs: 0, // This would come from a real hook
+    stabilityTimeMs: 0, // This would come from a real hook
   };
 }

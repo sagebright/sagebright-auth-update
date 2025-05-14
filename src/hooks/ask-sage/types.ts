@@ -29,7 +29,7 @@ export interface AskSagePageState {
   handleFeedback: (messageId: string, feedback: 'positive' | 'negative') => void;
   
   // Context state
-  isRecoveringOrg: boolean; // Explicitly typed as boolean
+  isRecoveringOrg: boolean;
   voiceParam: string | null;
   
   // Debug and readiness
@@ -45,4 +45,15 @@ export interface AskSagePageState {
   isSessionStable: boolean;
   blockers: string[];
   readySince: number | null;
+  
+  // Additional properties needed by AskSageContainer
+  canInteract?: boolean;
+  shouldRender?: boolean;
+  contextHydration?: any;
+  inputValue?: string;
+  handleInputChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleFormSubmit?: (e: React.FormEvent<HTMLFormElement>) => void;
+  handleClearHistory?: () => void;
+  isMessageSending?: boolean;
+  canSendMessages?: boolean;
 }

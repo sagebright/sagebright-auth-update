@@ -1,13 +1,9 @@
-
 import React, { useEffect, useState } from 'react';
-import { useAskSageRouteProtection } from '@/hooks/ask-sage/use-route-protection';
-import { useSageSessionStability } from '@/hooks/ask-sage/use-session-stability';
 import { useAuth } from '@/contexts/auth/AuthContext';
-import { useSageContextReadiness } from '@/hooks/sage-context';
-import { useAskSageGuard } from '@/hooks/ask-sage/use-ask-sage-guard';
-import { useContextHydration } from '@/hooks/sage-context/hydration';
 import { useVoiceParamState } from '@/hooks/use-voice-param';
 import { useSageContext } from '@/hooks/sage-context';
+import { useAskSageGuard } from '@/hooks/ask-sage/use-ask-sage-guard';
+import { useContextHydration } from '@/hooks/sage-context/hydration';
 
 // Define the voice transition record structure
 interface VoiceTransition {
@@ -17,30 +13,43 @@ interface VoiceTransition {
   source: string;
 }
 
-export const DebugPanel = () => {
+// Define the props needed for the debug panel
+interface DebugPanelProps {
+  voiceTransitions?: VoiceTransition[];
+  timestamp?: number;
+  userData?: any;
+  orgData?: any;
+}
+
+export const DebugPanel: React.FC<DebugPanelProps> = (props) => {
   const { userId, orgId, user } = useAuth();
   const voiceParamState = useVoiceParamState();
   const sageContext = useSageContext();
   
   // Track voice transition history
-  const [voiceTransitions, setVoiceTransitions] = useState<VoiceTransition[]>([]);
+  const [voiceTransitions, setVoiceTransitions] = useState<VoiceTransition[]>(props.voiceTransitions || []);
   
   // Use the enhanced context hydration system
-  const contextHydration = useContextHydration(
-    voiceParamState.currentVoice,
-    sageContext?.userContext,
-    sageContext?.orgContext
-  );
+  const contextHydration = useContextHydration({
+    userId: userId || '',
+    orgId: orgId || '',
+    orgSlug: ''
+  });
   
+  const guard = useAskSageGuard();
+  
+  // Define variables with fallback values
   const {
     canInteract,
     isProtected,
-    isProtectedButReady,
     shouldRender,
     readinessBlockers,
-    protectionTimeMs,
-    stabilityTimeMs
-  } = useAskSageGuard();
+  } = guard;
+  
+  // Define missing properties with defaults for backward compatibility
+  const isProtectedButReady = guard.isProtectedButReady || false;
+  const protectionTimeMs = guard.protectionTimeMs || 0;
+  const stabilityTimeMs = guard.stabilityTimeMs || 0;
 
   // Load voice transitions from localStorage and track new ones
   useEffect(() => {
@@ -257,3 +266,5 @@ export const DebugPanel = () => {
     </div>
   );
 };
+
+export default DebugPanel;

@@ -3,20 +3,26 @@ import React from 'react';
 import { Progress } from '@/components/ui/progress';
 
 interface HydrationUIProps {
-  isLoading: boolean;
-  progress: number;
-  blockers: string[];
+  state?: any;
+  isLoading?: boolean;
+  progress?: number;
+  blockers?: string[];
   blockersByCategory?: Record<string, string[]>;
   completedSteps?: string[];
 }
 
 export const HydrationUI: React.FC<HydrationUIProps> = ({
-  isLoading,
-  progress,
-  blockers,
+  state,
+  isLoading = true,
+  progress = 0,
+  blockers = [],
   blockersByCategory = {},
   completedSteps = []
 }) => {
+  // Extract data from state if provided
+  const actualProgress = state?.hydration?.progressPercent || progress;
+  const actualBlockers = state?.blockers || blockers;
+  const actualCompletedSteps = state?.hydration?.completedSteps || completedSteps;
   const isDev = process.env.NODE_ENV === 'development';
   
   return (
@@ -33,10 +39,10 @@ export const HydrationUI: React.FC<HydrationUIProps> = ({
         </p>
         
         <div className="space-y-4">
-          <Progress value={progress} className="h-2" />
+          <Progress value={actualProgress} className="h-2" />
           
           <p className="text-sm text-center text-muted-foreground">
-            {progress}% complete
+            {actualProgress}% complete
           </p>
           
           {/* Show component states in development mode */}
@@ -47,46 +53,46 @@ export const HydrationUI: React.FC<HydrationUIProps> = ({
               <div className="space-y-2 text-xs">
                 <div className="flex justify-between">
                   <span>Authentication</span>
-                  <span className={completedSteps.includes('auth') ? 'text-green-500' : 'text-amber-500'}>
-                    {completedSteps.includes('auth') ? '✓ Ready' : '⋯ Loading'}
+                  <span className={actualCompletedSteps.includes('auth') ? 'text-green-500' : 'text-amber-500'}>
+                    {actualCompletedSteps.includes('auth') ? '✓ Ready' : '⋯ Loading'}
                   </span>
                 </div>
                 
                 <div className="flex justify-between">
                   <span>Session</span>
-                  <span className={completedSteps.includes('session') ? 'text-green-500' : 'text-amber-500'}>
-                    {completedSteps.includes('session') ? '✓ Ready' : '⋯ Loading'}
+                  <span className={actualCompletedSteps.includes('session') ? 'text-green-500' : 'text-amber-500'}>
+                    {actualCompletedSteps.includes('session') ? '✓ Ready' : '⋯ Loading'}
                   </span>
                 </div>
                 
                 <div className="flex justify-between">
                   <span>Organization</span>
-                  <span className={completedSteps.includes('org') ? 'text-green-500' : 'text-amber-500'}>
-                    {completedSteps.includes('org') ? '✓ Ready' : '⋯ Loading'}
+                  <span className={actualCompletedSteps.includes('org') ? 'text-green-500' : 'text-amber-500'}>
+                    {actualCompletedSteps.includes('org') ? '✓ Ready' : '⋯ Loading'}
                   </span>
                 </div>
                 
                 <div className="flex justify-between">
                   <span>Voice</span>
-                  <span className={completedSteps.includes('voice') ? 'text-green-500' : 'text-amber-500'}>
-                    {completedSteps.includes('voice') ? '✓ Ready' : '⋯ Loading'}
+                  <span className={actualCompletedSteps.includes('voice') ? 'text-green-500' : 'text-amber-500'}>
+                    {actualCompletedSteps.includes('voice') ? '✓ Ready' : '⋯ Loading'}
                   </span>
                 </div>
                 
                 <div className="flex justify-between">
                   <span>Backend Context</span>
-                  <span className={completedSteps.includes('backend') ? 'text-green-500' : 'text-amber-500'}>
-                    {completedSteps.includes('backend') ? '✓ Ready' : '⋯ Loading'}
+                  <span className={actualCompletedSteps.includes('backend') ? 'text-green-500' : 'text-amber-500'}>
+                    {actualCompletedSteps.includes('backend') ? '✓ Ready' : '⋯ Loading'}
                   </span>
                 </div>
               </div>
               
               {/* Only show blockers if there are any */}
-              {blockers.length > 0 && (
+              {actualBlockers.length > 0 && (
                 <div className="mt-4 pt-4 border-t">
                   <h4 className="text-xs font-medium mb-1 text-red-500">Active Blockers</h4>
                   <ul className="space-y-1">
-                    {blockers.map((blocker, index) => (
+                    {actualBlockers.map((blocker, index) => (
                       <li key={index} className="text-xs text-red-500">
                         • {blocker}
                       </li>
@@ -101,3 +107,6 @@ export const HydrationUI: React.FC<HydrationUIProps> = ({
     </div>
   );
 };
+
+// Add default export for backward compatibility
+export default HydrationUI;

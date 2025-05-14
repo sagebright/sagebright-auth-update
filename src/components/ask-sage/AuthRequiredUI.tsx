@@ -18,3 +18,6 @@ export const AuthRequiredUI: React.FC = () => {
     </div>
   );
 };
+
+// Add default export for backward compatibility
+export default AuthRequiredUI;
