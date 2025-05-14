@@ -8,13 +8,17 @@ import { Message } from '@/types/chat';
 export function useFeedback(initialMessages: Message[] = []) {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
 
-  const handleFeedback = (messageId: string, feedback: 'like' | 'dislike') => {
+  const handleFeedback = (messageId: string, feedback: 'like' | 'dislike' | 'positive' | 'negative') => {
     setMessages(messages.map(message => {
       if (message.id === messageId) {
+        // Handle both naming conventions
+        const isPositive = feedback === 'like' || feedback === 'positive';
+        const isNegative = feedback === 'dislike' || feedback === 'negative';
+        
         return {
           ...message,
-          liked: feedback === 'like' ? true : false,
-          disliked: feedback === 'dislike' ? true : false,
+          liked: isPositive,
+          disliked: isNegative,
         };
       }
       return message;

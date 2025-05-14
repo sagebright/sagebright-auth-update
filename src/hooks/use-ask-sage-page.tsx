@@ -35,7 +35,7 @@ export const useAskSagePage = (): AskSagePageState => {
   
   // Get organization recovery state with proper typing
   const orgRecovery = useOrgRecovery(userId, orgId, isAuthenticated);
-  const isRecoveringOrg = orgRecovery.isRecoveringOrg;
+  const isRecoveringOrg: boolean = orgRecovery.isRecoveringOrg;
   
   // Debug panel
   const debugPanel = useDebugPanel();
@@ -131,7 +131,7 @@ export const useAskSagePage = (): AskSagePageState => {
     handleFeedback,
     
     // Context state
-    isRecoveringOrg, // This is now guaranteed to be a boolean from useOrgRecovery
+    isRecoveringOrg, // This is explicitly typed as boolean now
     voiceParam,
     
     // Debug and readiness

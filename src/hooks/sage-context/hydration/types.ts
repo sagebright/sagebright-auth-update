@@ -1,3 +1,4 @@
+
 export interface HydrationState {
   startTime: number | null;
   endTime: number | null;
@@ -6,9 +7,9 @@ export interface HydrationState {
   totalSteps: number;
 }
 
-// Add this type for org recovery
+// Updated type with explicit boolean types
 export interface OrgRecoveryState {
   isRecoveringOrg: boolean;
   hasRecoveredOrgId: boolean;
-  recoveryError?: Error | null;
+  recoveryError: Error | null;
 }

@@ -80,8 +80,9 @@ export const AskSageContainer: React.FC = () => {
     debugPanel
   } = useAskSagePage();
 
-  // Ensure isRecoveringOrg is treated as a boolean
-  const isRecoveringOrgBoolean = Boolean(isRecoveringOrg === true);
+  // Force boolean type for isRecoveringOrg
+  // This explicitly casts to boolean to resolve the TypeScript error
+  const isRecoveringOrgBoolean: boolean = Boolean(isRecoveringOrg);
 
   // Check if loading states should be displayed
   if (!shouldRender || authLoading || !canInteract) {
