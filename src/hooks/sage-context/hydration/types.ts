@@ -1,15 +1,37 @@
 
-export interface HydrationState {
-  startTime: number | null;
-  endTime: number | null;
-  duration: number | null;
-  completedSteps: string[];
-  totalSteps: number;
+export interface ContextHydrationParams {
+  userId: string;
+  orgId: string;
+  orgSlug: string;
 }
 
-// Updated type with explicit boolean types
-export interface OrgRecoveryState {
-  isRecoveringOrg: boolean;
-  hasRecoveredOrgId: boolean;
-  recoveryError: Error | null;
+export interface HydrationState {
+  completedSteps: number;
+  totalSteps: number;
+  progressPercent: number;
+  isComplete: boolean;
+  duration: number | null;
+  timedOut: boolean;
+}
+
+export interface BackendContextState {
+  userContext: any | null;
+  orgContext: any | null;
+  isLoading: boolean;
+  error: any | null;
+  timedOut: boolean;
+}
+
+export interface ContextHydrationResult {
+  hydration: HydrationState;
+  isAuthReady: boolean;
+  isSessionReady: boolean;
+  isUserMetadataReady: boolean;
+  isOrgReady: boolean;
+  isVoiceReady: boolean;
+  isBackendContextReady: boolean;
+  isReadyToRender: boolean;
+  isReadyToSend: boolean;
+  backendContext: BackendContextState;
+  blockersByCategory?: Record<string, string[]>;
 }

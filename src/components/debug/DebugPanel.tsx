@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/auth/AuthContext';
 import { useVoiceParamState } from '@/hooks/use-voice-param';
@@ -29,11 +30,11 @@ export const DebugPanel: React.FC<DebugPanelProps> = (props) => {
   // Track voice transition history
   const [voiceTransitions, setVoiceTransitions] = useState<VoiceTransition[]>(props.voiceTransitions || []);
   
-  // Use the enhanced context hydration system - passing the correct object type
+  // Use the enhanced context hydration system - passing the correct object structure
   const contextHydration = useContextHydration({
     userId: userId || '',
     orgId: orgId || '',
-    orgSlug: ''
+    orgSlug: '' 
   });
   
   const guard = useAskSageGuard();

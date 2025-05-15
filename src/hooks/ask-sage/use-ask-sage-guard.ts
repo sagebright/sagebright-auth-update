@@ -30,7 +30,7 @@ export function useAskSageGuard() {
     voiceParamState.currentVoice
   );
   
-  // Get hydration state from the context hydration hook - passing object correctly
+  // Get hydration state from the context hydration hook - passing string values correctly
   const contextHydration = useContextHydration({
     userId: userId || '',
     orgId: orgId || '',
