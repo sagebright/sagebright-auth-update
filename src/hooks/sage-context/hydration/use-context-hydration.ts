@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSageContextReadiness } from '../use-sage-context-readiness';
 import { useAuth } from '@/contexts/auth/AuthContext';
-import { HydrationState } from './types';
+import { HydrationState, ContextHydrationParams } from './types';
 import { useHydrationTracking } from './use-hydration-tracking';
 import { hydrateSageContext } from '@/lib/api/sageContextApi';
 import { toast } from '@/components/ui/use-toast';
@@ -15,7 +15,7 @@ const MAX_HYDRATION_TIME = 10000; // 10 seconds
  * Works with the unified context system
  */
 export function useContextHydration(
-  voiceParam: string | null = null,
+  params: ContextHydrationParams, // Updated to use the proper type
   userContext: any | null = null,
   orgContext: any | null = null
 ) {
@@ -32,8 +32,11 @@ export function useContextHydration(
     startTime: null,
     endTime: null,
     duration: null,
-    completedSteps: [],
-    totalSteps: 5 // Auth, Session, User Metadata, Org, and Voice
+    completedSteps: [], // Initialize as empty array to match string[] type
+    totalSteps: 5, // Auth, Session, User Metadata, Org, and Voice
+    progressPercent: 0,
+    isComplete: false,
+    timedOut: false
   });
 
   // Track backend context state
@@ -193,7 +196,7 @@ export function useContextHydration(
     user,
     authLoading,
     sessionUserReady,
-    voiceParam,
+    voiceParam: null, // Use default value
     {
       userContext: backendContext.userContext,
       orgContext: backendContext.orgContext

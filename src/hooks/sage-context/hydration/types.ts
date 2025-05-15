@@ -6,12 +6,14 @@ export interface ContextHydrationParams {
 }
 
 export interface HydrationState {
-  completedSteps: number;
+  completedSteps: string[]; // Changed from number to string[] to match usage
   totalSteps: number;
   progressPercent: number;
   isComplete: boolean;
   duration: number | null;
   timedOut: boolean;
+  startTime: number | null; // Added missing property
+  endTime: number | null;   // Added missing property
 }
 
 export interface BackendContextState {
@@ -34,4 +36,11 @@ export interface ContextHydrationResult {
   isReadyToSend: boolean;
   backendContext: BackendContextState;
   blockersByCategory?: Record<string, string[]>;
+}
+
+// Add missing OrgRecoveryState type
+export interface OrgRecoveryState {
+  isRecoveringOrg: boolean;
+  hasRecoveredOrgId: boolean;
+  recoveryError: Error | null;
 }

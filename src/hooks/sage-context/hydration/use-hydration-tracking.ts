@@ -51,7 +51,9 @@ export function useHydrationTracking(
     if (JSON.stringify(completedSteps) !== JSON.stringify(hydrationProgress.completedSteps)) {
       setHydrationProgress(prev => ({
         ...prev,
-        completedSteps
+        completedSteps,
+        // Also update progress percentage
+        progressPercent: Math.round((completedSteps.length / prev.totalSteps) * 100)
       }));
     }
     
@@ -61,7 +63,8 @@ export function useHydrationTracking(
       setHydrationProgress(prev => ({
         ...prev,
         endTime,
-        duration: prev.startTime ? endTime - prev.startTime : null
+        duration: prev.startTime ? endTime - prev.startTime : null,
+        isComplete: true
       }));
       
       // Log completion
