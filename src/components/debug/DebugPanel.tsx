@@ -29,7 +29,7 @@ export const DebugPanel: React.FC<DebugPanelProps> = (props) => {
   // Track voice transition history
   const [voiceTransitions, setVoiceTransitions] = useState<VoiceTransition[]>(props.voiceTransitions || []);
   
-  // Use the enhanced context hydration system
+  // Use the enhanced context hydration system - passing the correct object type
   const contextHydration = useContextHydration({
     userId: userId || '',
     orgId: orgId || '',

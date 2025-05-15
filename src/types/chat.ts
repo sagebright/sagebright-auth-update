@@ -50,5 +50,5 @@ export interface SageContext {
   };
 }
 
-// Add FeedbackType which was missing
-export type FeedbackType = 'positive' | 'negative';
+// Properly export the FeedbackType
+export type FeedbackType = 'positive' | 'negative' | 'like' | 'dislike';

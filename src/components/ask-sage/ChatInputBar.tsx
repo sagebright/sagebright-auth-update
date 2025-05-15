@@ -1,10 +1,13 @@
-
-import React, { useState, KeyboardEvent } from 'react';
+import React, { useState, KeyboardEvent, ChangeEvent, FormEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { SendIcon } from 'lucide-react';
 
 interface ChatInputBarProps {
-  onSend: (message: string) => void;
+  onSend?: (message: string) => void;
+  value?: string;
+  onChange?: (e: ChangeEvent<HTMLInputElement>) => void;
+  onSubmit?: (content: string) => void;
+  onFormSubmit?: (event: FormEvent<HTMLFormElement>) => void;
   isLoading?: boolean;
   disabled?: boolean;
   disabledReason?: string;
@@ -13,17 +16,28 @@ interface ChatInputBarProps {
 
 export const ChatInputBar: React.FC<ChatInputBarProps> = ({
   onSend,
+  onSubmit,
+  value,
+  onChange,
+  onFormSubmit,
   isLoading = false,
   disabled = false,
   disabledReason,
   placeholder = "Ask Sage a question..."
 }) => {
+  // Use controlled state if value/onChange are not provided
   const [message, setMessage] = useState('');
   
   const handleSend = () => {
-    if (message.trim() && !isLoading && !disabled) {
-      onSend(message.trim());
-      setMessage('');
+    const currentMessage = value !== undefined ? value : message;
+    if (currentMessage.trim() && !isLoading && !disabled) {
+      if (onSend) onSend(currentMessage.trim());
+      if (onSubmit) onSubmit(currentMessage.trim());
+      
+      // Only clear internal state if not controlled externally
+      if (value === undefined) {
+        setMessage('');
+      }
     }
   };
   
@@ -34,12 +48,33 @@ export const ChatInputBar: React.FC<ChatInputBarProps> = ({
     }
   };
   
+  const handleFormSubmitInternal = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (onFormSubmit) {
+      onFormSubmit(e);
+    } else {
+      handleSend();
+    }
+  };
+  
+  const handleChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
+    // If externally controlled, use provided onChange
+    if (onChange) {
+      // Convert to expected type since we're using textarea instead of input
+      const inputEvent = e as unknown as ChangeEvent<HTMLInputElement>;
+      onChange(inputEvent);
+    } else {
+      // Otherwise use internal state
+      setMessage(e.target.value);
+    }
+  };
+  
   return (
-    <div className="flex items-end gap-2">
+    <form onSubmit={handleFormSubmitInternal} className="flex items-end gap-2">
       <div className="relative flex-1">
         <textarea
-          value={message}
-          onChange={e => setMessage(e.target.value)}
+          value={value !== undefined ? value : message}
+          onChange={handleChange}
           onKeyDown={handleKeyDown}
           placeholder={disabled && disabledReason ? disabledReason : placeholder}
           disabled={disabled || isLoading}
@@ -50,10 +85,9 @@ export const ChatInputBar: React.FC<ChatInputBarProps> = ({
       </div>
       
       <Button
-        type="button"
+        type="submit"
         size="icon"
-        onClick={handleSend}
-        disabled={!message.trim() || isLoading || disabled}
+        disabled={(value !== undefined ? !value.trim() : !message.trim()) || isLoading || disabled}
         aria-label="Send message"
       >
         {isLoading ? (
@@ -62,6 +96,9 @@ export const ChatInputBar: React.FC<ChatInputBarProps> = ({
           <SendIcon className="h-4 w-4" />
         )}
       </Button>
-    </div>
+    </form>
   );
 };
+
+// Add default export for backward compatibility
+export default ChatInputBar;

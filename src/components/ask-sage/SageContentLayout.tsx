@@ -71,7 +71,6 @@ export const SageContentLayout: React.FC<SageContentLayoutProps> = ({
           suggestedQuestions={suggestedQuestions}
           handleSelectQuestion={handleSelectQuestion}
           sendMessageToSage={sendMessageToSage}
-          handleReflectionSubmit={handleReflectionSubmit}
           handleFeedback={handleFeedback}
           isContextReady={isContextReady}
           showWelcomeMessage={showWelcomeMessage}
@@ -90,3 +89,6 @@ export const SageContentLayout: React.FC<SageContentLayoutProps> = ({
     </div>
   );
 };
+
+// Add default export for backward compatibility
+export default SageContentLayout;

@@ -30,7 +30,7 @@ export function useAskSageGuard() {
     voiceParamState.currentVoice
   );
   
-  // Get hydration state from the context hydration hook
+  // Get hydration state from the context hydration hook - passing object correctly
   const contextHydration = useContextHydration({
     userId: userId || '',
     orgId: orgId || '',
@@ -48,8 +48,8 @@ export function useAskSageGuard() {
   
   // Update loading state based on hydration progress
   useEffect(() => {
-    if (contextHydration.hydration.completedSteps 
-        && contextHydration.hydration.totalSteps 
+    if (contextHydration.hydration.completedSteps > 0 
+        && contextHydration.hydration.totalSteps > 0 
         && contextHydration.hydration.completedSteps === contextHydration.hydration.totalSteps) {
       const timer = setTimeout(() => setShowLoading(false), 500);
       return () => clearTimeout(timer);
@@ -68,5 +68,6 @@ export function useAskSageGuard() {
     isProtectedButReady: isProtected && contextReadiness.isReadyToRender,
     protectionTimeMs: 0, // This would come from a real hook
     stabilityTimeMs: 0, // This would come from a real hook
+    hasTimedOut: contextHydration.hydration.timedOut || false,
   };
 }

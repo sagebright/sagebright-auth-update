@@ -13,11 +13,13 @@ interface AskSageContentProps {
   isLoading?: boolean;
   suggestedQuestions?: string[];
   handleSelectQuestion?: (question: string) => void;
-  onFormSubmit?: (event: React.FormEvent<HTMLFormElement>) => void;
+  onSend?: (content: string) => void;
   onSubmit?: (content: string) => void;
   onInputChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onFormSubmit?: (event: React.FormEvent<HTMLFormElement>) => void;
   onClearHistory?: () => void;
   onFeedback?: (messageId: string, feedback: 'like' | 'dislike') => void;
+  handleFeedback?: (messageId: string, feedback: 'like' | 'dislike') => void;
   isMessageSending?: boolean;
   isContextReady?: boolean;
   showWelcomeMessage?: boolean;
@@ -25,6 +27,8 @@ interface AskSageContentProps {
   isProtected?: boolean;
   canInteract?: boolean;
   canSendMessages?: boolean;
+  sendMessageToSage?: (content: string) => void;
+  handleReflectionSubmit?: (data: any) => void;
 }
 
 export const AskSageContent: React.FC<AskSageContentProps> = ({
@@ -34,17 +38,20 @@ export const AskSageContent: React.FC<AskSageContentProps> = ({
   suggestedQuestions = [],
   handleSelectQuestion,
   onSubmit,
+  onSend,
   onInputChange,
   onFormSubmit,
   onClearHistory,
   onFeedback,
+  handleFeedback,
   isMessageSending = false,
   isContextReady = true,
   showWelcomeMessage = true,
   voiceParam = 'default',
   isProtected = false,
   canInteract = true,
-  canSendMessages = true
+  canSendMessages = true,
+  sendMessageToSage
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
@@ -65,6 +72,12 @@ export const AskSageContent: React.FC<AskSageContentProps> = ({
       timestamp: new Date(message.timestamp)
     };
   };
+
+  // Choose the appropriate feedback handler
+  const feedbackHandler = handleFeedback || onFeedback;
+  
+  // Choose the appropriate message sending handler
+  const messageSendingHandler = sendMessageToSage || onSubmit || onSend;
   
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-background">
@@ -79,7 +92,7 @@ export const AskSageContent: React.FC<AskSageContentProps> = ({
           <ChatMessage
             key={message.id}
             message={convertMessage(message)}
-            handleFeedback={onFeedback}
+            handleFeedback={feedbackHandler}
           />
         ))}
         
@@ -107,7 +120,7 @@ export const AskSageContent: React.FC<AskSageContentProps> = ({
         <ChatInputBar 
           value={inputValue}
           onChange={onInputChange}
-          onSubmit={onSubmit}
+          onSubmit={messageSendingHandler}
           onFormSubmit={onFormSubmit}
           isLoading={isMessageSending || isLoading}
           disabled={!canInteract || !canSendMessages || isProtected}

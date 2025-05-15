@@ -1,155 +1,133 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useAskSagePage } from '@/hooks/use-ask-sage-page';
-import { AuthRequiredUI } from './AuthRequiredUI';
-import { LoadingUI } from './LoadingUI';
-import { OrgRecoveryUI } from './OrgRecoveryUI';
-import { HydrationUI } from './HydrationUI';
-import { AskSageContent } from './AskSageContent';
-import { DebugHeader } from './DebugHeader';
+import { useSageContainerState } from '@/hooks/ask-sage/use-sage-container-state';
+import { useNavigate } from 'react-router-dom';
+import { AuthRequiredUI } from '@/components/ask-sage/AuthRequiredUI';
+import { LoadingUI } from '@/components/ask-sage/LoadingUI';
+import DebugPanel from '@/components/debug/DebugPanel';
+import { HydrationUI } from '@/components/ask-sage/HydrationUI';
+import { AskSageContent } from '@/components/ask-sage/AskSageContent';
+import { DebugHeader } from '@/components/ask-sage/DebugHeader';
 import { FeedbackType } from '@/types/chat';
+import { SageContentLayout } from './SageContentLayout';
 
-/**
- * Main container for the Ask Sage chatbot interface
- * Handles authentication, loading states, and organization context recovery
- */
-const AskSageContainer: React.FC = () => {
+export const AskSageContainer: React.FC = () => {
+  const navigate = useNavigate();
+  const askSageState = useAskSagePage();
+  const containerState = useSageContainerState();
+  
+  // Get container state variables with proper error handling
   const {
-    // Auth state
-    authLoading,
-    isAuthenticated,
+    canInteract = false,
+    shouldRender = false,
+    isRedirectAllowed = true,
+    contextHydration = { hydration: { progressPercent: 0 } },
+    showLoading = true,
+    voiceParamState = { currentVoice: 'default', source: 'default' }
+  } = containerState;
+  
+  // State from the main hook
+  const {
     userId,
     orgId,
-    
-    // Context and hydration state
-    isRecoveringOrg,
-    
-    // Messaging
+    isAuthenticated,
+    authLoading,
     messages,
-    handleFeedback,
-    
-    // Voice parameters
-    voiceParam,
-    
-    // Debug
-    debugPanel,
-    
-    // Additional state from useAskSagePage that we need to extract
-    isContextReady,
-    isReadyToRender,
-    isSessionReady,
-    isOrgReady,
-    isVoiceReady,
-    blockers,
     sendMessageToSage,
-    handleSelectQuestion
-  } = useAskSagePage();
-
-  // Add additional state that might be missing
-  const canInteract = isAuthenticated && isContextReady && !authLoading;
-  const shouldRender = isReadyToRender;
-  const contextHydration = {
-    hydration: {
-      isLoading: !isContextReady,
-      progressPercent: 
-        (([isSessionReady, isOrgReady, isVoiceReady].filter(Boolean).length / 3) * 100),
-      completedSteps: [
-        isSessionReady ? 'session' : '',
-        isOrgReady ? 'org' : '',
-        isVoiceReady ? 'voice' : ''
-      ].filter(Boolean),
-      totalSteps: 3,
-      timedOut: false
-    },
-    blockers
-  };
+    handleSelectQuestion,
+    debugPanel,
+    isContextReady,
+    isSessionStable,
+    sidebarOpen = false,
+    setSidebarOpen = () => {},
+    isLoading = false,
+    suggestedQuestions = []
+  } = askSageState;
   
-  // State for input and form handling
-  const [inputValue, setInputValue] = React.useState('');
-  const isMessageSending = false; // This would come from a real hook
-  const canSendMessages = isContextReady;
+  // Local state for input value
+  const [inputValue, setInputValue] = useState('');
+  const isMessageSending = false;
   
-  // Form handling functions
+  // Event handlers
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value);
   };
   
   const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (inputValue.trim() && canSendMessages) {
+    if (inputValue.trim() && !isLoading) {
       sendMessageToSage(inputValue);
       setInputValue('');
     }
   };
   
   const handleClearHistory = () => {
-    console.log('Clearing chat history');
-    // Implementation would go here
+    console.log('Clear history clicked');
+    // Implement clear history functionality
+  };
+  
+  // Adapt the feedback type to match what's expected by the component
+  const handleFeedback = (messageId: string, feedback: FeedbackType) => {
+    // Convert legacy feedback types to the format expected by askSageState.handleFeedback
+    let normalizedFeedback: 'positive' | 'negative';
+    if (feedback === 'like' || feedback === 'positive') {
+      normalizedFeedback = 'positive';
+    } else {
+      normalizedFeedback = 'negative';
+    }
+    askSageState.handleFeedback(messageId, normalizedFeedback);
   };
 
-  // Force boolean type for isRecoveringOrg to resolve TypeScript error
-  const isRecoveringOrgBoolean: boolean = Boolean(isRecoveringOrg);
-
-  // Check if loading states should be displayed
-  if (!shouldRender || authLoading) {
-    return <LoadingUI state={contextHydration} />;
-  }
-
-  // Organization recovery UI
-  if (isRecoveringOrgBoolean) {
-    return <OrgRecoveryUI />;
-  }
-
-  // Show hydration UI if context is loading or timed out
-  if (contextHydration.hydration.isLoading || contextHydration.hydration.timedOut) {
-    return <HydrationUI 
-      state={contextHydration}
-      progress={contextHydration.hydration.progressPercent}
-      blockers={blockers}
-      completedSteps={contextHydration.hydration.completedSteps}
-    />;
-  }
-
-  // Auth check - show login UI if not authenticated
-  if (!isAuthenticated || !userId || !orgId) {
+  const canSendMessages = isContextReady && isSessionStable;
+  
+  // If not authenticated, show login UI
+  if (!isAuthenticated && !authLoading && isRedirectAllowed) {
     return <AuthRequiredUI />;
   }
+  
+  // If loading, show loading UI
+  if (showLoading || authLoading) {
+    return <LoadingUI state={contextHydration} />;
+  }
+  
+  // If hydration is in progress, show hydration UI
+  if (!shouldRender && !isContextReady) {
+    return <HydrationUI state={contextHydration} />;
+  }
 
-  // Adapting feedback types between different parts of the application
-  const handleFeedbackAdapter = (messageId: string, feedback: 'like' | 'dislike'): void => {
-    // Map 'like'/'dislike' to 'positive'/'negative' for backend compatibility
-    const adaptedFeedback: FeedbackType = 
-      feedback === 'like' ? 'positive' : 'negative';
-    
-    // Call the original handler with the adapted feedback type
-    handleFeedback(messageId, adaptedFeedback);
-  };
-
-  // Debug overlay (only in development)
-  const showDebugHeader = process.env.NODE_ENV === 'development';
-
+  // Show default development debug panel in development environment
+  const showDebugPanel = process.env.NODE_ENV === 'development';
+  
   return (
-    <div className="flex flex-col h-full bg-background">
-      {showDebugHeader && <DebugHeader debugState={debugPanel} />}
-      <AskSageContent
-        messages={messages}
-        inputValue={inputValue}
-        onInputChange={handleInputChange}
-        onSubmit={sendMessageToSage}
-        onFormSubmit={handleFormSubmit}
-        onClearHistory={handleClearHistory}
-        isMessageSending={isMessageSending}
-        canSendMessages={canSendMessages}
-        voiceParam={voiceParam}
-        onFeedback={handleFeedbackAdapter}
-        canInteract={canInteract}
+    <>
+      <SageContentLayout 
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
         isProtected={false}
+        voiceParam={voiceParamState?.currentVoice || null}
+        voiceSource={voiceParamState?.source || 'unknown'}
+        isSessionStable={isSessionStable || true}
+        canSendMessages={canSendMessages}
+        messages={messages}
+        isLoading={isLoading}
+        suggestedQuestions={suggestedQuestions}
+        handleSelectQuestion={handleSelectQuestion}
+        sendMessageToSage={sendMessageToSage}
+        handleReflectionSubmit={askSageState.handleReflectionSubmit}
+        handleFeedback={handleFeedback}
+        isContextReady={isContextReady}
+        showWelcomeMessage={askSageState.showWelcomeMessage || false}
+        canInteract={canInteract}
+        isOrgReady={askSageState.isOrgReady || false}
       />
-    </div>
+      
+      {/* Only show debug panel in development environment */}
+      {showDebugPanel && debugPanel?.isDev && (
+        <DebugPanel />
+      )}
+    </>
   );
 };
 
 export default AskSageContainer;
-
-// Also export as named export for consistency
-export { AskSageContainer };

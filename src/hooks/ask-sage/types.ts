@@ -26,7 +26,7 @@ export interface AskSagePageState {
   // Message handlers
   sendMessageToSage: (message: string) => void;
   handleSelectQuestion: (question: string) => void;
-  handleFeedback: (messageId: string, feedback: 'positive' | 'negative') => void;
+  handleFeedback: (messageId: string, feedback: 'positive' | 'negative' | 'like' | 'dislike') => void;
   
   // Context state
   isRecoveringOrg: boolean;
